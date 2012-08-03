@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module ADP.Multi.Combinators where
 import Data.Array
 import Data.Char (ord)
@@ -9,7 +11,7 @@ import Control.Arrow ((***))
 type Subword2  = (Int,Int,Int,Int)
 type Parser2 b = Subword2 -> [b]
 
-data Ranges = RangeMap Subword2 [Ranges]
+data Ranges = RangeMap Subword2 [Ranges] deriving Show
 
 empty2 :: Parser2 ()
 empty2 (i,j,k,l) = [() | i == j && k == l]
@@ -32,13 +34,27 @@ infixr 5 |||
 infix 8 <<<
 (<<<) :: (b -> c) -> Parser2 b -> [Ranges] -> Parser2 c
 (<<<) f q [] (i,j,k,l) = map f (q (i,j,k,l))
+(<<<) _ _ r _ = error $ "something went wrong... the ranges list should be empty: " ++ show r
 
 infix 6 >>>
-(>>>) :: ([Ranges] -> Parser2 a) -> (b -> c) -> Parser2 a
+(>>>) :: Rewriting b => ([Ranges] -> Parser2 a) -> b -> Parser2 a
 (>>>) p f subword = [ result | RangeMap sub rest <- constructRanges f subword, result <- p rest sub ]  
 
-constructRanges :: f -> Subword2 -> [Ranges]
-constructRanges = undefined
+class Rewriting f where
+  constructRanges :: f -> Subword2 -> [Ranges]
+  
+instance (Num a, Eq a) => Rewriting ((a,a) -> ([a],[a])) where
+  constructRanges f (i,j,k,l) = case f (1,2) of
+        ([1],[2]) -> [RangeMap (i,j,k,l) []]
+        ([2],[1]) -> [RangeMap (k,l,i,j) []] -- TODO kein Bezug zu linkem oder rechtem Tupelteil!!
+        ([1,2],[]) -> undefined
+        ([2,1],[]) -> undefined
+        ([],[1,2]) -> undefined
+        ([],[2,1]) -> undefined
+  
+instance Rewriting ((a,a) -> (a,a) -> ([a],[a])) where
+  constructRanges f subword = undefined
+
 
 infixl 7 ~~~
 (~~~) :: ([Ranges] -> Parser2 (b -> c)) -> Parser2 b -> [Ranges] -> Parser2 c
@@ -79,12 +95,12 @@ testGram :: TestAlgebra Char answer -> (String,String) -> [answer]
 testGram alg inp = axiom k where
   (nil, f, f2, f3) = alg
   
-  
+  f3' :: (a,a) -> (a,a) -> ([a],[a]) 
   f3' (p1,p2) (k1,k2) = ([k1,p1],[p2,k2])
 
   k = f3 <<< p ~~~ k >>> f3'
   
- 
+  f' :: (a,a) -> ([a],[a]) 
   f' (c1,c2) = ([c1],[c2]) -- "identical" function
   p = tabulated (
       f <<< chars 'a' 'u' >>> f' |||
