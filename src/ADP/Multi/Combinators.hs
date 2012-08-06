@@ -28,10 +28,10 @@ chars c1 c2 = anychars `with2` charsFilter where
         charsFilter z (_,j,_,l) = z!j == c1 && z!l == c2
         
 charLeftOnly :: Eq a => a -> Parser2 a (a,EPS)
-charLeftOnly c z (i,j,k,l) = [(z!j, EPS) | i+1 == j && k == l]
+charLeftOnly c z (i,j,k,l) = [(c, EPS) | i+1 == j && k == l && z!j == c]
 
 charRightOnly :: Eq a => a -> Parser2 a (EPS,a)
-charRightOnly c z (i,j,k,l) = [(EPS, z!l) | i == j && k+1 == l]
+charRightOnly c z (i,j,k,l) = [(EPS, c) | i == j && k+1 == l && z!l == c]
 
 
 class Parseable p a b | p -> a b where
@@ -62,16 +62,21 @@ infixr 5 |||
 infix 8 <<<
 (<<<) :: Parseable p a b => (b -> c) -> p -> [Ranges] -> Parser2 a c
 (<<<) f p [] z (i,j,k,l) = map f (q z (i,j,k,l)) where
-                                   q = toParser p
+                                  q = toParser p
 (<<<) _ _ r _ _ = error $ "something went wrong... the ranges list should be empty: " ++ show r
 
 infix 6 >>>
 (>>>) :: Rewriting c => ([Ranges] -> Parser2 a b) -> c -> Parser2 a b
 (>>>) p f z subword = [ result | RangeMap sub rest <- constructRanges f subword, result <- p rest z sub ]  
 
+infixl 7 ~~~
+(~~~) :: Parseable p a b => ([Ranges] -> Parser2 a (b -> c)) -> p -> [Ranges] -> Parser2 a c
+(~~~) p q ranges z subword = [ pr qr | qr <- q' z subword, RangeMap sub rest <- ranges, pr <- p rest z sub ] where
+                             q' = toParser q
+
 class Rewriting f where
   constructRanges :: f -> Subword2 -> [Ranges]
-  
+
 instance (Num a, Eq a) => Rewriting ((a,a) -> ([a],[a])) where
   constructRanges f (i,j,k,l) = case f (1,2) of
         ([1],[2]) -> [RangeMap (i,j,k,l) []]
@@ -83,12 +88,6 @@ instance (Num a, Eq a) => Rewriting ((a,a) -> ([a],[a])) where
   
 instance Rewriting ((a,a) -> (a,a) -> ([a],[a])) where
   constructRanges f subword = undefined
-
-
-infixl 7 ~~~
-(~~~) :: Parseable p a b => ([Ranges] -> Parser2 a (b -> c)) -> p -> [Ranges] -> Parser2 a c
-(~~~) p q ranges z subword = [ pr qr | qr <- q' z subword, RangeMap sub rest <- ranges, pr <- p rest z sub ] where
-                             q' = toParser q
 
 
 type Filter2 a = Array Int a -> Subword2 -> Bool
