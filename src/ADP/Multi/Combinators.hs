@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module ADP.Multi.Combinators where
 import Data.Array
@@ -10,59 +11,63 @@ import Data.Char (ord)
 
 
 type Subword2  = (Int,Int,Int,Int)
-type Parser2 b = Subword2 -> [b]
+type Parser2 a b = Array Int a -> Subword2 -> [b]
+
+data EPS = EPS
 
 data Ranges = RangeMap Subword2 [Ranges] deriving Show
 
-empty2 :: Parser2 ()
-empty2 (i,j,k,l) = [() | i == j && k == l]
+empty2 :: Parser2 a ()
+empty2 _ (i,j,k,l) = [() | i == j && k == l]
 
-anychars :: Array Int a -> Parser2 (a,a)
+anychars :: Parser2 a (a,a)
 anychars z (i,j,k,l) = [(z!j, z!l) | i+1 == j && k+1 == l]
 
---chars' (z1,z2) c1 c2 (i,j,k,l) = [(z1!j, z2!l) | i+1 == j && k+1 == l && z1!j == c1 && z2!l == c2]
-chars' :: Eq a => Array Int a -> a -> a -> Parser2 (a,a)
-chars' z c1 c2  = anychars z `with2` charsFilter where
-        charsFilter (_,j,_,l) = z!j == c1 && z!l == c2
+chars :: Eq a => a -> a -> Parser2 a (a,a)
+chars c1 c2 = anychars `with2` charsFilter where
+        charsFilter z (_,j,_,l) = z!j == c1 && z!l == c2
+        
+charLeftOnly :: Eq a => a -> Parser2 a (a,EPS)
+charLeftOnly c z (i,j,k,l) = [(z!j, EPS) | i+1 == j && k == l]
+
+charRightOnly :: Eq a => a -> Parser2 a (EPS,a)
+charRightOnly c z (i,j,k,l) = [(EPS, z!l) | i == j && k+1 == l]
 
 
-{-      
-class Parseable p a | p -> a where
-    toParser :: p -> Parser2 a
+class Parseable p a b | p -> a b where
+    toParser :: p -> Parser2 a b
     
-instance Parseable (Parser2 b) b where
+instance Parseable (Parser2 a b) a b where
     toParser p = p
 
-instance Parseable () () where
+-- TODO the use of just 'a' needs UndecidableInstances, is this necessary?
+instance Parseable () a () where
     toParser _ = empty2 
 
-instance Parseable (a,a) (a,a) where
-    toParser (c1,c2) = 
-    -- TODO we need to have access to the input here
-    --      the Parser2 type needs to be extended to include Array Int a
-    --      at the end, the input is given to axiom which hands it down to the parsers
-
-tt = toParser (anychars (mk "l"))
-tt2 = toParser empty2
-tt3 = toParser ()
-tt4 = toParser ('a','c')
--}      
--- TODO parser where just one element is empty
+instance Eq a => Parseable (a,a) a (a,a) where
+    toParser (c1,c2) = chars c1 c2
+    
+instance Eq a => Parseable (EPS,a) a (EPS,a) where
+    toParser (_,c) = charRightOnly c
+    
+instance Eq a => Parseable (a,EPS) a (a,EPS) where
+    toParser (c,_) = charLeftOnly c
 
 -- # Parser combinators
 
 infixr 5 ||| 
-(|||) :: Parser2 b -> Parser2 b -> Parser2 b
-(|||) r q (i,j,k,l) = r (i,j,k,l) ++ q (i,j,k,l)
+(|||) :: Parser2 a b -> Parser2 a b -> Parser2 a b
+(|||) r q z (i,j,k,l) = r z (i,j,k,l) ++ q z (i,j,k,l)
 
 infix 8 <<<
-(<<<) :: (b -> c) -> Parser2 b -> [Ranges] -> Parser2 c
-(<<<) f q [] (i,j,k,l) = map f (q (i,j,k,l))
-(<<<) _ _ r _ = error $ "something went wrong... the ranges list should be empty: " ++ show r
+(<<<) :: Parseable p a b => (b -> c) -> p -> [Ranges] -> Parser2 a c
+(<<<) f p [] z (i,j,k,l) = map f (q z (i,j,k,l)) where
+                                   q = toParser p
+(<<<) _ _ r _ _ = error $ "something went wrong... the ranges list should be empty: " ++ show r
 
 infix 6 >>>
-(>>>) :: Rewriting b => ([Ranges] -> Parser2 a) -> b -> Parser2 a
-(>>>) p f subword = [ result | RangeMap sub rest <- constructRanges f subword, result <- p rest sub ]  
+(>>>) :: Rewriting c => ([Ranges] -> Parser2 a b) -> c -> Parser2 a b
+(>>>) p f z subword = [ result | RangeMap sub rest <- constructRanges f subword, result <- p rest z sub ]  
 
 class Rewriting f where
   constructRanges :: f -> Subword2 -> [Ranges]
@@ -81,43 +86,46 @@ instance Rewriting ((a,a) -> (a,a) -> ([a],[a])) where
 
 
 infixl 7 ~~~
-(~~~) :: ([Ranges] -> Parser2 (b -> c)) -> Parser2 b -> [Ranges] -> Parser2 c
-(~~~) p q ranges subword = [ pr qr | qr <- q subword, RangeMap sub rest <- ranges, pr <- p rest sub ]
+(~~~) :: Parseable p a b => ([Ranges] -> Parser2 a (b -> c)) -> p -> [Ranges] -> Parser2 a c
+(~~~) p q ranges z subword = [ pr qr | qr <- q' z subword, RangeMap sub rest <- ranges, pr <- p rest z sub ] where
+                             q' = toParser q
 
 
-type Filter2 = Subword2 -> Bool
-with2 :: Parser2 b -> Filter2 -> Parser2 b
-with2 q c (i,j,k,l) = if c (i,j,k,l) then q (i,j,k,l)  else []
+type Filter2 a = Array Int a -> Subword2 -> Bool
+with2 :: Parser2 a b -> Filter2 a -> Parser2 a b
+with2 q c z subword = if c z subword then q z subword else []
 
-axiom'        :: Int -> Parser2 b -> [b]
-axiom' l ax   =  ax (0,l,0,l) -- TODO does that still make sense?
+axiom'        :: Int -> Array Int a -> Parser2 a b -> [b]
+axiom' l z ax   =  ax z (0,l,0,l) -- TODO does that still make sense?
 
 -- # Tabulation
 
 -- four-dimensional tabulation
-table2     :: Int -> Parser2 b -> Parser2 b
-table2 n q =  (!) $ array ((0,0,0,0),(n,n,n,n))
-                   [((i,j,k,l),q (i,j,k,l)) | i <- [0..n], j <- [i..n], k <- [0..n], l <- [k..n]]
+table2     :: Int -> Parser2 a b -> Parser2 a b
+table2 n q z = (!) $ array ((0,0,0,0),(n,n,n,n))
+                   [((i,j,k,l),q z (i,j,k,l)) | i <- [0..n], j <- [i..n], k <- [0..n], l <- [k..n]]
 
 -- # TESTS
 
 type TestAlgebra alphabet answer = (
         () -> answer,
+        (EPS, alphabet) -> answer,
         (alphabet, alphabet) -> answer,
         (alphabet, alphabet) -> (alphabet, alphabet) -> answer,
         answer -> answer -> answer
    )
 
 testAlg :: TestAlgebra Char Int
-testAlg = (nil, f, f2, f3) where
-   nil _ = 0
+testAlg = (nil, left, f, f2, f3) where
+   nil () = 0
+   left (EPS,c) = ord c
    f (l,r) = ord l + ord r
    f2 (l,r) (l2,r2) = ord l + ord r + ord l2 + ord r2
    f3 l r = l + r
    
 testGram :: TestAlgebra Char answer -> String -> [answer]
 testGram alg inp = axiom k where
-  (nil, f, f2, f3) = alg
+  (nil, left, f, f2, f3) = alg
   
   f3' :: (a,a) -> (a,a) -> ([a],[a]) 
   f3' (p1,p2) (k1,k2) = ([k1,p1],[p2,k2])
@@ -127,13 +135,17 @@ testGram alg inp = axiom k where
   f' :: (a,a) -> ([a],[a]) 
   f' (c1,c2) = ([c1],[c2]) -- "identical" function
   p = tabulated (
-      f <<< chars 'a' 'u' >>> f' |||
-      f <<< chars 'u' 'a' >>> f' |||
-      f <<< chars 'c' 'g' >>> f' |||
-      f <<< chars 'g' 'c' >>> f' |||
-      f <<< chars 'g' 'u' >>> f' |||
-      f <<< chars 'u' 'g' >>> f'
+      f <<< ('a', 'u') >>> f' |||
+      f <<< ('u', 'a') >>> f' |||
+      f <<< ('c', 'g') >>> f' |||
+      f <<< ('g', 'c') >>> f' |||
+      f <<< ('g', 'u') >>> f' |||
+      f <<< ('u', 'g') >>> f' 
       )
+      
+  test = f   <<< ('a', 'u') >>> f' |||
+         nil <<< ()         >>> f' |||
+         left <<< (EPS, 'u') >>> f'
       
   -- or using our basepair parser constructed with a filter:
   
@@ -142,14 +154,13 @@ testGram alg inp = axiom k where
   z         = mk inp
   (_,n)     = bounds (z)
   
-  chars = chars' z
   tabulated = table2 n
-  basepair  = anychars z `with2` basepairing
+  basepair  = anychars `with2` basepairing
   
-  basepairing :: Filter2
-  basepairing (i,j,k,l) = i+1 == j && k+1 == l && isBasepair (z!(i+1), z!(k+1))
+  basepairing :: Filter2 Char
+  basepairing z (i,j,k,l) = i+1 == j && k+1 == l && isBasepair (z!(i+1), z!(k+1))
   
-  axiom     = axiom' n
+  axiom     = axiom' n z
   
 isBasepair ('a','u') = True
 isBasepair ('u','a') = True
