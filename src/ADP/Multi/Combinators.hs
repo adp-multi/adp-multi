@@ -6,10 +6,11 @@
 module ADP.Multi.Combinators where
 import Data.Array
 import Data.Char (ord)
+import Data.List (find, elemIndex)
 
 -- # Lexical parsers
 
-
+type Subword  = (Int,Int)
 type Subword2  = (Int,Int,Int,Int)
 type Parser2 a b = Array Int a -> Subword2 -> [b]
 
@@ -91,13 +92,123 @@ instance (Num a, Eq a) => Rewriting ((a,a) -> ([a],[a])) where
         ([],[2,1]) -> [RangeMap (x,k,l,x) [] | k == l, x <- [k..l]]
         _ -> error "invalid rewriting function, each argument must appear exactly once"
 
--- 2-dim to 2-dim  with 2 tuples
-instance Rewriting ((a,a) -> (a,a) -> ([a],[a])) where
-  constructRanges f subword = undefined
+-- 2-dim to 2-dim  with many tuples
+instance (Num a, Eq a) => Rewriting ([(a,a)] -> ([(a,a)],[(a,a)])) where
+  constructRanges f (i,j,k,l) = 
+        let (left,right) = f [(1,1),(1,2),(2,1),(2,2)]
+            remainingSymbols = [2,1]
+            rangeDesc = [(i,j,left),(k,l,right)]
+            rangeDescFiltered = filterEmptyRanges rangeDesc
+        in if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
+           else constructRangesRec remainingSymbols rangeDescFiltered
+
+type RangeDesc a b = (Int,Int,[(a,b)])
+
+constructRangesRec :: (Eq a, Eq b, Num b) => [a] -> [RangeDesc a b] -> [Ranges]
+constructRangesRec [] [] = []
+constructRangesRec (current:rest) rangeDescs =
+        let symbolLoc = findSymbol current rangeDescs
+            subwords = calcSubwords symbolLoc
+        in [ RangeMap subword restRanges |
+             subword <- subwords,
+             let newDescs = constructNewRangeDescs rangeDescs symbolLoc subword,
+             let restRanges = constructRangesRec rest newDescs
+           ]
+constructRangesRec [] (_:_) = error "programming error"
+
+constructNewRangeDescs :: (Eq a, Eq b) => [RangeDesc a b] -> ((RangeDesc a b,Int),(RangeDesc a b,Int)) -> Subword2 -> [RangeDesc a b]
+constructNewRangeDescs descs symbolPositions subword =
+        [ newDesc | desc <- descs, newDesc <- processRangeDesc desc symbolPositions subword ]
+
+processRangeDesc :: (Eq a, Eq b) => RangeDesc a b -> ((RangeDesc a b,Int),(RangeDesc a b,Int)) -> Subword2 -> [RangeDesc a b]
+processRangeDesc inp ((left,a1Idx),(right,a2Idx)) (m,n,o,p)
+  | inp /= left && inp /= right = [inp]
+  | inp == left && inp == right =
+        -- at this point it doesn't matter what the actual ordering is
+        -- so we just swap if necessary to make it easier for processRangeDescDouble
+        let (a1Idx',a2Idx',m',n',o',p') = 
+                if a1Idx < a2Idx then
+                    (a1Idx,a2Idx,m,n,o,p)
+                else
+                    (a2Idx,a1Idx,o,p,m,n)
+        in processRangeDescDouble inp a1Idx' a2Idx' (m',n',o',p')
+  | inp == left = processRangeDescSingle left a1Idx (m,n)
+  | inp == right = processRangeDescSingle right a2Idx (o,p)
+
+filterEmptyRanges :: [RangeDesc a b] -> [RangeDesc a b]
+filterEmptyRanges l = 
+        let f (i,j,d) = not $ null d && i == j
+        in filter f l
+
+processRangeDescSingle :: (Eq a, Eq b) => RangeDesc a b -> Int -> Subword -> [RangeDesc a b]
+processRangeDescSingle (i,j,r) aIdx (k,l)
+  | aIdx == 0 = filterEmptyRanges [(l,j,tail r)]
+  | aIdx == length r - 1 = [(i,k,init r)]
+  | otherwise = [(i,k,take aIdx r),(l,j,drop (aIdx + 1) r)]
+
+slice :: Int -> Int -> [a] -> [a]
+slice from to xs = take (to - from + 1) (drop from xs)
+
+-- assumes that a1Idx < a2Idx, see processRangeDesc
+processRangeDescDouble :: (Eq a, Eq b) => RangeDesc a b -> Int -> Int -> Subword2 -> [RangeDesc a b]
+processRangeDescDouble (i,j,r) a1Idx a2Idx (k,l,m,n)
+  -- assert a1Idx < a2Idx, where to put it?!
+  | a1Idx == 0 && a2Idx == length r - 1 = filterEmptyRanges [(l,m,init (tail r))]
+  | a1Idx == 0 = filterEmptyRanges [(l,m,slice 1 (a2Idx-1) r),(n,j,drop (a2Idx+1) r)]
+  | a2Idx == length r - 1 = filterEmptyRanges [(i,k,take a1Idx r),(l,m,slice (a1Idx+1) (a2Idx-1) r)]
+  | otherwise = filterEmptyRanges [(i,k,take a1Idx r),(l,m,slice (a1Idx+1) (a2Idx-1) r),(n,j,drop (a2Idx+1) r)]
+
+
+calcSubwords :: ((RangeDesc a b,Int),(RangeDesc a b,Int)) -> [Subword2]
+calcSubwords (left@((i,j,r),a1Idx),right@((m,n,r'),a2Idx))
+  | i == m && j == n = calcSubwordsDependent (i,j,r) a1Idx a2Idx
+  | length r == 1 && length r' == 1 = [(i,j,m,n)]
+  | length r == 1  = [(i',j',k',l') | let (i',j') = (i,j), (k',l') <- calcSubwordsIndependent right]
+  | length r' == 1 = [(i',j',k',l') | let (k',l') = (m,n), (i',j') <- calcSubwordsIndependent left]
+  | otherwise = [(i',j',k',l') | (i',j') <- calcSubwordsIndependent left, (k',l') <- calcSubwordsIndependent right]
+
+-- assumes that other component is in a different part
+calcSubwordsIndependent :: (RangeDesc a b,Int) -> [Subword]
+calcSubwordsIndependent ((i,j,r),axIdx)
+  | axIdx == 0            = [(k,l) | let k = i, l <- [i..j]]
+  | axIdx == length r - 1 = [(k,l) | let l = j, k <- [i..j]]
+  | otherwise             = [(k,l) | k <- [i..j], l <- [k..j]] 
+
+-- assumes that other component is in the same part
+calcSubwordsDependent :: RangeDesc a b -> Int -> Int -> [Subword2]
+calcSubwordsDependent (i,j,r) a1Idx a2Idx =
+        let a1Idx' = if a1Idx < a2Idx then a1Idx else a2Idx
+            a2Idx' = if a1Idx < a2Idx then a2Idx else a1Idx
+            subs = doCalcSubwordsDependent (i,j,r) a1Idx' a2Idx'
+        in if a1Idx < a2Idx then subs
+           else [ (k,l,m,n) | (m,n,k,l) <- subs ]
+ 
+-- assumes that components are in-order (post-processing by calcSubwordsDependent)
+doCalcSubwordsDependent :: RangeDesc a b -> Int -> Int -> [Subword2]
+doCalcSubwordsDependent (i,j,r) a1Idx a2Idx
+  | a1Idx == 0 && a2Idx == length r - 1 = 
+        [ (k,l,m,n) | let (k,n) = (i,j), l <- [i..j], m <- [l..j] ]
+        
+  | a1Idx == 0 =
+        [ (k,l,m,n) | let k = i, l <- [i..j], m <- [l..j], n <- [m..j] ]
+        
+  | a2Idx == length r - 1 =
+        [ (k,l,m,n) | let n = j, m <- [i..j], l <- [m..i], k <- [l..i] ]
   
-  
-  
-  
+  | a1Idx > 0 && a2Idx < length r - 1 =
+        [ (k,l,m,n) | k <- [i..j], l <- [k..j], m <- [l..j], n <- [m..j] ]
+
+  | otherwise = error "invalid state, e.g. a1Idx == a2Idx == 0"
+        
+findSymbol :: (Eq a, Eq b, Num b) => a -> [RangeDesc a b] -> ((RangeDesc a b,Int),(RangeDesc a b,Int))
+findSymbol s rangeDesc =
+         let Just (i,j,r)  = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == 1) l') rangeDesc
+             Just (m,n,r') = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == 2) l') rangeDesc
+             Just a1Idx = elemIndex (s,1) r
+             Just a2Idx = elemIndex (s,2) r'
+         in (((i,j,r),a1Idx),((m,n,r'),a2Idx))
+       
+         
 -- 2-dim to 1-dim with 1 tuple
 -- not possible yet, see comment at ~~~
 instance Rewriting ((a,a) -> [a]) where
@@ -152,10 +263,13 @@ testGram alg inp = axiom s where
   s' :: (a,a) -> ([a],[a])
   s' (c1,c2) = ([c1,c2],[]) -- 1-dim simulated as 2-dim
   
-  s = start <<< p >>> s'
+  s = start <<< k >>> s'
   
-  f3' :: (a,a) -> (a,a) -> ([a],[a]) 
-  f3' (p1,p2) (k1,k2) = ([k1,p1],[p2,k2])
+--  f3' :: (a,a) -> (a,a) -> ([a],[a]) 
+--  f3' (p1,p2) (k1,k2) = ([k1,p1],[p2,k2])
+
+  f3' :: [(a,a)] -> ([(a,a)],[(a,a)]) 
+  f3' [p1,p2,k1,k2] = ([k1,p1],[p2,k2])
 
   k = f3 <<< p ~~~ k >>> f3'
   
