@@ -4,6 +4,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module ADP.Multi.Combinators where
+import Debug.Trace
+import Control.Exception
 import Data.Array
 import Data.Char (ord)
 import Data.List (find, elemIndex)
@@ -34,7 +36,7 @@ charRightOnly :: Eq a => a -> Parser2 a (EPS,a)
 charRightOnly c z (i,j,k,l) = [(EPS, c) | i == j && k+1 == l && z!l == c]
 
 
-class Parseable p a b | p -> a b where
+class Parseable p a b | p -> a, p -> b where
     toParser :: p -> Parser2 a b
     
 instance Parseable (Parser2 a b) a b where
@@ -68,6 +70,7 @@ infix 8 <<<
 -- TODO the dimension of the resulting parser should result from c
 infix 6 >>>
 (>>>) :: Rewriting c => ([Ranges] -> Parser2 a b) -> c -> Parser2 a b
+(>>>) _ _ _ a | trace (">>> " ++ show a) False = undefined
 (>>>) p f z subword = [ result | RangeMap sub rest <- constructRanges f subword, result <- p rest z sub ]  
 
 -- TODO parsers of different dim's should be mixable
@@ -93,9 +96,11 @@ instance (Num a, Eq a) => Rewriting ((a,a) -> ([a],[a])) where
         _ -> error "invalid rewriting function, each argument must appear exactly once"
 
 -- 2-dim to 2-dim  with many tuples
-instance (Num a, Eq a) => Rewriting ([(a,a)] -> ([(a,a)],[(a,a)])) where
+instance (Num a, Eq a, Show a) => Rewriting ([(a,a)] -> ([(a,a)],[(a,a)])) where
+  constructRanges _ b | trace ("constructRanges " ++ show b) False = undefined
   constructRanges f (i,j,k,l) = 
-        let (left,right) = f [(1,1),(1,2),(2,1),(2,2)]
+        assert (i <= j && j <= k && k <= l) $
+        let (left,right) = f [(1,1),(1,2),(2,1),(2,2)] -- TODO this is a special case for 2 symbols
             remainingSymbols = [2,1]
             rangeDesc = [(i,j,left),(k,l,right)]
             rangeDescFiltered = filterEmptyRanges rangeDesc
@@ -104,7 +109,8 @@ instance (Num a, Eq a) => Rewriting ([(a,a)] -> ([(a,a)],[(a,a)])) where
 
 type RangeDesc a b = (Int,Int,[(a,b)])
 
-constructRangesRec :: (Eq a, Eq b, Num b) => [a] -> [RangeDesc a b] -> [Ranges]
+constructRangesRec :: (Eq a, Eq b, Num b, Show a, Show b) => [a] -> [RangeDesc a b] -> [Ranges]
+constructRangesRec a b | trace ("constructRangesRec " ++ show a ++ " " ++ show b) False = undefined
 constructRangesRec [] [] = []
 constructRangesRec (current:rest) rangeDescs =
         let symbolLoc = findSymbol current rangeDescs
@@ -116,9 +122,19 @@ constructRangesRec (current:rest) rangeDescs =
            ]
 constructRangesRec [] (_:_) = error "programming error"
 
+findSymbol :: (Eq a, Eq b, Num b) => a -> [RangeDesc a b] -> ((RangeDesc a b,Int),(RangeDesc a b,Int))
+findSymbol s rangeDesc =
+         let Just (i,j,r)  = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == 1) l') rangeDesc
+             Just (m,n,r') = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == 2) l') rangeDesc
+             Just a1Idx = elemIndex (s,1) r
+             Just a2Idx = elemIndex (s,2) r'
+         in (((i,j,r),a1Idx),((m,n,r'),a2Idx))
+
 constructNewRangeDescs :: (Eq a, Eq b) => [RangeDesc a b] -> ((RangeDesc a b,Int),(RangeDesc a b,Int)) -> Subword2 -> [RangeDesc a b]
 constructNewRangeDescs descs symbolPositions subword =
-        [ newDesc | desc <- descs, newDesc <- processRangeDesc desc symbolPositions subword ]
+        let newDescs = [ newDesc | desc <- descs, newDesc <- processRangeDesc desc symbolPositions subword ]
+            count = foldr (\(_,_,l) r -> r + length l) 0
+        in assert (count descs > count newDescs) newDescs
 
 processRangeDesc :: (Eq a, Eq b) => RangeDesc a b -> ((RangeDesc a b,Int),(RangeDesc a b,Int)) -> Subword2 -> [RangeDesc a b]
 processRangeDesc inp ((left,a1Idx),(right,a2Idx)) (m,n,o,p)
@@ -200,13 +216,7 @@ doCalcSubwordsDependent (i,j,r) a1Idx a2Idx
 
   | otherwise = error "invalid state, e.g. a1Idx == a2Idx == 0"
         
-findSymbol :: (Eq a, Eq b, Num b) => a -> [RangeDesc a b] -> ((RangeDesc a b,Int),(RangeDesc a b,Int))
-findSymbol s rangeDesc =
-         let Just (i,j,r)  = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == 1) l') rangeDesc
-             Just (m,n,r') = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == 2) l') rangeDesc
-             Just a1Idx = elemIndex (s,1) r
-             Just a2Idx = elemIndex (s,2) r'
-         in (((i,j,r),a1Idx),((m,n,r'),a2Idx))
+
        
          
 -- 2-dim to 1-dim with 1 tuple
@@ -227,7 +237,7 @@ with2 q c z subword = if c z subword then q z subword else []
    with start r = r in the algebra 
 -}
 axiom'        :: Int -> Array Int a -> Parser2 a b -> [b]
-axiom' l z ax   =  ax z (0,l,0,0)
+axiom' l z ax   =  ax z (0,0,0,l)
 
 -- # Tabulation
 
@@ -261,7 +271,7 @@ testGram alg inp = axiom s where
   (nil, left, f, f2, f3, start) = alg
   
   s' :: (a,a) -> ([a],[a])
-  s' (c1,c2) = ([c1,c2],[]) -- 1-dim simulated as 2-dim
+  s' (c1,c2) = ([],[c1,c2]) -- 1-dim simulated as 2-dim
   
   s = start <<< k >>> s'
   
@@ -271,7 +281,21 @@ testGram alg inp = axiom s where
   f3' :: [(a,a)] -> ([(a,a)],[(a,a)]) 
   f3' [p1,p2,k1,k2] = ([k1,p1],[p2,k2])
 
-  k = f3 <<< p ~~~ k >>> f3'
+  -- FIXME theoretical problem here, endless recursion
+  {- We need to know at least the minimal yield size of p which is 1,1 here.
+     Then we can apply this knowledge when building the ranges.
+     In a recursion, the range must always get smaller, otherwise we're doomed.
+     See section 5.3.3 Yield Size Analysis (Sauthoff, 2011, dissertation).
+     
+     Either we encode this information as special ~~. combinators or the parsers
+     themselves have these information, possibly handed to the top from the simplest
+     char parsers. New combinators are probably easier but they allow for user errors.
+     
+     In our case, combinators might not be possible anyway as the subwords aren't
+     generated by the ~~~ combinators itself but in a separate phase through >>>.  
+  -}  
+  k = f3 <<< p ~~~ k >>> f3' ||| 
+      start <<< p >>> f' -- or just p
   
   f' :: (a,a) -> ([a],[a]) 
   f' (c1,c2) = ([c1],[c2]) -- "identical" function
