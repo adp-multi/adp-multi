@@ -1,14 +1,17 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE UndecidableInstances #-} -- needed for Parseable
 
 module ADP.Multi.Combinators where
 import Debug.Trace
 import Control.Exception
+import Data.Maybe
 import Data.Array
 import Data.Char (ord)
 import Data.List (find, elemIndex)
+import Data.Map (Map)
+import qualified Data.Map as Map
 
 -- # Lexical parsers
 
@@ -16,33 +19,52 @@ type Subword  = (Int,Int)
 type Subword2  = (Int,Int,Int,Int)
 type Parser2 a b = Array Int a -> Subword2 -> [b]
 
+data ParserInfo2 = ParserInfo2 { minYield :: (Int,Int), maxYield :: (Maybe Int,Maybe Int) }
+                        deriving Show
+type RichParser2 a b = (ParserInfo2, Parser2 a b)
+
+
 data EPS = EPS
 
 data Ranges = RangeMap Subword2 [Ranges] deriving Show
 
-empty2 :: Parser2 a ()
-empty2 _ (i,j,k,l) = [() | i == j && k == l]
+empty2 :: RichParser2 a ()
+empty2 = (
+              ParserInfo2 {minYield=(0,0), maxYield=(Just 0,Just 0)},
+              \ _ (i,j,k,l) -> [() | i == j && k == l]
+         )
 
-anychars :: Parser2 a (a,a)
-anychars z (i,j,k,l) = [(z!j, z!l) | i+1 == j && k+1 == l]
+anychars :: RichParser2 a (a,a)
+anychars = (
+                ParserInfo2 {minYield=(1,1), maxYield=(Just 1,Just 1)},
+                \ z (i,j,k,l) -> [(z!j, z!l) | i+1 == j && k+1 == l]
+           )
 
-chars :: Eq a => a -> a -> Parser2 a (a,a)
-chars c1 c2 z (i,j,k,l) = [(z!j, z!l) | i+1 == j && k+1 == l && z!j == c1 && z!l == c2] 
+chars :: Eq a => a -> a -> RichParser2 a (a,a)
+chars c1 c2 = (
+                  ParserInfo2 {minYield=(1,1), maxYield=(Just 1,Just 1)},
+                  \ z (i,j,k,l) -> [(z!j, z!l) | i+1 == j && k+1 == l && z!j == c1 && z!l == c2]
+              ) 
         
-charLeftOnly :: Eq a => a -> Parser2 a (a,EPS)
-charLeftOnly c z (i,j,k,l) = [(c, EPS) | i+1 == j && k == l && z!j == c]
+charLeftOnly :: Eq a => a -> RichParser2 a (a,EPS)
+charLeftOnly c = (
+                     ParserInfo2 {minYield=(1,0), maxYield=(Just 1,Just 0)},
+                     \ z (i,j,k,l) -> [(c, EPS) | i+1 == j && k == l && z!j == c]
+                 )
 
-charRightOnly :: Eq a => a -> Parser2 a (EPS,a)
-charRightOnly c z (i,j,k,l) = [(EPS, c) | i == j && k+1 == l && z!l == c]
+charRightOnly :: Eq a => a -> RichParser2 a (EPS,a)
+charRightOnly c = (
+                      ParserInfo2 {minYield=(0,1), maxYield=(Just 0,Just 1)},
+                      \ z (i,j,k,l) -> [(EPS, c) | i == j && k+1 == l && z!l == c]
+                  )
 
 
-class Parseable p a b | p -> a, p -> b where
-    toParser :: p -> Parser2 a b
+class Parseable p a b | p -> a b where
+    toParser :: p -> RichParser2 a b
     
-instance Parseable (Parser2 a b) a b where
+instance Parseable (RichParser2 a b) a b where
     toParser p = p
 
--- TODO the use of just 'a' needs UndecidableInstances, is this necessary?
 instance Parseable () a () where
     toParser _ = empty2 
 
@@ -57,72 +79,199 @@ instance Eq a => Parseable (a,EPS) a (a,EPS) where
 
 -- # Parser combinators
 
+combineMinYields :: (Int,Int) -> (Int,Int) -> (Int,Int)
+combineMinYields (min11,min12) (min21,min22) = (min min11 min21, min min12 min22)
+
+combineMaxYields :: (Maybe Int,Maybe Int) -> (Maybe Int,Maybe Int) -> (Maybe Int,Maybe Int)
+combineMaxYields (a,b) (c,d) =
+        ( if isNothing a || isNothing c then Nothing else max a c
+        , if isNothing b || isNothing d then Nothing else max b d
+        )
+
 infixr 5 ||| 
-(|||) :: Parser2 a b -> Parser2 a b -> Parser2 a b
-(|||) r q z (i,j,k,l) = r z (i,j,k,l) ++ q z (i,j,k,l)
+(|||) :: RichParser2 a b -> RichParser2 a b -> RichParser2 a b
+(|||) (ParserInfo2 {minYield=minY1, maxYield=maxY1}, r) (ParserInfo2 {minYield=minY2, maxYield=maxY2}, q) = 
+        (
+              ParserInfo2 {minYield=combineMinYields minY1 minY2, maxYield=combineMaxYields maxY1 maxY2},
+              \ z (i,j,k,l) -> r z (i,j,k,l) ++ q z (i,j,k,l)
+        )
 
 infix 8 <<<
-(<<<) :: Parseable p a b => (b -> c) -> p -> [Ranges] -> Parser2 a c
-(<<<) f p [] z (i,j,k,l) = map f (q z (i,j,k,l)) where
-                                  q = toParser p
-(<<<) _ _ r _ _ = error $ "something went wrong... the ranges list should be empty: " ++ show r
+(<<<) :: Parseable p a b => (b -> c) -> p -> ([ParserInfo2], [Ranges] -> Parser2 a c)
+(<<<) f parseable =
+            let (info,parser) = toParser parseable
+            in (
+                 [info],
+                 \ [] z subword -> map f (parser z subword)                                  
+            )
 
 -- TODO the dimension of the resulting parser should result from c
 infix 6 >>>
-(>>>) :: Rewriting c => ([Ranges] -> Parser2 a b) -> c -> Parser2 a b
-(>>>) _ _ _ a | trace (">>> " ++ show a) False = undefined
-(>>>) p f z subword = [ result | RangeMap sub rest <- constructRanges f subword, result <- p rest z sub ]  
+(>>>) :: Rewriting c => ([ParserInfo2], [Ranges] -> Parser2 a b) -> c -> RichParser2 a b
+--(>>>) _ _ _ a | trace (">>> " ++ show a) False = undefined
+(>>>) (infos,p) f =
+        let yieldSize = determineYieldSize f infos
+        in trace (">>> yield size: " ++ show yieldSize) $
+           (
+              yieldSize,
+              \ z subword ->
+                let ranges = constructRanges f infos subword
+                in trace (">>> " ++ show subword) $
+                trace ("ranges: " ++ show ranges) $ 
+                [ result |
+                  RangeMap sub rest <- ranges
+                , result <- p rest z sub 
+                ]
+           )  
 
 -- TODO parsers of different dim's should be mixable
 -- this seems hard to do ATM, but isn't really a problem for now as lower dimensions can be
 -- simulated by higher dimensions by leaving some tuple elements of the rewriting rules empty
 infixl 7 ~~~
-(~~~) :: Parseable p a b => ([Ranges] -> Parser2 a (b -> c)) -> p -> [Ranges] -> Parser2 a c
-(~~~) p q ranges z subword = [ pr qr | qr <- q' z subword, RangeMap sub rest <- ranges, pr <- p rest z sub ] where
-                             q' = toParser q
+(~~~) :: Parseable p a b => ([ParserInfo2], [Ranges] -> Parser2 a (b -> c)) -> p -> ([ParserInfo2], [Ranges] -> Parser2 a c)
+(~~~) (infos,leftParser) parseable =
+        let (info,rightParser) = toParser parseable
+        in (
+                info : infos,
+                \ ranges z subword -> [ pr qr | qr <- rightParser z subword, RangeMap sub rest <- ranges, pr <- leftParser rest z sub ]
+           )
+                             
+     
+-- special version of ~~~ which ignores the right parser for determining the yield sizes
+-- this must be used for self-recursion
+-- To make it complete, there should also be a special version of <<< but this isn't strictly
+-- necessary as this can also be solved by not using left-recursion.
+-- I guess this only works because of laziness (ignoring the info value of toParser).
+infixl 7 ~~~|
+(~~~|) :: Parseable p a b => ([ParserInfo2], [Ranges] -> Parser2 a (b -> c)) -> p -> ([ParserInfo2], [Ranges] -> Parser2 a c)
+(~~~|) (infos,leftParser) parseable =
+        let (_,rightParser) = toParser parseable
+            info = ParserInfo2 { minYield=(0,0), maxYield=(Nothing,Nothing) }
+        in (
+                info : infos,
+                \ ranges z subword -> [ pr qr | qr <- rightParser z subword, RangeMap sub rest <- ranges, pr <- leftParser rest z sub ]
+           )
+
 
 class Rewriting f where
-  constructRanges :: f -> Subword2 -> [Ranges]
+  constructRanges :: f -> [ParserInfo2] -> Subword2 -> [Ranges]
+  determineYieldSize :: f -> [ParserInfo2] -> ParserInfo2 
 
 -- 2-dim to 2-dim with 1 tuple
 instance (Num a, Eq a) => Rewriting ((a,a) -> ([a],[a])) where
-  constructRanges f (i,j,k,l) = case f (1,2) of
+  constructRanges _ [info] b | trace ("constructRanges1 " ++ show b ++ " " ++ show info) False = undefined
+  constructRanges f [info] (i,j,k,l) =  
+     case f (1,2) of
         ([1],[2]) -> [RangeMap (i,j,k,l) []]
         ([2],[1]) -> [RangeMap (k,l,i,j) []]
-        ([1,2],[]) -> [RangeMap (i,x,x,j) [] | k == l, x <- [i..j]]
-        ([2,1],[]) -> [RangeMap (x,j,i,x) [] | k == l, x <- [i..j]]
-        ([],[1,2]) -> [RangeMap (k,x,x,l) [] | i == j, x <- [k..l]]
-        ([],[2,1]) -> [RangeMap (x,k,l,x) [] | k == l, x <- [k..l]]
+        ([1,2],[]) -> [RangeMap (i,x,x,j) [] | k == l, x <- [i + fst (minYield info) .. j - snd (minYield info)]]
+        ([2,1],[]) -> [RangeMap (x,j,i,x) [] | k == l, x <- [i + fst (minYield info) .. j - snd (minYield info)]]
+        ([],[1,2]) -> [RangeMap (k,x,x,l) [] | i == j, x <- [k + fst (minYield info) .. l - snd (minYield info)]]
+        ([],[2,1]) -> [RangeMap (x,k,l,x) [] | k == l, x <- [k + fst (minYield info) .. l - snd (minYield info)]]
         _ -> error "invalid rewriting function, each argument must appear exactly once"
+  determineYieldSize _ infos | trace ("determineYieldSize1 " ++ show infos) False = undefined
+  determineYieldSize f [info @ ParserInfo2 { minYield=(minY1,minY2), maxYield=(maxY1,maxY2) }] =
+     case f (1,2) of
+        ([1],[2]) -> info
+        ([2],[1]) -> ParserInfo2 { minYield = (minY2,minY1), maxYield = (maxY2,maxY1) }
+        ([_,_],[]) -> ParserInfo2 { 
+                minYield = (minY1+minY2,0),
+                maxYield = (if isNothing maxY1 || isNothing maxY2 
+                            then Nothing
+                            else Just (fromJust maxY1 + fromJust maxY2), Just 0)
+                      }
+        ([],[_,_]) -> ParserInfo2 { 
+                minYield = (0,minY1+minY2),
+                maxYield = (Just 0,
+                            if isNothing maxY1 || isNothing maxY2 
+                            then Nothing
+                            else Just $ fromJust maxY1 + fromJust maxY2) }
+        _ -> error "invalid rewriting function, each argument must appear exactly once"   
 
 -- 2-dim to 2-dim  with many tuples
-instance (Num a, Eq a, Show a) => Rewriting ([(a,a)] -> ([(a,a)],[(a,a)])) where
-  constructRanges _ b | trace ("constructRanges " ++ show b) False = undefined
-  constructRanges f (i,j,k,l) = 
+instance Rewriting ([(Int,Int)] -> ([(Int,Int)],[(Int,Int)])) where
+  constructRanges _ _ b | trace ("constructRanges2 " ++ show b) False = undefined
+  constructRanges f infos (i,j,k,l) =
         assert (i <= j && j <= k && k <= l) $
-        let (left,right) = f [(1,1),(1,2),(2,1),(2,2)] -- TODO this is a special case for 2 symbols
-            remainingSymbols = [2,1]
+        let parserCount = length infos
+            args = concatMap (\ x -> [(x,1),(x,2)]) [1..parserCount] 
+            (left,right) = f args
+            remainingSymbols = [parserCount,parserCount-1..1]
             rangeDesc = [(i,j,left),(k,l,right)]
             rangeDescFiltered = filterEmptyRanges rangeDesc
         in if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
-           else constructRangesRec remainingSymbols rangeDescFiltered
+           else constructRangesRec (buildInfoMap infos) remainingSymbols rangeDescFiltered
+  determineYieldSize _ infos | trace ("determineYieldSize2 " ++ show infos) False = undefined
+  determineYieldSize f infos =
+        let parserCount = length infos
+            args = concatMap (\ x -> [(x,1),(x,2)]) [1..parserCount] 
+            (left,right) = f args
+            elemInfo = buildInfoMap infos
+            leftYields = map (\(i,j) -> elemInfo Map.! (i,j)) left
+            rightYields = map (\(i,j) -> elemInfo Map.! (i,j)) right
+            (leftMin,leftMax) = combineYields leftYields
+            (rightMin,rightMax) = combineYields rightYields 
+        in trace (show elemInfo) $
+           trace (show left) $
+           trace (show right) $
+           ParserInfo2 { 
+                minYield = (leftMin,rightMin),
+                maxYield = (leftMax,rightMax)
+           }
 
-type RangeDesc a b = (Int,Int,[(a,b)])
+combineYields :: [Info] -> Info
+combineYields = foldl1 $ \(minY1,maxY1) (minY2,maxY2) ->
+                    ( minY1+minY2
+                    , if isNothing maxY1 || isNothing maxY2 
+                      then Nothing
+                      else Just $ fromJust maxY1 + fromJust maxY2
+                    ) 
 
-constructRangesRec :: (Eq a, Eq b, Num b, Show a, Show b) => [a] -> [RangeDesc a b] -> [Ranges]
-constructRangesRec a b | trace ("constructRangesRec " ++ show a ++ " " ++ show b) False = undefined
-constructRangesRec [] [] = []
-constructRangesRec (current:rest) rangeDescs =
+type YieldSizes = (Int,Maybe Int) -- min and max yield sizes
+type Info = YieldSizes -- at the moment just yield sizes
+type InfoMap = Map (Int,Int) Info
+
+-- the input list is in reverse order, i.e. the first in the list is the last applied parser
+buildInfoMap :: [ParserInfo2] -> InfoMap
+buildInfoMap i | trace ("buildInfoMap " ++ show i) False = undefined
+buildInfoMap infos =
+        let parserCount = length infos
+            list = concatMap (\ (x,info) -> 
+                       [ ((x,1), (fst $ minYield info, fst $ maxYield info) ) 
+                       , ((x,2), (snd $ minYield info, snd $ maxYield info) ) 
+                       ]
+                     ) $ zip [parserCount,parserCount-1..] infos
+        in Map.fromList list
+
+type RangeDesc = (Int,Int,[(Int,Int)])
+
+{- FIXME
+At the moment we get into an infinite recursion because in a rule S -> P S
+the ranges for the right S are constructed independently of the min yield size of P 
+they also produce an identical one as in the input.
+
+
+The solution is to look at the symbols left or right to the current
+symbol and use their min yield sizes. This would also produce less ranges.
+
+-}
+
+
+constructRangesRec :: InfoMap -> [Int] -> [RangeDesc] -> [Ranges]
+constructRangesRec a b c | trace ("constructRangesRec " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
+constructRangesRec _ [] [] = []
+constructRangesRec infoMap (current:rest) rangeDescs =
         let symbolLoc = findSymbol current rangeDescs
-            subwords = calcSubwords symbolLoc
+            subwords = calcSubwords infoMap symbolLoc
         in [ RangeMap subword restRanges |
              subword <- subwords,
              let newDescs = constructNewRangeDescs rangeDescs symbolLoc subword,
-             let restRanges = constructRangesRec rest newDescs
+             let restRanges = constructRangesRec infoMap rest newDescs
            ]
-constructRangesRec [] (_:_) = error "programming error"
+constructRangesRec _ [] (_:_) = error "programming error"
 
-findSymbol :: (Eq a, Eq b, Num b) => a -> [RangeDesc a b] -> ((RangeDesc a b,Int),(RangeDesc a b,Int))
+findSymbol :: Int -> [RangeDesc] -> ((RangeDesc,Int),(RangeDesc,Int))
+findSymbol s r | trace ("findSymbol " ++ show s ++ " " ++ show r) False = undefined
 findSymbol s rangeDesc =
          let Just (i,j,r)  = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == 1) l') rangeDesc
              Just (m,n,r') = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == 2) l') rangeDesc
@@ -130,13 +279,16 @@ findSymbol s rangeDesc =
              Just a2Idx = elemIndex (s,2) r'
          in (((i,j,r),a1Idx),((m,n,r'),a2Idx))
 
-constructNewRangeDescs :: (Eq a, Eq b) => [RangeDesc a b] -> ((RangeDesc a b,Int),(RangeDesc a b,Int)) -> Subword2 -> [RangeDesc a b]
+constructNewRangeDescs :: [RangeDesc] -> ((RangeDesc,Int),(RangeDesc,Int)) -> Subword2 -> [RangeDesc]
+constructNewRangeDescs d p s | trace ("constructNewRangeDescs " ++ show d ++ " " ++ show p ++ " " ++ show s) False = undefined
 constructNewRangeDescs descs symbolPositions subword =
         let newDescs = [ newDesc | desc <- descs, newDesc <- processRangeDesc desc symbolPositions subword ]
             count = foldr (\(_,_,l) r -> r + length l) 0
-        in assert (count descs > count newDescs) newDescs
+        in assert (count descs > count newDescs) $
+           trace (show newDescs) newDescs
 
-processRangeDesc :: (Eq a, Eq b) => RangeDesc a b -> ((RangeDesc a b,Int),(RangeDesc a b,Int)) -> Subword2 -> [RangeDesc a b]
+processRangeDesc :: RangeDesc -> ((RangeDesc,Int),(RangeDesc,Int)) -> Subword2 -> [RangeDesc]
+processRangeDesc a b c | trace ("processRangeDesc " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
 processRangeDesc inp ((left,a1Idx),(right,a2Idx)) (m,n,o,p)
   | inp /= left && inp /= right = [inp]
   | inp == left && inp == right =
@@ -151,12 +303,13 @@ processRangeDesc inp ((left,a1Idx),(right,a2Idx)) (m,n,o,p)
   | inp == left = processRangeDescSingle left a1Idx (m,n)
   | inp == right = processRangeDescSingle right a2Idx (o,p)
 
-filterEmptyRanges :: [RangeDesc a b] -> [RangeDesc a b]
+filterEmptyRanges :: [RangeDesc] -> [RangeDesc]
 filterEmptyRanges l = 
         let f (i,j,d) = not $ null d && i == j
         in filter f l
 
-processRangeDescSingle :: (Eq a, Eq b) => RangeDesc a b -> Int -> Subword -> [RangeDesc a b]
+processRangeDescSingle :: RangeDesc -> Int -> Subword -> [RangeDesc]
+processRangeDescSingle a b c | trace ("processRangeDescSingle " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
 processRangeDescSingle (i,j,r) aIdx (k,l)
   | aIdx == 0 = filterEmptyRanges [(l,j,tail r)]
   | aIdx == length r - 1 = [(i,k,init r)]
@@ -166,57 +319,118 @@ slice :: Int -> Int -> [a] -> [a]
 slice from to xs = take (to - from + 1) (drop from xs)
 
 -- assumes that a1Idx < a2Idx, see processRangeDesc
-processRangeDescDouble :: (Eq a, Eq b) => RangeDesc a b -> Int -> Int -> Subword2 -> [RangeDesc a b]
-processRangeDescDouble (i,j,r) a1Idx a2Idx (k,l,m,n)
-  -- assert a1Idx < a2Idx, where to put it?!
-  | a1Idx == 0 && a2Idx == length r - 1 = filterEmptyRanges [(l,m,init (tail r))]
-  | a1Idx == 0 = filterEmptyRanges [(l,m,slice 1 (a2Idx-1) r),(n,j,drop (a2Idx+1) r)]
-  | a2Idx == length r - 1 = filterEmptyRanges [(i,k,take a1Idx r),(l,m,slice (a1Idx+1) (a2Idx-1) r)]
-  | otherwise = filterEmptyRanges [(i,k,take a1Idx r),(l,m,slice (a1Idx+1) (a2Idx-1) r),(n,j,drop (a2Idx+1) r)]
+processRangeDescDouble :: RangeDesc -> Int -> Int -> Subword2 -> [RangeDesc]
+processRangeDescDouble a b c d | trace ("processRangeDescDouble " ++ show a ++ " " ++ show b ++ " " ++ show c ++ " " ++ show d) False = undefined
+processRangeDescDouble (i,j,r) a1Idx a2Idx (k,l,m,n) = 
+  assert (a1Idx < a2Idx) result where 
+  result | a1Idx == 0 && a2Idx == length r - 1 = filterEmptyRanges [(l,m,init (tail r))]
+         | a1Idx == 0 = filterEmptyRanges [(l,m,slice 1 (a2Idx-1) r),(n,j,drop (a2Idx+1) r)]
+         | a2Idx == length r - 1 = filterEmptyRanges [(i,k,take a1Idx r),(l,m,slice (a1Idx+1) (a2Idx-1) r)]
+         | otherwise = filterEmptyRanges [(i,k,take a1Idx r),(l,m,slice (a1Idx+1) (a2Idx-1) r),(n,j,drop (a2Idx+1) r)]
 
-
-calcSubwords :: ((RangeDesc a b,Int),(RangeDesc a b,Int)) -> [Subword2]
-calcSubwords (left@((i,j,r),a1Idx),right@((m,n,r'),a2Idx))
-  | i == m && j == n = calcSubwordsDependent (i,j,r) a1Idx a2Idx
+calcSubwords :: InfoMap -> ((RangeDesc,Int),(RangeDesc,Int)) -> [Subword2]
+calcSubwords a b | trace ("calcSubwords " ++ show a ++ " " ++ show b) False = undefined
+calcSubwords infoMap (left@((i,j,r),a1Idx),right@((m,n,r'),a2Idx))
+  | i == m && j == n = calcSubwordsDependent infoMap (i,j,r) a1Idx a2Idx
   | length r == 1 && length r' == 1 = [(i,j,m,n)]
-  | length r == 1  = [(i',j',k',l') | let (i',j') = (i,j), (k',l') <- calcSubwordsIndependent right]
-  | length r' == 1 = [(i',j',k',l') | let (k',l') = (m,n), (i',j') <- calcSubwordsIndependent left]
-  | otherwise = [(i',j',k',l') | (i',j') <- calcSubwordsIndependent left, (k',l') <- calcSubwordsIndependent right]
+  | length r == 1  = [ (i',j',k',l') |
+                        let (i',j') = (i,j)
+                     , (k',l') <- calcSubwordsIndependent infoMap right
+                     ]
+  | length r' == 1 = [ (i',j',k',l') |
+                       let (k',l') = (m,n)
+                     , (i',j') <- calcSubwordsIndependent infoMap left
+                     ]
+  | otherwise = [ (i',j',k',l') |
+                  (i',j') <- calcSubwordsIndependent infoMap left
+                , (k',l') <- calcSubwordsIndependent infoMap right
+                ]
 
+infoFromPos :: InfoMap -> (RangeDesc,Int) -> Info
+infoFromPos infoMap ((_,_,r),aIdx) | trace ("infoFromPos " ++ show aIdx ++ " " ++ show r ++ " " ++ show infoMap) False = undefined
+infoFromPos infoMap ((_,_,r),aIdx) =
+        infoMap Map.! (r !! aIdx)
+        
+-- calculates the combined yield size of all symbols left of the given one
+combinedInfoLeftOf :: InfoMap -> (RangeDesc,Int) -> Info
+combinedInfoLeftOf infoMap (desc,axIdx)
+  | axIdx == 0 = (0, Just 0)
+  | otherwise = 
+        let leftInfos = map (\i -> infoFromPos infoMap (desc,i)) [0..axIdx-1]
+        in combineYields leftInfos
+
+-- calculates the combined yield size of all symbols right of the given one        
+combinedInfoRightOf :: InfoMap -> (RangeDesc,Int) -> Info
+combinedInfoRightOf infoMap (desc@(_,_,r),axIdx)
+  | axIdx == length r - 1 = (0, Just 0)
+  | otherwise = 
+        let rightInfos = map (\i -> infoFromPos infoMap (desc,i)) [axIdx+1..length r - 1]
+        in combineYields rightInfos
+        
 -- assumes that other component is in a different part
-calcSubwordsIndependent :: (RangeDesc a b,Int) -> [Subword]
-calcSubwordsIndependent ((i,j,r),axIdx)
-  | axIdx == 0            = [(k,l) | let k = i, l <- [i..j]]
-  | axIdx == length r - 1 = [(k,l) | let l = j, k <- [i..j]]
-  | otherwise             = [(k,l) | k <- [i..j], l <- [k..j]] 
+calcSubwordsIndependent :: InfoMap -> (RangeDesc,Int) -> [Subword]
+calcSubwordsIndependent a b | trace ("calcSubwordsIndependent " ++ show b) False = undefined
+calcSubwordsIndependent infoMap pos@((i,j,r),axIdx) 
+  | axIdx == 0            = [(k,l) | let k = i, l <- [i+minY..j-minYRight]]
+  | axIdx == length r - 1 = [(k,l) | let l = j, k <- [i+minYLeft..j-minY]]
+  | otherwise             = [(k,l) | k <- [i+minYLeft..j-minY], l <- [k+minY..j-minYRight]]
+  where (minY,_) = infoFromPos infoMap pos
+        (minYLeft,_) = combinedInfoLeftOf infoMap pos
+        (minYRight,_) = combinedInfoRightOf infoMap pos
 
 -- assumes that other component is in the same part
-calcSubwordsDependent :: RangeDesc a b -> Int -> Int -> [Subword2]
-calcSubwordsDependent (i,j,r) a1Idx a2Idx =
+calcSubwordsDependent :: InfoMap -> RangeDesc -> Int -> Int -> [Subword2]
+calcSubwordsDependent _ b c d | trace ("calcSubwordsDependent " ++ show b ++ " " ++ show c ++ " " ++ show d) False = undefined
+calcSubwordsDependent infoMap (i,j,r) a1Idx a2Idx =
         let a1Idx' = if a1Idx < a2Idx then a1Idx else a2Idx
             a2Idx' = if a1Idx < a2Idx then a2Idx else a1Idx
-            subs = doCalcSubwordsDependent (i,j,r) a1Idx' a2Idx'
+            subs = doCalcSubwordsDependent infoMap (i,j,r) a1Idx' a2Idx'
         in if a1Idx < a2Idx then subs
            else [ (k,l,m,n) | (m,n,k,l) <- subs ]
  
--- assumes that components are in-order (post-processing by calcSubwordsDependent)
-doCalcSubwordsDependent :: RangeDesc a b -> Int -> Int -> [Subword2]
-doCalcSubwordsDependent (i,j,r) a1Idx a2Idx
-  | a1Idx == 0 && a2Idx == length r - 1 = 
-        [ (k,l,m,n) | let (k,n) = (i,j), l <- [i..j], m <- [l..j] ]
+doCalcSubwordsDependent :: InfoMap -> RangeDesc -> Int -> Int -> [Subword2]
+doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
+   assert (a1Idx < a2Idx) result where
+   result | a1Idx == 0 && a2Idx == length r - 1 = 
+                [ (k,l,m,n) |
+                  let (k,n) = (i,j)
+                , l <- [i+minY1..j-minYRight1]
+                , m <- [l+minYBetween..j-minY2] 
+                ]
+                
+          | a1Idx == 0 =
+                [ (k,l,m,n) |
+                  let k = i
+                , l <- [i+minY1..j-minYRight1]
+                , m <- [l+minYBetween..j-minY2-minYRight2]
+                , n <- [m+minY2..j-minYRight2]
+                ]
+                
+          | a2Idx == length r - 1 =
+                [ (k,l,m,n) |
+                  let n = j
+                , m <- [i+minYLeft2..j-minY2]
+                , l <- [i+minY1+minYLeft1..m-minYBetween]
+                , k <- [i+minYLeft1..l-minY1]
+                ]
+          
+          | a1Idx > 0 && a2Idx < length r - 1 =
+                [ (k,l,m,n) |
+                  k <- [i+minYLeft1..j-minY1-minYRight1]
+                , l <- [k+minY1..j-minYRight1]
+                , m <- [l+minYBetween..j-minY2-minYRight2]
+                , n <- [m+minY2..j-minYRight2]
+                ]
         
-  | a1Idx == 0 =
-        [ (k,l,m,n) | let k = i, l <- [i..j], m <- [l..j], n <- [m..j] ]
-        
-  | a2Idx == length r - 1 =
-        [ (k,l,m,n) | let n = j, m <- [i..j], l <- [m..i], k <- [l..i] ]
-  
-  | a1Idx > 0 && a2Idx < length r - 1 =
-        [ (k,l,m,n) | k <- [i..j], l <- [k..j], m <- [l..j], n <- [m..j] ]
-
-  | otherwise = error "invalid state, e.g. a1Idx == a2Idx == 0"
-        
-
+          | otherwise = error "invalid conditions, e.g. a1Idx == a2Idx == 0"
+          where 
+                (minY1,_) = infoFromPos infoMap (desc,a1Idx)
+                (minY2,_) = infoFromPos infoMap (desc,a2Idx)
+                (minYLeft1,_) = combinedInfoLeftOf infoMap (desc,a1Idx)
+                (minYLeft2,_) = combinedInfoLeftOf infoMap (desc,a2Idx)
+                (minYRight1,_) = combinedInfoRightOf infoMap (desc,a1Idx)
+                (minYRight2,_) = combinedInfoRightOf infoMap (desc,a2Idx)
+                minYBetween = minYRight1 - minYRight2 - minY2
        
          
 -- 2-dim to 1-dim with 1 tuple
@@ -236,8 +450,8 @@ with2 q c z subword = if c z subword then q z subword else []
    
    with start r = r in the algebra 
 -}
-axiom'        :: Int -> Array Int a -> Parser2 a b -> [b]
-axiom' l z ax   =  ax z (0,0,0,l)
+axiom'        :: Int -> Array Int a -> RichParser2 a b -> [b]
+axiom' l z (_,ax) =  ax z (0,0,0,l)
 
 -- # Tabulation
 
@@ -274,39 +488,23 @@ testGram alg inp = axiom s where
   s' (c1,c2) = ([],[c1,c2]) -- 1-dim simulated as 2-dim
   
   s = start <<< k >>> s'
-  
---  f3' :: (a,a) -> (a,a) -> ([a],[a]) 
---  f3' (p1,p2) (k1,k2) = ([k1,p1],[p2,k2])
 
-  f3' :: [(a,a)] -> ([(a,a)],[(a,a)]) 
+  f3' :: [(Int,Int)] -> ([(Int,Int)],[(Int,Int)]) 
   f3' [p1,p2,k1,k2] = ([k1,p1],[p2,k2])
 
-  -- FIXME theoretical problem here, endless recursion
-  {- We need to know at least the minimal yield size of p which is 1,1 here.
-     Then we can apply this knowledge when building the ranges.
-     In a recursion, the range must always get smaller, otherwise we're doomed.
-     See section 5.3.3 Yield Size Analysis (Sauthoff, 2011, dissertation).
-     
-     Either we encode this information as special ~~. combinators or the parsers
-     themselves have these information, possibly handed to the top from the simplest
-     char parsers. New combinators are probably easier but they allow for user errors.
-     
-     In our case, combinators might not be possible anyway as the subwords aren't
-     generated by the ~~~ combinators itself but in a separate phase through >>>.  
-  -}  
-  k = f3 <<< p ~~~ k >>> f3' ||| 
+  k = f3 <<< p ~~~| k >>> f3' ||| 
       start <<< p >>> f' -- or just p
   
   f' :: (a,a) -> ([a],[a]) 
   f' (c1,c2) = ([c1],[c2]) -- "identical" function
-  p = tabulated (
+  p = --tabulated (
       f <<< ('a', 'u') >>> f' |||
       f <<< ('u', 'a') >>> f' |||
       f <<< ('c', 'g') >>> f' |||
       f <<< ('g', 'c') >>> f' |||
       f <<< ('g', 'u') >>> f' |||
       f <<< ('u', 'g') >>> f' 
-      )
+      --)
       
   test = f   <<< ('a', 'u') >>> f' |||
          nil <<< ()         >>> f' |||
@@ -314,17 +512,17 @@ testGram alg inp = axiom s where
       
   -- or using our basepair parser constructed with a filter:
   
-  p2 = f <<< basepair >>> f'
+--  p2 = f <<< basepair >>> f'
 
   z         = mk inp
   (_,n)     = bounds (z)
   
   tabulated = table2 n
-
+{-
   basepair  = anychars `with2` basepairing 
   basepairing :: Filter2 Char
   basepairing z (i,j,k,l) = i+1 == j && k+1 == l && isBasepair (z!(i+1), z!(k+1))
-  
+  -}
   axiom     = axiom' n z
   
 isBasepair ('a','u') = True
@@ -335,10 +533,10 @@ isBasepair ('g','u') = True
 isBasepair ('u','g') = True
 isBasepair _         = False
   
-test = testGram testAlg "agauc"
+test = testGram testAlg "guaugc"
 
 
 -- # Create array from List
 
 mk :: [a] -> Array Int a
-mk xs = array (1,n) (zip [1..n] xs) where n = length xs
+mk xs = array (1,length xs) (zip [1..] xs)

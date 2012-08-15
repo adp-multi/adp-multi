@@ -41,7 +41,7 @@ enum = (nil,left,pair,knot,knot1,knot2,basepair,h) where
    knot2 = Knot2
    basepair = BasePair
    h     = id
-
+{-
 rgknot alg inp = axiom s where
   (nil,left,pair,knot,knot1,knot2,basepair,h) = alg
 
@@ -68,3 +68,4 @@ rgknot alg inp = axiom s where
   tabulated = table n
 --  tabulated2 = table2 n
   axiom     = axiom' n
+-}

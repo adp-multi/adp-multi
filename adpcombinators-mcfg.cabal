@@ -9,9 +9,23 @@ executable adpcombinators
   main-is:         Main.hs
   build-depends:   
                    base >= 4,
-                   array ==0.4.*
-  ghc-options:     -Wall
+                   array ==0.4.*,
+                   containers
+  ghc-options:     -Wall -rtsopts -prof -auto-all
   other-modules:   
                    ADP.Combinators,
                    ADP.Multi.Combinators
+
+test-suite Test1
+  type:            exitcode-stdio-1.0
+  x-uses-tf:       true
+  build-depends:   base >= 4,
+                   HUnit >= 1.2 && < 2,
+                   QuickCheck >= 2.4,
+                   test-framework >= 0.4.1,
+                   test-framework-quickcheck2,
+                   test-framework-hunit
+  hs-source-dirs:  src
+  ghc-options:     -Wall -rtsopts
+  main-is:         Tests/Te.hs
 
