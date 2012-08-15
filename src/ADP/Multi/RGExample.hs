@@ -12,27 +12,29 @@ import Data.List
 import ADP.Multi.Combinators
 
 data Start = Nil                        |
-             Left' Char Start           |
+             Left' Start Start          |
              Pair Start Start Start     |
              Knot Start Start Start Start Start Start |
              Knot1 Start Start          |
              Knot2 Start                |
-             BasePair Char Char             
+             BasePair (Char, Char)      |
+             Base (EPS, Char)
                                    deriving (Eq, Show)
                                    
 type RG_Algebra alphabet answer = (
   () -> answer,                               -- nil
-  alphabet -> answer -> answer,               -- left
+  answer   -> answer -> answer,               -- left
   answer   -> answer -> answer -> answer,     -- pair
   answer   -> answer -> answer -> answer -> answer -> answer -> answer, -- knot
   answer   -> answer -> answer,               -- knot1
   answer   -> answer,                         -- knot2
-  alphabet -> alphabet -> answer,             -- basepair
+  (alphabet, alphabet) -> answer,             -- basepair
+  (EPS, alphabet) -> answer,                  -- base
   [answer] -> [answer]                        -- h
   )
   
 enum :: RG_Algebra Char Start
-enum = (nil,left,pair,knot,knot1,knot2,basepair,h) where
+enum = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    nil _ = Nil
    left  = Left'
    pair  = Pair
@@ -40,7 +42,52 @@ enum = (nil,left,pair,knot,knot1,knot2,basepair,h) where
    knot1 = Knot1
    knot2 = Knot2
    basepair = BasePair
+   base  = Base
    h     = id
+   
+rgknot :: RG_Algebra Char answer -> String -> [answer]
+rgknot alg inp = axiom s where
+  (nil,left,pair,knot,knot1,knot2,basepair,base,h) = alg
+  
+  s1,s2,s3,s4,p',k1,k2 :: [(Int,Int)] -> ([(Int,Int)],[(Int,Int)])
+  
+  -- all s are 1-dim simulated as 2-dim
+  s1 [c1,c2] = ([],[c1,c2])
+  s2 [b1,b2,s1,s2] = ([],[b1,b2,s1,s2])  
+  s3 [p1,p2,s11,s12,s21,s22] = ([],[p1,s11,s12,p2,s21,s22])
+  s4 [k11,k12,k21,k22,s11,s12,s21,s22,s31,s32,s41,s42] = ([],[k11,s11,s12,k21,s21,s22,k12,s31,s32,k22,s41,s42])
+  
+  s = nil <<< () >>> s1 |||
+      left <<< b ~~~| s >>> s2 |||
+      pair <<< p ~~~| s ~~~| s >>> s3 |||
+      knot <<< k ~~~ k ~~~| s ~~~| s ~~~| s ~~~| s >>> s4
+      
+  b = base <<< (EPS, 'a') >>> s1 |||
+      base <<< (EPS, 'u') >>> s1 |||
+      base <<< (EPS, 'c') >>> s1 |||
+      base <<< (EPS, 'g') >>> s1
+  
+  p' [c1,c2] = ([c1],[c2])
+  p = basepair <<< ('a', 'u') >>> p' |||
+      basepair <<< ('u', 'a') >>> p' |||
+      basepair <<< ('c', 'g') >>> p' |||
+      basepair <<< ('g', 'c') >>> p' |||
+      basepair <<< ('g', 'u') >>> p' |||
+      basepair <<< ('u', 'g') >>> p'
+  
+  k1 [p1,p2,k1,k2] = ([k1,p1],[p2,k2])
+  k2 [p1,p2] = ([p1],[p2])
+  
+  k = knot1 <<< p ~~~| k >>> k1 |||
+      knot2 <<< p >>> k2
+      
+  
+  z         = mk inp
+  (_,n)     = bounds (z)  
+  tabulated = table2 n  
+  axiom     = axiom' n z
+  
+
 {-
 rgknot alg inp = axiom s where
   (nil,left,pair,knot,knot1,knot2,basepair,h) = alg

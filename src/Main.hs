@@ -5,9 +5,9 @@ import qualified ADP.Multi.Combinators as T
 
 main::IO()
 main = do
-          print T.test 
+--          print T.test 
 {-        print $ show result where
                 result = N.nussinov78 N.enum "aggca" ;
 -}
---        print $ show result where
---                result = RG.rgknot RG.enum "aggca"
+        print $ show result where
+                result = RG.rgknot RG.enum "aggca"

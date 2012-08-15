@@ -24,7 +24,7 @@ data ParserInfo2 = ParserInfo2 { minYield :: (Int,Int), maxYield :: (Maybe Int,M
 type RichParser2 a b = (ParserInfo2, Parser2 a b)
 
 
-data EPS = EPS
+data EPS = EPS deriving (Eq, Show)
 
 data Ranges = RangeMap Subword2 [Ranges] deriving Show
 
@@ -220,12 +220,12 @@ instance Rewriting ([(Int,Int)] -> ([(Int,Int)],[(Int,Int)])) where
            }
 
 combineYields :: [Info] -> Info
-combineYields = foldl1 $ \(minY1,maxY1) (minY2,maxY2) ->
+combineYields = foldl (\(minY1,maxY1) (minY2,maxY2) ->
                     ( minY1+minY2
                     , if isNothing maxY1 || isNothing maxY2 
                       then Nothing
                       else Just $ fromJust maxY1 + fromJust maxY2
-                    ) 
+                    ) ) (0,Just 0)
 
 type YieldSizes = (Int,Maybe Int) -- min and max yield sizes
 type Info = YieldSizes -- at the moment just yield sizes
@@ -245,30 +245,19 @@ buildInfoMap infos =
 
 type RangeDesc = (Int,Int,[(Int,Int)])
 
-{- FIXME
-At the moment we get into an infinite recursion because in a rule S -> P S
-the ranges for the right S are constructed independently of the min yield size of P 
-they also produce an identical one as in the input.
-
-
-The solution is to look at the symbols left or right to the current
-symbol and use their min yield sizes. This would also produce less ranges.
-
--}
-
-
 constructRangesRec :: InfoMap -> [Int] -> [RangeDesc] -> [Ranges]
 constructRangesRec a b c | trace ("constructRangesRec " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
 constructRangesRec _ [] [] = []
 constructRangesRec infoMap (current:rest) rangeDescs =
         let symbolLoc = findSymbol current rangeDescs
             subwords = calcSubwords infoMap symbolLoc
-        in [ RangeMap subword restRanges |
+        in trace ("subwords: " ++ show subwords) $        
+           [ RangeMap subword restRanges |
              subword <- subwords,
              let newDescs = constructNewRangeDescs rangeDescs symbolLoc subword,
              let restRanges = constructRangesRec infoMap rest newDescs
            ]
-constructRangesRec _ [] (_:_) = error "programming error"
+constructRangesRec _ [] r@(_:_) = error ("programming error " ++ show r)
 
 findSymbol :: Int -> [RangeDesc] -> ((RangeDesc,Int),(RangeDesc,Int))
 findSymbol s r | trace ("findSymbol " ++ show s ++ " " ++ show r) False = undefined
@@ -390,12 +379,43 @@ calcSubwordsDependent infoMap (i,j,r) a1Idx a2Idx =
  
 doCalcSubwordsDependent :: InfoMap -> RangeDesc -> Int -> Int -> [Subword2]
 doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
-   assert (a1Idx < a2Idx) result where
-   result | a1Idx == 0 && a2Idx == length r - 1 = 
+   assert (a1Idx < a2Idx) $
+   trace ("min yields: " ++ show minY1 ++ " " ++ show minY2 ++ " " ++ show minYLeft1 ++ " " ++
+          show minYLeft2 ++ " " ++ show minYRight1 ++ " " ++ show minYRight2 ++ " " ++ show minYBetween) $
+   trace ("max yields: " ++ show maxY1 ++ " " ++ show maxY2 ++ " " ++ show maxYLeft1 ++ " " ++
+          show maxYLeft2 ++ " " ++ show maxYRight1 ++ " " ++ show maxYRight2 ++ " " ++ show maxYBetween) $
+   result where
+          
+   (minY1,maxY1) = infoFromPos infoMap (desc,a1Idx)
+   (minY2,maxY2) = infoFromPos infoMap (desc,a2Idx)
+   (minYLeft1,maxYLeft1) = combinedInfoLeftOf infoMap (desc,a1Idx)
+   (minYLeft2,maxYLeft2) = combinedInfoLeftOf infoMap (desc,a2Idx)
+   (minYRight1,maxYRight1) = combinedInfoRightOf infoMap (desc,a1Idx)
+   (minYRight2,maxYRight2) = combinedInfoRightOf infoMap (desc,a2Idx)
+   minYBetween = minYRight1 - minYRight2 - minY2
+   maxYBetween = if isNothing maxYRight1 then Nothing
+                 else Just $ fromJust maxYRight1 - fromJust maxYRight2 - fromJust maxY2 
+                 
+   neighbors = a1Idx + 1 == a2Idx 
+      
+   result | a1Idx == 0 && a2Idx == length r - 1 && neighbors = 
+                [ (k,l,l,n) |
+                  let (k,n) = (i,j)
+                , l <- [i+minY1..j-minY2] 
+                ]
+   
+          | a1Idx == 0 && a2Idx == length r - 1 = 
                 [ (k,l,m,n) |
                   let (k,n) = (i,j)
                 , l <- [i+minY1..j-minYRight1]
                 , m <- [l+minYBetween..j-minY2] 
+                ]
+                
+          | a1Idx == 0 && neighbors =
+                [ (k,l,l,n) |
+                  let k = i
+                , l <- [i+minY1..j-minYRight1]
+                , n <- [l+minY2..j-minYRight2]
                 ]
                 
           | a1Idx == 0 =
@@ -406,12 +426,26 @@ doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
                 , n <- [m+minY2..j-minYRight2]
                 ]
                 
+          | a2Idx == length r - 1 && neighbors =
+                [ (k,m,m,n) |
+                  let n = j
+                , m <- [i+minYLeft2..j-minY2]
+                , k <- [i+minYLeft1..m-minY1]
+                ]
+                
           | a2Idx == length r - 1 =
                 [ (k,l,m,n) |
                   let n = j
                 , m <- [i+minYLeft2..j-minY2]
                 , l <- [i+minY1+minYLeft1..m-minYBetween]
                 , k <- [i+minYLeft1..l-minY1]
+                ]
+                
+          | a1Idx > 0 && a2Idx < length r - 1 && neighbors =
+                [ (k,l,l,n) |
+                  k <- [i+minYLeft1..j-minY1-minYRight1]
+                , l <- [k+minY1..j-minYRight1]
+                , n <- [l+minY2..j-minYRight2]
                 ]
           
           | a1Idx > 0 && a2Idx < length r - 1 =
@@ -423,14 +457,6 @@ doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
                 ]
         
           | otherwise = error "invalid conditions, e.g. a1Idx == a2Idx == 0"
-          where 
-                (minY1,_) = infoFromPos infoMap (desc,a1Idx)
-                (minY2,_) = infoFromPos infoMap (desc,a2Idx)
-                (minYLeft1,_) = combinedInfoLeftOf infoMap (desc,a1Idx)
-                (minYLeft2,_) = combinedInfoLeftOf infoMap (desc,a2Idx)
-                (minYRight1,_) = combinedInfoRightOf infoMap (desc,a1Idx)
-                (minYRight2,_) = combinedInfoRightOf infoMap (desc,a2Idx)
-                minYBetween = minYRight1 - minYRight2 - minY2
        
          
 -- 2-dim to 1-dim with 1 tuple
