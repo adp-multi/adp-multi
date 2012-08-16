@@ -7,20 +7,9 @@ S -> € | BS | P_1 S P_2 S | K_1^1 S K_1^2 S K_2^1 S K_2^2 S
 B -> a | u | c | g
 -}
 
-import Data.Array
-import Data.List
+import Data.Array (bounds)
 import ADP.Multi.Combinators
-
-data Start = Nil                        |
-             Left' Start Start          |
-             Pair Start Start Start     |
-             Knot Start Start Start Start Start Start |
-             Knot1 Start Start          |
-             Knot2 Start                |
-             BasePair (Char, Char)      |
-             Base (EPS, Char)
-                                   deriving (Eq, Show)
-                                   
+                                 
 type RG_Algebra alphabet answer = (
   () -> answer,                               -- nil
   answer   -> answer -> answer,               -- left
@@ -32,44 +21,63 @@ type RG_Algebra alphabet answer = (
   (EPS, alphabet) -> answer,                  -- base
   [answer] -> [answer]                        -- h
   )
-  
+
+-- This data type is used only for the enum algebra.
+-- The type allows invalid trees which would be impossible to build
+-- with the given grammar rules.
+-- As an additional (programming) error check, the enum algebra checks
+-- the types via pattern-matching.
+data Start = Nil
+           | Left' Start Start
+           | Pair Start Start Start
+           | Knot Start Start Start Start Start Start
+           | Knot1 Start Start
+           | Knot2 Start
+           | BasePair (Char, Char)
+           | Base (EPS, Char)
+           deriving (Eq, Show)
+
 enum :: RG_Algebra Char Start
 enum = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
-   nil _ = Nil
-   left  = Left'
-   pair  = Pair
-   knot  = Knot
-   knot1 = Knot1
-   knot2 = Knot2
-   basepair = BasePair
-   base  = Base
-   h     = id
+   nil _                              = Nil
+   left  b@(Base _)                   = Left' b
+   pair  p@(BasePair _)               = Pair p
+   knot k1@(Knot1 _ _) k2@(Knot1 _ _) = Knot k1 k2
+   knot k1@(Knot1 _ _) k2@(Knot2 _)   = Knot k1 k2
+   knot k1@(Knot2 _)   k2@(Knot1 _ _) = Knot k1 k2
+   knot k1@(Knot2 _)   k2@(Knot2 _)   = Knot k1 k2
+   knot1 p@(BasePair _) k@(Knot1 _ _) = Knot1 p k
+   knot1 p@(BasePair _) k@(Knot2 _)   = Knot1 p k
+   knot2 p@(BasePair _)               = Knot2 p
+   basepair                           = BasePair
+   base                               = Base
+   h                                  = id
 
 maxBasepairs :: RG_Algebra Char Int
 maxBasepairs = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
-   nil _ = 0
-   left a b = a + b
-   pair a b c = a + b + c
+   nil _            = 0
+   left a b         = a + b
+   pair a b c       = a + b + c
    knot a b c d e f = a + b + c + d + e + f
-   knot1 a b = a + b
-   knot2 a = a
-   basepair _ = 1
-   base _ = 0
-   h [] = []
-   h xs = [maximum xs]
+   knot1 a b        = a + b
+   knot2 a          = a
+   basepair _       = 1
+   base _           = 0
+   h []             = []
+   h xs             = [maximum xs]
 
 maxKnots :: RG_Algebra Char Int
 maxKnots = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
-   nil _ = 0
-   left _ b = b
-   pair _ b c = b + c
+   nil _            = 0
+   left _ b         = b
+   pair _ b c       = b + c
    knot _ _ c d e f = 1 + c + d + e + f
-   knot1 _ _ = 0
-   knot2 _ = 0
-   basepair _ = 0
-   base _ = 0
-   h [] = []
-   h xs = [maximum xs]
+   knot1 _ _        = 0
+   knot2 _          = 0
+   basepair _       = 0
+   base _           = 0
+   h []             = []
+   h xs             = [maximum xs]
 
 -- The left part is the structure and the right part the reconstructed input.
 -- As it is now, this cannot produce different types of parens to unambigously
