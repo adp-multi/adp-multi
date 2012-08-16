@@ -4,7 +4,8 @@
 {-# LANGUAGE UndecidableInstances #-} -- needed for Parseable
 
 module ADP.Multi.Combinators where
-import Debug.Trace
+--import Debug.Trace
+import Debug.HTrace (htrace)
 import Control.Exception
 import Data.Maybe
 import Data.Array
@@ -12,6 +13,9 @@ import Data.Char (ord)
 import Data.List (find, elemIndex)
 import Data.Map (Map)
 import qualified Data.Map as Map
+
+trace _ b = b
+--trace = htrace
 
 -- # Lexical parsers
 
@@ -31,31 +35,46 @@ data Ranges = RangeMap Subword2 [Ranges] deriving Show
 empty2 :: RichParser2 a ()
 empty2 = (
               ParserInfo2 {minYield=(0,0), maxYield=(Just 0,Just 0)},
-              \ _ (i,j,k,l) -> [() | i == j && k == l]
+              \ _ (i,j,k,l) -> 
+                [ () |
+                  i == j && k == l
+                ]
          )
 
 anychars :: RichParser2 a (a,a)
 anychars = (
                 ParserInfo2 {minYield=(1,1), maxYield=(Just 1,Just 1)},
-                \ z (i,j,k,l) -> [(z!j, z!l) | i+1 == j && k+1 == l]
+                \ z (i,j,k,l) -> 
+                        [ (z!j, z!l) |
+                          i+1 == j && k+1 == l
+                        ]
            )
 
 chars :: Eq a => a -> a -> RichParser2 a (a,a)
 chars c1 c2 = (
                   ParserInfo2 {minYield=(1,1), maxYield=(Just 1,Just 1)},
-                  \ z (i,j,k,l) -> [(z!j, z!l) | i+1 == j && k+1 == l && z!j == c1 && z!l == c2]
+                  \ z (i,j,k,l) -> 
+                        [ (z!j, z!l) |
+                          i+1 == j && k+1 == l && z!j == c1 && z!l == c2
+                        ]
               ) 
         
 charLeftOnly :: Eq a => a -> RichParser2 a (a,EPS)
 charLeftOnly c = (
                      ParserInfo2 {minYield=(1,0), maxYield=(Just 1,Just 0)},
-                     \ z (i,j,k,l) -> [(c, EPS) | i+1 == j && k == l && z!j == c]
+                     \ z (i,j,k,l) -> 
+                        [ (c, EPS) |
+                          i+1 == j && k == l && z!j == c
+                        ]
                  )
 
 charRightOnly :: Eq a => a -> RichParser2 a (EPS,a)
 charRightOnly c = (
                       ParserInfo2 {minYield=(0,1), maxYield=(Just 0,Just 1)},
-                      \ z (i,j,k,l) -> [(EPS, c) | i == j && k+1 == l && z!l == c]
+                      \ z (i,j,k,l) -> 
+                        [ (EPS, c) |
+                          i == j && k+1 == l && z!l == c
+                        ]
                   )
 
 
@@ -92,7 +111,10 @@ infixr 5 |||
 (|||) :: RichParser2 a b -> RichParser2 a b -> RichParser2 a b
 (|||) (ParserInfo2 {minYield=minY1, maxYield=maxY1}, r) (ParserInfo2 {minYield=minY2, maxYield=maxY2}, q) = 
         (
-              ParserInfo2 {minYield=combineMinYields minY1 minY2, maxYield=combineMaxYields maxY1 maxY2},
+              ParserInfo2 {
+                 minYield = combineMinYields minY1 minY2,
+                 maxYield = combineMaxYields maxY1 maxY2
+              },
               \ z (i,j,k,l) -> r z (i,j,k,l) ++ q z (i,j,k,l)
         )
 
@@ -108,7 +130,6 @@ infix 8 <<<
 -- TODO the dimension of the resulting parser should result from c
 infix 6 >>>
 (>>>) :: Rewriting c => ([ParserInfo2], [Ranges] -> Parser2 a b) -> c -> RichParser2 a b
---(>>>) _ _ _ a | trace (">>> " ++ show a) False = undefined
 (>>>) (infos,p) f =
         let yieldSize = determineYieldSize f infos
         in trace (">>> yield size: " ++ show yieldSize) $
@@ -125,15 +146,20 @@ infix 6 >>>
            )  
 
 -- TODO parsers of different dim's should be mixable
--- this seems hard to do ATM, but isn't really a problem for now as lower dimensions can be
--- simulated by higher dimensions by leaving some tuple elements of the rewriting rules empty
+-- this isn't really a problem for now as lower dimensions can be
+-- simulated with higher dimensions by leaving some tuple elements of the rewriting rules empty
 infixl 7 ~~~
 (~~~) :: Parseable p a b => ([ParserInfo2], [Ranges] -> Parser2 a (b -> c)) -> p -> ([ParserInfo2], [Ranges] -> Parser2 a c)
 (~~~) (infos,leftParser) parseable =
         let (info,rightParser) = toParser parseable
         in (
                 info : infos,
-                \ ranges z subword -> [ pr qr | qr <- rightParser z subword, RangeMap sub rest <- ranges, pr <- leftParser rest z sub ]
+                \ ranges z subword -> 
+                      [ pr qr |
+                        qr <- rightParser z subword
+                      , RangeMap sub rest <- ranges
+                      , pr <- leftParser rest z sub 
+                      ]
            )
                              
      
@@ -149,46 +175,24 @@ infixl 7 ~~~|
             info = ParserInfo2 { minYield=(0,0), maxYield=(Nothing,Nothing) }
         in (
                 info : infos,
-                \ ranges z subword -> [ pr qr | qr <- rightParser z subword, RangeMap sub rest <- ranges, pr <- leftParser rest z sub ]
+                \ ranges z subword -> 
+                        [ pr qr |
+                          qr <- rightParser z subword
+                        , RangeMap sub rest <- ranges
+                        , pr <- leftParser rest z sub 
+                        ]
            )
 
+infix  4 ...
+(...) :: RichParser2 a b -> ([b] -> [b]) -> RichParser2 a b
+(...) (info,r) h = (info, \ z subword -> h (r z subword) )
 
 class Rewriting f where
   constructRanges :: f -> [ParserInfo2] -> Subword2 -> [Ranges]
   determineYieldSize :: f -> [ParserInfo2] -> ParserInfo2 
 
--- 2-dim to 2-dim with 1 tuple
-instance (Num a, Eq a) => Rewriting ((a,a) -> ([a],[a])) where
-  constructRanges _ [info] b | trace ("constructRanges1 " ++ show b ++ " " ++ show info) False = undefined
-  constructRanges f [info] (i,j,k,l) =  
-     case f (1,2) of
-        ([1],[2]) -> [RangeMap (i,j,k,l) []]
-        ([2],[1]) -> [RangeMap (k,l,i,j) []]
-        ([1,2],[]) -> [RangeMap (i,x,x,j) [] | k == l, x <- [i + fst (minYield info) .. j - snd (minYield info)]]
-        ([2,1],[]) -> [RangeMap (x,j,i,x) [] | k == l, x <- [i + fst (minYield info) .. j - snd (minYield info)]]
-        ([],[1,2]) -> [RangeMap (k,x,x,l) [] | i == j, x <- [k + fst (minYield info) .. l - snd (minYield info)]]
-        ([],[2,1]) -> [RangeMap (x,k,l,x) [] | k == l, x <- [k + fst (minYield info) .. l - snd (minYield info)]]
-        _ -> error "invalid rewriting function, each argument must appear exactly once"
-  determineYieldSize _ infos | trace ("determineYieldSize1 " ++ show infos) False = undefined
-  determineYieldSize f [info @ ParserInfo2 { minYield=(minY1,minY2), maxYield=(maxY1,maxY2) }] =
-     case f (1,2) of
-        ([1],[2]) -> info
-        ([2],[1]) -> ParserInfo2 { minYield = (minY2,minY1), maxYield = (maxY2,maxY1) }
-        ([_,_],[]) -> ParserInfo2 { 
-                minYield = (minY1+minY2,0),
-                maxYield = (if isNothing maxY1 || isNothing maxY2 
-                            then Nothing
-                            else Just (fromJust maxY1 + fromJust maxY2), Just 0)
-                      }
-        ([],[_,_]) -> ParserInfo2 { 
-                minYield = (0,minY1+minY2),
-                maxYield = (Just 0,
-                            if isNothing maxY1 || isNothing maxY2 
-                            then Nothing
-                            else Just $ fromJust maxY1 + fromJust maxY2) }
-        _ -> error "invalid rewriting function, each argument must appear exactly once"   
 
--- 2-dim to 2-dim  with many tuples
+-- 2-dim to 2-dim
 instance Rewriting ([(Int,Int)] -> ([(Int,Int)],[(Int,Int)])) where
   constructRanges _ _ b | trace ("constructRanges2 " ++ show b) False = undefined
   constructRanges f infos (i,j,k,l) =
@@ -228,7 +232,7 @@ combineYields = foldl (\(minY1,maxY1) (minY2,maxY2) ->
                     ) ) (0,Just 0)
 
 type YieldSizes = (Int,Maybe Int) -- min and max yield sizes
-type Info = YieldSizes -- at the moment just yield sizes
+type Info = YieldSizes -- could later be extended with more static analysis data
 type InfoMap = Map (Int,Int) Info
 
 -- the input list is in reverse order, i.e. the first in the list is the last applied parser
@@ -317,6 +321,8 @@ processRangeDescDouble (i,j,r) a1Idx a2Idx (k,l,m,n) =
          | a2Idx == length r - 1 = filterEmptyRanges [(i,k,take a1Idx r),(l,m,slice (a1Idx+1) (a2Idx-1) r)]
          | otherwise = filterEmptyRanges [(i,k,take a1Idx r),(l,m,slice (a1Idx+1) (a2Idx-1) r),(n,j,drop (a2Idx+1) r)]
 
+-- Subword construction doesn't yet take the maximum yield sizes into account.
+-- This will further decrease the number of generated subwords and thus increase performance.
 calcSubwords :: InfoMap -> ((RangeDesc,Int),(RangeDesc,Int)) -> [Subword2]
 calcSubwords a b | trace ("calcSubwords " ++ show a ++ " " ++ show b) False = undefined
 calcSubwords infoMap (left@((i,j,r),a1Idx),right@((m,n,r'),a2Idx))
@@ -336,8 +342,8 @@ calcSubwords infoMap (left@((i,j,r),a1Idx),right@((m,n,r'),a2Idx))
                 ]
 
 infoFromPos :: InfoMap -> (RangeDesc,Int) -> Info
-infoFromPos infoMap ((_,_,r),aIdx) | trace ("infoFromPos " ++ show aIdx ++ " " ++ show r ++ " " ++ show infoMap) False = undefined
 infoFromPos infoMap ((_,_,r),aIdx) =
+        -- TODO !! might be expensive as it's a list 
         infoMap Map.! (r !! aIdx)
         
 -- calculates the combined yield size of all symbols left of the given one
@@ -393,7 +399,8 @@ doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
    (minYRight1,maxYRight1) = combinedInfoRightOf infoMap (desc,a1Idx)
    (minYRight2,maxYRight2) = combinedInfoRightOf infoMap (desc,a2Idx)
    minYBetween = minYRight1 - minYRight2 - minY2
-   maxYBetween = if isNothing maxYRight1 then Nothing
+   maxYBetween = if isNothing maxYRight1 
+                 then Nothing
                  else Just $ fromJust maxYRight1 - fromJust maxYRight2 - fromJust maxY2 
                  
    neighbors = a1Idx + 1 == a2Idx 
@@ -459,7 +466,7 @@ doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
           | otherwise = error "invalid conditions, e.g. a1Idx == a2Idx == 0"
        
          
--- 2-dim to 1-dim with 1 tuple
+-- 2-dim to 1-dim
 -- not possible yet, see comment at ~~~
 instance Rewriting ((a,a) -> [a]) where
   constructRanges f subword = undefined
@@ -470,11 +477,9 @@ with2 :: Parser2 a b -> Filter2 a -> Parser2 a b
 with2 q c z subword = if c z subword then q z subword else []
 
 -- TODO this is a workaround for now as we don't directly support 1-dim yet
--- for this to work, there has to be a dummy start rule like this:
-{- s' (c1,c2) = ([c1,c2],[]) -- 1-dim simulated as 2-dim
-   s = start <<< k >>> s'
-   
-   with start r = r in the algebra 
+-- for this to work, there has to be start rules like this:
+{- s' (c1,c2) = ([],[c1,c2]) -- 1-dim simulated as 2-dim
+   s = start <<< k >>> s' 
 -}
 axiom'        :: Int -> Array Int a -> RichParser2 a b -> [b]
 axiom' l z (_,ax) =  ax z (0,0,0,l)
@@ -482,11 +487,27 @@ axiom' l z (_,ax) =  ax z (0,0,0,l)
 -- # Tabulation
 
 -- four-dimensional tabulation
-table2     :: Int -> Parser2 a b -> Parser2 a b
-table2 n q z = (!) $ array ((0,0,0,0),(n,n,n,n))
-                   [((i,j,k,l),q z (i,j,k,l)) | i <- [0..n], j <- [i..n], k <- [0..n], l <- [k..n]]
+table2 :: Int -> RichParser2 a b -> RichParser2 a b
+table2 n (info,q) =
+        (info, 
+          \ z -> (!) $ array ((0,0,0,0),(n,n,n,n))
+                      [ ((i,j,k,l),q z (i,j,k,l)) |
+                        i <- [0..n]
+                      , j <- [i..n]
+                      , k <- [0..n]
+                      , l <- [k..n]
+                      ]
+        )
+        
+-- # Create array from List
 
--- # TESTS
+mk :: [a] -> Array Int a
+mk xs = array (1,length xs) (zip [1..] xs)
+
+
+
+
+-- # TESTS, see RGExample for a real test
 
 type TestAlgebra alphabet answer = (
         () -> answer,
@@ -510,19 +531,20 @@ testGram :: TestAlgebra Char answer -> String -> [answer]
 testGram alg inp = axiom s where
   (nil, left, f, f2, f3, start) = alg
   
-  s' :: (a,a) -> ([a],[a])
-  s' (c1,c2) = ([],[c1,c2]) -- 1-dim simulated as 2-dim
+  s',f3',f' :: [(Int,Int)] -> ([(Int,Int)],[(Int,Int)]) 
+  
+  s' [c1,c2] = ([],[c1,c2]) -- 1-dim simulated as 2-dim
   
   s = start <<< k >>> s'
 
-  f3' :: [(Int,Int)] -> ([(Int,Int)],[(Int,Int)]) 
+  
   f3' [p1,p2,k1,k2] = ([k1,p1],[p2,k2])
 
   k = f3 <<< p ~~~| k >>> f3' ||| 
       start <<< p >>> f' -- or just p
   
-  f' :: (a,a) -> ([a],[a]) 
-  f' (c1,c2) = ([c1],[c2]) -- "identical" function
+
+  f' [c1,c2] = ([c1],[c2]) -- "identical" function
   p = --tabulated (
       f <<< ('a', 'u') >>> f' |||
       f <<< ('u', 'a') >>> f' |||
@@ -560,9 +582,3 @@ isBasepair ('u','g') = True
 isBasepair _         = False
   
 test = testGram testAlg "guaugc"
-
-
--- # Create array from List
-
-mk :: [a] -> Array Int a
-mk xs = array (1,length xs) (zip [1..] xs)

@@ -10,8 +10,9 @@ executable adpcombinators
   build-depends:   
                    base >= 4,
                    array ==0.4.*,
-                   containers
-  ghc-options:     -Wall -rtsopts -prof -auto-all
+                   containers,
+                   htrace
+  ghc-options:     -Wall
   other-modules:   
                    ADP.Combinators,
                    ADP.Multi.Combinators
