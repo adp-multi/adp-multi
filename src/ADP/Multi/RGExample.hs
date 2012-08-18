@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module ADP.Multi.RGExample where
 
 {-
@@ -8,6 +10,10 @@ B -> a | u | c | g
 -}
 
 import Data.Array (bounds)
+import Data.List (nub)
+import qualified Control.Arrow as A
+import Data.Typeable
+import Data.Data
 import ADP.Multi.Combinators
                                  
 type RG_Algebra alphabet answer = (
@@ -27,6 +33,7 @@ type RG_Algebra alphabet answer = (
 -- with the given grammar rules.
 -- As an additional (programming) error check, the enum algebra checks
 -- the types via pattern-matching.
+
 data Start = Nil
            | Left' Start Start
            | Pair Start Start Start
@@ -35,23 +42,83 @@ data Start = Nil
            | Knot2 Start
            | BasePair (Char, Char)
            | Base (EPS, Char)
-           deriving (Eq, Show)
+           deriving (Eq, Show, Data, Typeable)
 
+-- with consistency checks
 enum :: RG_Algebra Char Start
 enum = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
-   nil _                              = Nil
-   left  b@(Base _)                   = Left' b
-   pair  p@(BasePair _)               = Pair p
-   knot k1@(Knot1 _ _) k2@(Knot1 _ _) = Knot k1 k2
-   knot k1@(Knot1 _ _) k2@(Knot2 _)   = Knot k1 k2
-   knot k1@(Knot2 _)   k2@(Knot1 _ _) = Knot k1 k2
-   knot k1@(Knot2 _)   k2@(Knot2 _)   = Knot k1 k2
-   knot1 p@(BasePair _) k@(Knot1 _ _) = Knot1 p k
-   knot1 p@(BasePair _) k@(Knot2 _)   = Knot1 p k
-   knot2 p@(BasePair _)               = Knot2 p
-   basepair                           = BasePair
-   base                               = Base
-   h                                  = id
+
+   s' = [Nil, Left'{}, Pair{}, Knot{}]
+   k' = [Knot1 {}, Knot2 {}]
+
+   nil _ = Nil
+   left  b@(Base _) s 
+        | s `isOf` s' = Left' b s
+        
+   pair  p@(BasePair _) s1 s2 
+        | [s1,s2] `areOf` s' = Pair p s1 s2
+        
+   knot k1 k2 s1 s2 s3 s4 
+        | [k1,k2] `areOf` k' && [s1,s2,s3,s4] `areOf` s' = Knot k1 k2 s1 s2 s3 s4
+        
+   knot1 p@(BasePair _) k 
+        | k `isOf` k' = Knot1 p k
+        
+   knot2 p@(BasePair _) = Knot2 p
+   basepair             = BasePair
+   base                 = Base
+   h                    = id
+   
+   isOf l r = toConstr l `elem` map toConstr r
+   areOf l r = all (`isOf` r) l
+   
+
+{-
+-- without consistency checks
+enum = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
+   nil _     = Nil
+   left      = Left'
+   pair      = Pair 
+   knot      = Knot 
+   knot1     = Knot1 
+   knot2     = Knot2
+   basepair  = BasePair
+   base      = Base
+   h         = id
+-} 
+
+infixl ***
+(***) :: (Eq b, Eq c) => RG_Algebra a b -> RG_Algebra a c -> RG_Algebra a (b,c)
+alg1 *** alg2 = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
+   (nil',left',pair',knot',knot1',knot2',basepair',base',h') = alg1
+   (nil'',left'',pair'',knot'',knot1'',knot2'',basepair'',base'',h'') = alg2
+   
+   nil = nil' A.&&& nil''
+   left (b1,b2) (s1,s2) = (left' b1 s1, left'' b2 s2)
+   pair (p1,p2) (s11,s21) (s12,s22) = (pair' p1 s11 s12, pair'' p2 s21 s22)
+   knot (k11,k21) (k12,k22) (s11,s21) (s12,s22) (s13,s23) (s14,s24) =
+        (knot' k11 k12 s11 s12 s13 s14, knot'' k21 k22 s21 s22 s23 s24)
+   knot1 (p1,p2) (k1,k2) = (knot1' p1 k1, knot1'' p2 k2)
+   knot2 = knot2' A.*** knot2''
+   basepair = basepair' A.&&& basepair''
+   base = base' A.&&& base''
+   h xs = [ (x1,x2) |
+            x1 <- h'  [ y1 | (y1,_)  <- xs]
+          , x2 <- h'' [ y2 | (y1,y2) <- xs, y1 == x1]
+          ]
+   
+{-
+   nil a = (nil' a, nil'' a)
+   left (b1,b2) (s1,s2) = (left' b1 s1, left'' b2 s2)
+   pair (p1,p2) (s11,s21) (s12,s22) = (pair' p1 s11 s12, pair'' p2 s21 s22)
+   knot (k11,k21) (k12,k22) (s11,s21) (s12,s22) (s13,s23) (s14,s24) =
+        (knot' k11 k12 s11 s12 s13 s14, knot'' k21 k22 s21 s22 s23 s24)
+   knot1 (p1,p2) (k1,k2) = (knot1' p1 k1, knot1'' p2 k2)
+   knot2 (p1,p2) = (knot2' p1, knot2'' p2)
+   basepair a = (basepair' a,  basepair'' a)
+   base a = (base' a, base'' a)
+   h = undefined
+-}
 
 maxBasepairs :: RG_Algebra Char Int
 maxBasepairs = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where

@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances #-} -- needed for Parseable
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module ADP.Multi.Combinators where
 --import Debug.Trace
@@ -13,6 +14,9 @@ import Data.Char (ord)
 import Data.List (find, elemIndex)
 import Data.Map (Map)
 import qualified Data.Map as Map
+
+import Data.Typeable
+import Data.Data
 
 trace _ b = b
 --trace = htrace
@@ -28,7 +32,7 @@ data ParserInfo2 = ParserInfo2 { minYield :: (Int,Int), maxYield :: (Maybe Int,M
 type RichParser2 a b = (ParserInfo2, Parser2 a b)
 
 
-data EPS = EPS deriving (Eq, Show)
+data EPS = EPS deriving (Eq, Show, Data, Typeable)
 
 data Ranges = RangeMap Subword2 [Ranges] deriving Show
 
@@ -255,7 +259,7 @@ constructRangesRec _ [] [] = []
 constructRangesRec infoMap (current:rest) rangeDescs =
         let symbolLoc = findSymbol current rangeDescs
             subwords = calcSubwords infoMap symbolLoc
-        in trace ("subwords: " ++ show subwords) $        
+        in trace ("subwords: " ++ show subwords) $
            [ RangeMap subword restRanges |
              subword <- subwords,
              let newDescs = constructNewRangeDescs rangeDescs symbolLoc subword,
@@ -275,10 +279,14 @@ findSymbol s rangeDesc =
 constructNewRangeDescs :: [RangeDesc] -> ((RangeDesc,Int),(RangeDesc,Int)) -> Subword2 -> [RangeDesc]
 constructNewRangeDescs d p s | trace ("constructNewRangeDescs " ++ show d ++ " " ++ show p ++ " " ++ show s) False = undefined
 constructNewRangeDescs descs symbolPositions subword =
-        let newDescs = [ newDesc | desc <- descs, newDesc <- processRangeDesc desc symbolPositions subword ]
+        let newDescs = [ newDesc |
+                         desc <- descs
+                       , newDesc <- processRangeDesc desc symbolPositions subword
+                       ]
             count = foldr (\(_,_,l) r -> r + length l) 0
         in assert (count descs > count newDescs) $
-           trace (show newDescs) newDescs
+           trace (show newDescs) $
+           newDescs
 
 processRangeDesc :: RangeDesc -> ((RangeDesc,Int),(RangeDesc,Int)) -> Subword2 -> [RangeDesc]
 processRangeDesc a b c | trace ("processRangeDesc " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
@@ -364,7 +372,7 @@ combinedInfoRightOf infoMap (desc@(_,_,r),axIdx)
         
 -- assumes that other component is in a different part
 calcSubwordsIndependent :: InfoMap -> (RangeDesc,Int) -> [Subword]
-calcSubwordsIndependent a b | trace ("calcSubwordsIndependent " ++ show b) False = undefined
+calcSubwordsIndependent _ b | trace ("calcSubwordsIndependent " ++ show b) False = undefined
 calcSubwordsIndependent infoMap pos@((i,j,r),axIdx) 
   | axIdx == 0            = [(k,l) | let k = i, l <- [i+minY..j-minYRight]]
   | axIdx == length r - 1 = [(k,l) | let l = j, k <- [i+minYLeft..j-minY]]
@@ -481,7 +489,7 @@ with2 q c z subword = if c z subword then q z subword else []
 {- s' (c1,c2) = ([],[c1,c2]) -- 1-dim simulated as 2-dim
    s = start <<< k >>> s' 
 -}
-axiom'        :: Int -> Array Int a -> RichParser2 a b -> [b]
+axiom' :: Int -> Array Int a -> RichParser2 a b -> [b]
 axiom' l z (_,ax) =  ax z (0,0,0,l)
 
 -- # Tabulation
