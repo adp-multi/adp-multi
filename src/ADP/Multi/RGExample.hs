@@ -10,7 +10,6 @@ B -> a | u | c | g
 -}
 
 import Data.Array (bounds)
-import Data.List (nub)
 import qualified Control.Arrow as A
 import Data.Typeable
 import Data.Data
@@ -27,13 +26,45 @@ type RG_Algebra alphabet answer = (
   (EPS, alphabet) -> answer,                  -- base
   [answer] -> [answer]                        -- h
   )
+  
+infixl ***
+(***) :: (Eq b, Eq c) => RG_Algebra a b -> RG_Algebra a c -> RG_Algebra a (b,c)
+alg1 *** alg2 = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
+   (nil',left',pair',knot',knot1',knot2',basepair',base',h') = alg1
+   (nil'',left'',pair'',knot'',knot1'',knot2'',basepair'',base'',h'') = alg2
+   
+   nil = nil' A.&&& nil''
+   left (b1,b2) (s1,s2) = (left' b1 s1, left'' b2 s2)
+   pair (p1,p2) (s11,s21) (s12,s22) = (pair' p1 s11 s12, pair'' p2 s21 s22)
+   knot (k11,k21) (k12,k22) (s11,s21) (s12,s22) (s13,s23) (s14,s24) =
+        (knot' k11 k12 s11 s12 s13 s14, knot'' k21 k22 s21 s22 s23 s24)
+   knot1 (p1,p2) (k1,k2) = (knot1' p1 k1, knot1'' p2 k2)
+   knot2 = knot2' A.*** knot2''
+   basepair = basepair' A.&&& basepair''
+   base = base' A.&&& base''
+   h xs = [ (x1,x2) |
+            x1 <- h'  [ y1 | (y1,_)  <- xs]
+          , x2 <- h'' [ y2 | (y1,y2) <- xs, y1 == x1]
+          ]
+   
+{-
+   nil a = (nil' a, nil'' a)
+   left (b1,b2) (s1,s2) = (left' b1 s1, left'' b2 s2)
+   pair (p1,p2) (s11,s21) (s12,s22) = (pair' p1 s11 s12, pair'' p2 s21 s22)
+   knot (k11,k21) (k12,k22) (s11,s21) (s12,s22) (s13,s23) (s14,s24) =
+        (knot' k11 k12 s11 s12 s13 s14, knot'' k21 k22 s21 s22 s23 s24)
+   knot1 (p1,p2) (k1,k2) = (knot1' p1 k1, knot1'' p2 k2)
+   knot2 (p1,p2) = (knot2' p1, knot2'' p2)
+   basepair a = (basepair' a,  basepair'' a)
+   base a = (base' a, base'' a)
+   h = undefined
+-}
 
 -- This data type is used only for the enum algebra.
 -- The type allows invalid trees which would be impossible to build
 -- with the given grammar rules.
 -- As an additional (programming) error check, the enum algebra checks
 -- the types via pattern-matching.
-
 data Start = Nil
            | Left' Start Start
            | Pair Start Start Start
@@ -73,9 +104,9 @@ enum = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    areOf l r = all (`isOf` r) l
    
 
-{-
 -- without consistency checks
-enum = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
+enum2 :: RG_Algebra Char Start
+enum2 = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    nil _     = Nil
    left      = Left'
    pair      = Pair 
@@ -84,41 +115,7 @@ enum = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    knot2     = Knot2
    basepair  = BasePair
    base      = Base
-   h         = id
--} 
-
-infixl ***
-(***) :: (Eq b, Eq c) => RG_Algebra a b -> RG_Algebra a c -> RG_Algebra a (b,c)
-alg1 *** alg2 = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
-   (nil',left',pair',knot',knot1',knot2',basepair',base',h') = alg1
-   (nil'',left'',pair'',knot'',knot1'',knot2'',basepair'',base'',h'') = alg2
-   
-   nil = nil' A.&&& nil''
-   left (b1,b2) (s1,s2) = (left' b1 s1, left'' b2 s2)
-   pair (p1,p2) (s11,s21) (s12,s22) = (pair' p1 s11 s12, pair'' p2 s21 s22)
-   knot (k11,k21) (k12,k22) (s11,s21) (s12,s22) (s13,s23) (s14,s24) =
-        (knot' k11 k12 s11 s12 s13 s14, knot'' k21 k22 s21 s22 s23 s24)
-   knot1 (p1,p2) (k1,k2) = (knot1' p1 k1, knot1'' p2 k2)
-   knot2 = knot2' A.*** knot2''
-   basepair = basepair' A.&&& basepair''
-   base = base' A.&&& base''
-   h xs = [ (x1,x2) |
-            x1 <- h'  [ y1 | (y1,_)  <- xs]
-          , x2 <- h'' [ y2 | (y1,y2) <- xs, y1 == x1]
-          ]
-   
-{-
-   nil a = (nil' a, nil'' a)
-   left (b1,b2) (s1,s2) = (left' b1 s1, left'' b2 s2)
-   pair (p1,p2) (s11,s21) (s12,s22) = (pair' p1 s11 s12, pair'' p2 s21 s22)
-   knot (k11,k21) (k12,k22) (s11,s21) (s12,s22) (s13,s23) (s14,s24) =
-        (knot' k11 k12 s11 s12 s13 s14, knot'' k21 k22 s21 s22 s23 s24)
-   knot1 (p1,p2) (k1,k2) = (knot1' p1 k1, knot1'' p2 k2)
-   knot2 (p1,p2) = (knot2' p1, knot2'' p2)
-   basepair a = (basepair' a,  basepair'' a)
-   base a = (base' a, base'' a)
-   h = undefined
--}
+   h         = id 
 
 maxBasepairs :: RG_Algebra Char Int
 maxBasepairs = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where

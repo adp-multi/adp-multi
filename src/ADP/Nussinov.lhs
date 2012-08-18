@@ -1,3 +1,8 @@
+ADP combinators and functions from:
+
+R. Giegerich, C. Meyer and P. Steffen. Towards a discipline of dynamic
+programming.
+
 > module ADP.Nussinov where
 
 > import Data.Array
