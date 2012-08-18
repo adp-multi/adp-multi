@@ -1,8 +1,8 @@
-name:           adpcombinators-mcfg
+name:           adp-multi
 version:        0.1
 cabal-version:  >= 1.2
 build-type:     Simple
-author:         maik
+author:         Maik Riechert
 
 executable adpcombinators
   hs-source-dirs:  src
