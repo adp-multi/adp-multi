@@ -24,13 +24,13 @@ main = do
             -- inp = map toLower "ACCGUCGUUCCCGACGUAAAAGGGAUGU"
             
             -- https://github.com/neothemachine/rna/wiki/Example
-            inp = "agcgu"
+            --inp = "agcgu"
             
-            --inp = map toLower "ACGAUUCAACGU"
+            inp = map toLower "ACGAUUCAACGU"
             
             result = RG.rgknot RG.enum inp
             result2 = RG.rgknot RG.maxBasepairs inp
             result3 = RG.rgknot RG.maxKnots inp
             --result4 = RG.rgknot RG.prettyprint inp
             
-            result5 = RG.rgknot (RG.maxBasepairs RG.*** RG.maxKnots RG.*** RG.prettyprint) inp
+            result5 = RG.rgknot (RG.enum RG.*** RG.prettyprint) inp

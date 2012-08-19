@@ -14,6 +14,7 @@ import Data.Char (ord)
 import Data.List (find, elemIndex)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import qualified Control.Arrow as A
 
 import Data.Typeable
 import Data.Data
@@ -190,6 +191,7 @@ infixl 7 ~~~|
 infix  4 ...
 (...) :: RichParser2 a b -> ([b] -> [b]) -> RichParser2 a b
 (...) (info,r) h = (info, \ z subword -> h (r z subword) )
+--(...) richParser h = A.second (\ r z subword -> h (r z subword) ) richParser
 
 class Rewriting f where
   constructRanges :: f -> [ParserInfo2] -> Subword2 -> [Ranges]
