@@ -1,15 +1,12 @@
 module ADP.Multi.Combinators where
 
-import Debug.HTrace (htrace)
 import Data.Maybe
 import Data.Array
 import qualified Control.Arrow as A
 
+import ADP.Debug
 import ADP.Multi.Parser
 import ADP.Multi.Rewriting
-
-trace _ b = b
---trace = htrace
 
 
 infix 8 <<<

@@ -2,20 +2,19 @@
 
 module ADP.Multi.Rewriting.Simple where
 
-import Debug.HTrace (htrace)
+
 import Control.Exception
 import Data.Maybe
 import Data.List (find, elemIndex)
 import Data.Map (Map)
 import qualified Data.Map as Map
 
+import ADP.Debug
 import ADP.Multi.Parser
 import ADP.Multi.Rewriting
+import ADP.Multi.Rewriting.YieldSize
 
 type Subword = (Int,Int)
-
-trace _ b = b
---trace = htrace
 
 -- 2-dim to 2-dim
 instance Rewriting ([(Int,Int)] -> ([(Int,Int)],[(Int,Int)])) where
@@ -32,45 +31,10 @@ instance Rewriting ([(Int,Int)] -> ([(Int,Int)],[(Int,Int)])) where
            else constructRangesRec (buildInfoMap infos) remainingSymbols rangeDescFiltered
   determineYieldSize _ infos | trace ("determineYieldSize2 " ++ show infos) False = undefined
   determineYieldSize f infos =
-        let parserCount = length infos
-            args = concatMap (\ x -> [(x,1),(x,2)]) [1..parserCount] 
-            (left,right) = f args
-            elemInfo = buildInfoMap infos
-            leftYields = map (\(i,j) -> elemInfo Map.! (i,j)) left
-            rightYields = map (\(i,j) -> elemInfo Map.! (i,j)) right
-            (leftMin,leftMax) = combineYields leftYields
-            (rightMin,rightMax) = combineYields rightYields 
-        in trace (show elemInfo) $
-           trace (show left) $
-           trace (show right) $
-           ParserInfo2 { 
-                minYield = (leftMin,rightMin),
-                maxYield = (leftMax,rightMax)
-           }
+        doDetermineYieldSize f infos
 
-combineYields :: [Info] -> Info
-combineYields = foldl (\(minY1,maxY1) (minY2,maxY2) ->
-                    ( minY1+minY2
-                    , if isNothing maxY1 || isNothing maxY2 
-                      then Nothing
-                      else Just $ fromJust maxY1 + fromJust maxY2
-                    ) ) (0,Just 0)
+-- this is (temporarily) not in the instance itself to reuse it in ConstraintSolver.hs   
 
-type YieldSizes = (Int,Maybe Int) -- min and max yield sizes
-type Info = YieldSizes -- could later be extended with more static analysis data
-type InfoMap = Map (Int,Int) Info
-
--- the input list is in reverse order, i.e. the first in the list is the last applied parser
-buildInfoMap :: [ParserInfo2] -> InfoMap
-buildInfoMap i | trace ("buildInfoMap " ++ show i) False = undefined
-buildInfoMap infos =
-        let parserCount = length infos
-            list = concatMap (\ (x,info) -> 
-                       [ ((x,1), (fst $ minYield info, fst $ maxYield info) ) 
-                       , ((x,2), (snd $ minYield info, snd $ maxYield info) ) 
-                       ]
-                     ) $ zip [parserCount,parserCount-1..] infos
-        in Map.fromList list
 
 type RangeDesc = (Int,Int,[(Int,Int)])
 

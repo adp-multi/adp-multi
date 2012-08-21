@@ -22,7 +22,10 @@ executable adpcombinators
                    ADP.Multi.Helpers,
                    Tests.Test,
                    ADP.Multi.Rewriting.Simple,
-                   ADP.Multi.Rewriting
+                   ADP.Multi.Rewriting,
+                   ADP.Multi.Rewriting.ConstraintSolver,
+                   ADP.Multi.Rewriting.YieldSize,
+                   ADP.Debug
 
 test-suite Test1
   type:            exitcode-stdio-1.0
@@ -43,5 +46,8 @@ test-suite Test1
                    ADP.Multi.Helpers,
                    Tests.Test,
                    ADP.Multi.Rewriting.Simple,
-                   ADP.Multi.Rewriting
+                   ADP.Multi.Rewriting,
+                   ADP.Multi.Rewriting.ConstraintSolver,
+                   ADP.Multi.Rewriting.YieldSize,
+                   ADP.Debug
 
