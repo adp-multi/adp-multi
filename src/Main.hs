@@ -3,14 +3,14 @@ module Main where
 import System.IO (hSetBuffering, stdout, BufferMode (LineBuffering))
 import Data.Char (toLower)
 import Control.Monad (forM_)
-import qualified ADP.Multi.RGExample as RG
+import qualified Tests.RGExample as RG
 
 
 main::IO()
 main = do
         hSetBuffering stdout LineBuffering
         
-        --forM_ result print
+        forM_ result print
         --forM_ result2 print
         --forM_ result3 print
         --forM_ result4 print

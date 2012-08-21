@@ -1,6 +1,19 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module ADP.Multi.RGExample where
+{-
+Example using the Reeder&Giegerich class of pseudoknots.
+
+The grammar was taken from:
+
+Markus E. Nebel and Frank Weinberg. Algebraic and Combinatorial Properties of Common
+RNA Pseudoknot Classes with Applications. (submitted), 2012.
+
+The original algorithm (not in grammar form) can be found in:
+
+Jens Reeder and Robert Giegerich. Design, implementation and evaluation of a practical
+pseudoknot folding algorithm based on thermodynamics. BMC Bioinformatics, 5:104, 2004.
+-}
+module Tests.RGExample where
 
 {-
 S -> € | BS | P_1 S P_2 S | K_1^1 S K_1^2 S K_2^1 S K_2^2 S
@@ -13,7 +26,11 @@ import Data.Array (bounds)
 import qualified Control.Arrow as A
 import Data.Typeable
 import Data.Data
+import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
+import ADP.Multi.Tabulation
+import ADP.Multi.Helpers
+import ADP.Multi.Rewriting.Simple()
                                  
 type RG_Algebra alphabet answer = (
   () -> answer,                               -- nil
