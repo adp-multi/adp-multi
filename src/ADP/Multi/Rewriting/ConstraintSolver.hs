@@ -6,8 +6,6 @@ subwords in a generic way.
 -}
 module ADP.Multi.Rewriting.ConstraintSolver where
 
-import Control.Exception
-import Data.Maybe
 import Data.List (find, elemIndex)
 import Data.Map (Map)
 import qualified Data.Map as Map

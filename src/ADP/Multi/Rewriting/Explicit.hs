@@ -1,12 +1,11 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module ADP.Multi.Rewriting.Simple where
+module ADP.Multi.Rewriting.Explicit where
 
 
 import Control.Exception
 import Data.Maybe
 import Data.List (find, elemIndex)
-import Data.Map (Map)
 import qualified Data.Map as Map
 
 import ADP.Debug

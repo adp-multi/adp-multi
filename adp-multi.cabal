@@ -9,9 +9,11 @@ executable adpcombinators
   main-is:         Main.hs
   build-depends:   
                    base >= 4,
-                   array ==0.4.*,
+                   array,
                    containers,
-                   htrace
+                   htrace,
+                   mtl,
+                   monadiccp
   ghc-options:     -Wall
   other-modules:   
                    ADP.Combinators,
@@ -21,11 +23,12 @@ executable adpcombinators
                    ADP.Multi.SimpleParsers,
                    ADP.Multi.Helpers,
                    Tests.Test,
-                   ADP.Multi.Rewriting.Simple,
                    ADP.Multi.Rewriting,
                    ADP.Multi.Rewriting.ConstraintSolver,
                    ADP.Multi.Rewriting.YieldSize,
-                   ADP.Debug
+                   ADP.Debug,
+                   ADP.Multi.Rewriting.Explicit,
+                   Tests.MonadicCpTest
 
 test-suite Test1
   type:            exitcode-stdio-1.0
@@ -45,9 +48,10 @@ test-suite Test1
                    ADP.Multi.SimpleParsers,
                    ADP.Multi.Helpers,
                    Tests.Test,
-                   ADP.Multi.Rewriting.Simple,
                    ADP.Multi.Rewriting,
                    ADP.Multi.Rewriting.ConstraintSolver,
                    ADP.Multi.Rewriting.YieldSize,
-                   ADP.Debug
+                   ADP.Debug,
+                   ADP.Multi.Rewriting.Explicit,
+                   Tests.MonadicCpTest
 
