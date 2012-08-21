@@ -104,5 +104,9 @@ infix  4 ...
 
 
 type Filter2 a = Array Int a -> Subword2 -> Bool
-with2 :: Parser2 a b -> Filter2 a -> Parser2 a b
-with2 q c z subword = if c z subword then q z subword else []
+with2 :: RichParser2 a b -> Filter2 a -> RichParser2 a b
+with2 (info,q) c =
+        (
+            info,
+            \ z subword -> if c z subword then q z subword else []
+        )

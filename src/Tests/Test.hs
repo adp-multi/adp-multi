@@ -1,7 +1,7 @@
 module Tests.Test where
 
 import Data.Char (ord)
-import Data.Array (bounds)
+import Data.Array (bounds, (!))
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
@@ -61,17 +61,17 @@ testGram alg inp = axiom s where
       
   -- or using our basepair parser constructed with a filter:
   
---  p2 = f <<< basepair >>> f'
+  p2 = f <<< basepair >>> f'
 
   z         = mk inp
-  (_,n)     = bounds (z)
+  (_,n)     = bounds z
   
   tabulated = table2 n
-{-
+
   basepair  = anychars `with2` basepairing 
   basepairing :: Filter2 Char
   basepairing z (i,j,k,l) = i+1 == j && k+1 == l && isBasepair (z!(i+1), z!(k+1))
-  -}
+  
   axiom     = axiom' n z
   
 isBasepair ('a','u') = True
