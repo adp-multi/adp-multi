@@ -12,6 +12,8 @@ import qualified Data.Map as Map
 import ADP.Multi.Parser
 import ADP.Multi.Rewriting
 
+type Subword = (Int,Int)
+
 trace _ b = b
 --trace = htrace
 
