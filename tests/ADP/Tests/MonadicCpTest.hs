@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Tests.MonadicCpRegression where
+module ADP.Tests.MonadicCpTest where
 
 import Control.CP.FD.OvertonFD.OvertonFD
 import Control.CP.FD.OvertonFD.Sugar()
@@ -22,11 +22,17 @@ type FDModel =
 
 model :: FDModel
 model = exists $ \col -> do
-  [len1,len2] <- colList col 2
-  xsum col @= 2
-  len1 @>= 0
-  len2 @>= 1
-  2 @<= 1 
+  [x1,x2] <- colList col 2
+  allin col (cte 0,cte 8)
+  x1 + x2 @= 8
+  x1 @>= 1
+  x2 @>= 2
+  x1 @<= 10
+  x2 @<= 12
+  -2 @<= x2
+  -4 @<= x1
+  x1 @<= 8 -- each unnecessary inequality leads to one more visited node 
+  x2 @<= 8
   return col
 
 main :: IO ()

@@ -1,9 +1,9 @@
-module Main where
+module ADP.Tests.Main where
 
 import System.IO (hSetBuffering, stdout, BufferMode (LineBuffering))
 import Data.Char (toLower)
 import Control.Monad (forM_)
-import qualified Tests.RGExample as RG
+import qualified ADP.Tests.RGExample as RG
 
 
 main::IO()
@@ -18,9 +18,12 @@ main = do
         
         where
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
+            -- struc = ".(((((.[[[))))).]]]."
             -- inp = map toLower "CAAUUUUCUGAAAAUUUUCAC"
             
-            -- also from pseudobase; longer, but produces results earlier
+            -- http://www.ekevanbatenburg.nl/PKBASE/PKB00289.HTML
+            -- longer, but produces results earlier
+            -- struc = "..((((..[[[[)))).....]]]]..."
             -- inp = map toLower "ACCGUCGUUCCCGACGUAAAAGGGAUGU"
             
             -- https://github.com/neothemachine/rna/wiki/Example
@@ -31,6 +34,6 @@ main = do
             result = RG.rgknot RG.enum inp
             result2 = RG.rgknot RG.maxBasepairs inp
             result3 = RG.rgknot RG.maxKnots inp
-            --result4 = RG.rgknot RG.prettyprint inp
+            result4 = RG.rgknot RG.prettyprint inp
             
             result5 = RG.rgknot (RG.enum RG.*** RG.prettyprint) inp

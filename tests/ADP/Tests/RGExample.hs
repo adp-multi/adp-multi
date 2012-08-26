@@ -13,7 +13,7 @@ The original algorithm (not in grammar form) can be found in:
 Jens Reeder and Robert Giegerich. Design, implementation and evaluation of a practical
 pseudoknot folding algorithm based on thermodynamics. BMC Bioinformatics, 5:104, 2004.
 -}
-module Tests.RGExample where
+module ADP.Tests.RGExample where
 
 {-
 S -> € | BS | P_1 S P_2 S | K_1^1 S K_1^2 S K_2^1 S K_2^2 S

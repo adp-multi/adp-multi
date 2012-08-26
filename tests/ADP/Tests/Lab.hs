@@ -1,4 +1,4 @@
-module Tests.Test where
+module ADP.Tests.Lab where
 
 import Data.Char (ord)
 import Data.Array (bounds, (!))

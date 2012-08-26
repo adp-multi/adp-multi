@@ -1,38 +1,34 @@
 name:           adp-multi
 version:        0.1
-cabal-version:  >= 1.2
+cabal-version:  >= 1.6
 build-type:     Simple
 author:         Maik Riechert
+stability:      alpha
+bug-reports:    https://github.com/neothemachine/adp-multi/issues
 
-executable adpcombinators
-  hs-source-dirs:  src
-  main-is:         Main.hs
-  build-depends:   
-                   base >= 4,
+source-repository head
+  type: git
+  location: git://github.com/neothemachine/adp-multi.git
+
+library 
+  build-depends:   base >= 4,
                    array,
                    containers,
                    htrace,
                    mtl,
                    monadiccp
+  hs-source-dirs:  src
   ghc-options:     -Wall
-  other-modules:   
-                   ADP.Combinators,
+  exposed-modules: 
                    ADP.Multi.Combinators,
-                   ADP.Multi.Tabulation,
-                   ADP.Multi.Parser,
-                   ADP.Multi.SimpleParsers,
                    ADP.Multi.Helpers,
-                   Tests.Test,
-                   ADP.Multi.Rewriting,
+                   ADP.Multi.Parser,
                    ADP.Multi.Rewriting.ConstraintSolver,
-                   ADP.Multi.Rewriting.YieldSize,
-                   ADP.Debug,
                    ADP.Multi.Rewriting.Explicit,
-                   Tests.MonadicCpTest,
-                   ADP.Multi.Rewriting.MonadicCpHelper,
-                   Tests.MonadicCpRegression
+                   ADP.Multi.SimpleParsers,
+                   ADP.Multi.Tabulation
 
-test-suite Test1
+test-suite MainTestSuite
   type:            exitcode-stdio-1.0
   x-uses-tf:       true
   build-depends:   base >= 4,
@@ -41,21 +37,23 @@ test-suite Test1
                    test-framework >= 0.4.1,
                    test-framework-quickcheck2,
                    test-framework-hunit
-  hs-source-dirs:  src
+  hs-source-dirs:  src,
+                   tests
   ghc-options:     -Wall -rtsopts
-  main-is:         Tests/Te.hs
   other-modules:   
-                   ADP.Multi.Tabulation,
-                   ADP.Multi.Parser,
-                   ADP.Multi.SimpleParsers,
+                   ADP.Multi.Combinators,
                    ADP.Multi.Helpers,
-                   Tests.Test,
+                   ADP.Multi.Parser,
                    ADP.Multi.Rewriting,
                    ADP.Multi.Rewriting.ConstraintSolver,
-                   ADP.Multi.Rewriting.YieldSize,
-                   ADP.Debug,
                    ADP.Multi.Rewriting.Explicit,
-                   Tests.MonadicCpTest,
                    ADP.Multi.Rewriting.MonadicCpHelper,
-                   Tests.MonadicCpRegression
-
+                   ADP.Multi.Rewriting.YieldSize,
+                   ADP.Multi.SimpleParsers,
+                   ADP.Multi.Tabulation,
+                   ADP.Tests.Lab,
+                   ADP.Tests.Main,
+                   ADP.Tests.MonadicCpRegression,
+                   ADP.Tests.MonadicCpTest,
+                   ADP.Tests.RGExample
+  main-is:         ADP/Tests/Suite.hs
