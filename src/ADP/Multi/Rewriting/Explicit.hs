@@ -4,9 +4,9 @@ module ADP.Multi.Rewriting.Explicit where
 
 
 import Control.Exception
-import Data.Maybe
-import Data.List (find, elemIndex)
+import Data.List (elemIndex, find)
 import qualified Data.Map as Map
+import Data.Maybe
 
 import ADP.Debug
 import ADP.Multi.Parser
@@ -21,7 +21,7 @@ instance Rewriting ([(Int,Int)] -> ([(Int,Int)],[(Int,Int)])) where
   constructRanges f infos (i,j,k,l) =
         assert (i <= j && j <= k && k <= l) $
         let parserCount = length infos
-            args = concatMap (\ x -> [(x,1),(x,2)]) [1..parserCount] 
+            args = concatMap (\ x -> [(x,1),(x,2)]) [1..parserCount]
             (left,right) = f args
             remainingSymbols = [parserCount,parserCount-1..1]
             rangeDesc = [(i,j,left),(k,l,right)]
@@ -30,9 +30,10 @@ instance Rewriting ([(Int,Int)] -> ([(Int,Int)],[(Int,Int)])) where
            else constructRangesRec (buildInfoMap infos) remainingSymbols rangeDescFiltered
   determineYieldSize _ infos | trace ("determineYieldSize2 " ++ show infos) False = undefined
   determineYieldSize f infos =
+        -- this is (temporarily) not in the instance itself to reuse it in ConstraintSolver.hs
         doDetermineYieldSize f infos
 
--- this is (temporarily) not in the instance itself to reuse it in ConstraintSolver.hs   
+
 
 
 type RangeDesc = (Int,Int,[(Int,Int)])
@@ -79,7 +80,7 @@ processRangeDesc inp ((left,a1Idx),(right,a2Idx)) (m,n,o,p)
   | inp == left && inp == right =
         -- at this point it doesn't matter what the actual ordering is
         -- so we just swap if necessary to make it easier for processRangeDescDouble
-        let (a1Idx',a2Idx',m',n',o',p') = 
+        let (a1Idx',a2Idx',m',n',o',p') =
                 if a1Idx < a2Idx then
                     (a1Idx,a2Idx,m,n,o,p)
                 else
@@ -89,7 +90,7 @@ processRangeDesc inp ((left,a1Idx),(right,a2Idx)) (m,n,o,p)
   | inp == right = processRangeDescSingle right a2Idx (o,p)
 
 filterEmptyRanges :: [RangeDesc] -> [RangeDesc]
-filterEmptyRanges l = 
+filterEmptyRanges l =
         let f (i,j,d) = not $ null d && i == j
         in filter f l
 
@@ -106,8 +107,8 @@ slice from to xs = take (to - from + 1) (drop from xs)
 -- assumes that a1Idx < a2Idx, see processRangeDesc
 processRangeDescDouble :: RangeDesc -> Int -> Int -> Subword2 -> [RangeDesc]
 processRangeDescDouble a b c d | trace ("processRangeDescDouble " ++ show a ++ " " ++ show b ++ " " ++ show c ++ " " ++ show d) False = undefined
-processRangeDescDouble (i,j,r) a1Idx a2Idx (k,l,m,n) = 
-  assert (a1Idx < a2Idx) result where 
+processRangeDescDouble (i,j,r) a1Idx a2Idx (k,l,m,n) =
+  assert (a1Idx < a2Idx) result where
   result | a1Idx == 0 && a2Idx == length r - 1 = filterEmptyRanges [(l,m,init (tail r))]
          | a1Idx == 0 = filterEmptyRanges [(l,m,slice 1 (a2Idx-1) r),(n,j,drop (a2Idx+1) r)]
          | a2Idx == length r - 1 = filterEmptyRanges [(i,k,take a1Idx r),(l,m,slice (a1Idx+1) (a2Idx-1) r)]
@@ -135,42 +136,42 @@ calcSubwords infoMap (left@((i,j,r),a1Idx),right@((m,n,r'),a2Idx))
 
 infoFromPos :: InfoMap -> (RangeDesc,Int) -> Info
 infoFromPos infoMap ((_,_,r),aIdx) =
-        -- TODO !! might be expensive as it's a list 
+        -- TODO !! might be expensive as it's a list
         infoMap Map.! (r !! aIdx)
-        
+
 -- calculates the combined yield size of all symbols left of the given one
 combinedInfoLeftOf :: InfoMap -> (RangeDesc,Int) -> Info
 combinedInfoLeftOf infoMap (desc,axIdx)
   | axIdx == 0 = (0, Just 0)
-  | otherwise = 
+  | otherwise =
         let leftInfos = map (\i -> infoFromPos infoMap (desc,i)) [0..axIdx-1]
         in combineYields leftInfos
 
--- calculates the combined yield size of all symbols right of the given one        
+-- calculates the combined yield size of all symbols right of the given one
 combinedInfoRightOf :: InfoMap -> (RangeDesc,Int) -> Info
 combinedInfoRightOf infoMap (desc@(_,_,r),axIdx)
   | axIdx == length r - 1 = (0, Just 0)
-  | otherwise = 
+  | otherwise =
         let rightInfos = map (\i -> infoFromPos infoMap (desc,i)) [axIdx+1..length r - 1]
         in combineYields rightInfos
-        
+
 -- assumes that other component is in a different part
 calcSubwordsIndependent :: InfoMap -> (RangeDesc,Int) -> [Subword]
 calcSubwordsIndependent _ b | trace ("calcSubwordsIndependent " ++ show b) False = undefined
 calcSubwordsIndependent infoMap pos@((i,j,r),axIdx)
   | axIdx == 0 =
          [ (k,l) |
-           Just (minY',minYRight') <- [adjustMinYield (i,j) (minY,minYRight) (maxY,maxYRight)]  
+           Just (minY',minYRight') <- [adjustMinYield (i,j) (minY,minYRight) (maxY,maxYRight)]
          , let k = i
          , l <- [i+minY'..j-minYRight']
          ]
   | axIdx == length r - 1 =
          [ (k,l) |
-           Just (minYLeft',minY') <- [adjustMinYield (i,j) (minYLeft,minY) (maxYLeft,maxY)]           
+           Just (minYLeft',minY') <- [adjustMinYield (i,j) (minYLeft,minY) (maxYLeft,maxY)]
          , let l = j
          , k <- [i+minYLeft'..j-minY']
          ]
-  | otherwise = 
+  | otherwise =
         [ (k,l) |
           k <- [i+minYLeft..j-minY]
         , l <- [k+minY..j-minYRight]
@@ -178,7 +179,7 @@ calcSubwordsIndependent infoMap pos@((i,j,r),axIdx)
   where (minY,maxY) = infoFromPos infoMap pos
         (minYLeft,maxYLeft) = combinedInfoLeftOf infoMap pos
         (minYRight,maxYRight) = combinedInfoRightOf infoMap pos
-        
+
 adjustMinYield :: Subword -> (Int,Int) -> (Maybe Int,Maybe Int) -> Maybe (Int,Int)
 adjustMinYield (i,j) (minl,minr) (maxl,maxr) =
         let len = j-i
@@ -200,7 +201,7 @@ calcSubwordsDependent infoMap (i,j,r) a1Idx a2Idx =
             subs = doCalcSubwordsDependent infoMap (i,j,r) a1Idx' a2Idx'
         in if a1Idx < a2Idx then subs
            else [ (k,l,m,n) | (m,n,k,l) <- subs ]
- 
+
 doCalcSubwordsDependent :: InfoMap -> RangeDesc -> Int -> Int -> [Subword2]
 doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
    assert (a1Idx < a2Idx) $
@@ -209,7 +210,7 @@ doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
    trace ("max yields: " ++ show maxY1 ++ " " ++ show maxY2 ++ " " ++ show maxYLeft1 ++ " " ++
           show maxYLeft2 ++ " " ++ show maxYRight1 ++ " " ++ show maxYRight2 ++ " " ++ show maxYBetween) $
    result where
-          
+
    (minY1,maxY1) = infoFromPos infoMap (desc,a1Idx)
    (minY2,maxY2) = infoFromPos infoMap (desc,a2Idx)
    (minYLeft1,maxYLeft1) = combinedInfoLeftOf infoMap (desc,a1Idx)
@@ -217,32 +218,32 @@ doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
    (minYRight1,maxYRight1) = combinedInfoRightOf infoMap (desc,a1Idx)
    (minYRight2,maxYRight2) = combinedInfoRightOf infoMap (desc,a2Idx)
    minYBetween = minYRight1 - minYRight2 - minY2
-   maxYBetween = if isNothing maxYRight1 
+   maxYBetween = if isNothing maxYRight1
                  then Nothing
-                 else Just $ fromJust maxYRight1 - fromJust maxYRight2 - fromJust maxY2 
-                 
-   neighbors = a1Idx + 1 == a2Idx 
-      
-   result | a1Idx == 0 && a2Idx == length r - 1 && neighbors = 
+                 else Just $ fromJust maxYRight1 - fromJust maxYRight2 - fromJust maxY2
+
+   neighbors = a1Idx + 1 == a2Idx
+
+   result | a1Idx == 0 && a2Idx == length r - 1 && neighbors =
                 [ (k,l,l,n) |
                   let (k,n) = (i,j)
-                , l <- [i+minY1..j-minY2] 
+                , l <- [i+minY1..j-minY2]
                 ]
-   
-          | a1Idx == 0 && a2Idx == length r - 1 = 
+
+          | a1Idx == 0 && a2Idx == length r - 1 =
                 [ (k,l,m,n) |
                   let (k,n) = (i,j)
                 , l <- [i+minY1..j-minYRight1]
-                , m <- [l+minYBetween..j-minY2] 
+                , m <- [l+minYBetween..j-minY2]
                 ]
-                
+
           | a1Idx == 0 && neighbors =
                 [ (k,l,l,n) |
                   let k = i
                 , l <- [i+minY1..j-minYRight1]
                 , n <- [l+minY2..j-minYRight2]
                 ]
-                
+
           | a1Idx == 0 =
                 [ (k,l,m,n) |
                   let k = i
@@ -250,14 +251,14 @@ doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
                 , m <- [l+minYBetween..j-minY2-minYRight2]
                 , n <- [m+minY2..j-minYRight2]
                 ]
-                
+
           | a2Idx == length r - 1 && neighbors =
                 [ (k,m,m,n) |
                   let n = j
                 , m <- [i+minYLeft2..j-minY2]
                 , k <- [i+minYLeft1..m-minY1]
                 ]
-                
+
           | a2Idx == length r - 1 =
                 [ (k,l,m,n) |
                   let n = j
@@ -265,14 +266,14 @@ doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
                 , l <- [i+minY1+minYLeft1..m-minYBetween]
                 , k <- [i+minYLeft1..l-minY1]
                 ]
-                
+
           | a1Idx > 0 && a2Idx < length r - 1 && neighbors =
                 [ (k,l,l,n) |
                   k <- [i+minYLeft1..j-minY1-minYRight1]
                 , l <- [k+minY1..j-minYRight1]
                 , n <- [l+minY2..j-minYRight2]
                 ]
-          
+
           | a1Idx > 0 && a2Idx < length r - 1 =
                 [ (k,l,m,n) |
                   k <- [i+minYLeft1..j-minY1-minYRight1]
@@ -280,10 +281,10 @@ doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
                 , m <- [l+minYBetween..j-minY2-minYRight2]
                 , n <- [m+minY2..j-minYRight2]
                 ]
-        
+
           | otherwise = error "invalid conditions, e.g. a1Idx == a2Idx == 0"
-       
-         
+
+
 -- 2-dim to 1-dim
 -- not possible yet, see comment at ~~~
 instance Rewriting ((a,a) -> [a]) where

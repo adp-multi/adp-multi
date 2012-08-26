@@ -28,7 +28,9 @@ executable adpcombinators
                    ADP.Multi.Rewriting.YieldSize,
                    ADP.Debug,
                    ADP.Multi.Rewriting.Explicit,
-                   Tests.MonadicCpTest
+                   Tests.MonadicCpTest,
+                   ADP.Multi.Rewriting.MonadicCpHelper,
+                   Tests.MonadicCpRegression
 
 test-suite Test1
   type:            exitcode-stdio-1.0
@@ -53,5 +55,7 @@ test-suite Test1
                    ADP.Multi.Rewriting.YieldSize,
                    ADP.Debug,
                    ADP.Multi.Rewriting.Explicit,
-                   Tests.MonadicCpTest
+                   Tests.MonadicCpTest,
+                   ADP.Multi.Rewriting.MonadicCpHelper,
+                   Tests.MonadicCpRegression
 

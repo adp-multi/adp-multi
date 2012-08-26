@@ -30,7 +30,8 @@ import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
-import ADP.Multi.Rewriting.Explicit()
+--import ADP.Multi.Rewriting.Explicit()
+import ADP.Multi.Rewriting.ConstraintSolver()
                                  
 type RG_Algebra alphabet answer = (
   () -> answer,                               -- nil

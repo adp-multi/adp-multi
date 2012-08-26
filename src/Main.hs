@@ -24,7 +24,7 @@ main = do
             -- inp = map toLower "ACCGUCGUUCCCGACGUAAAAGGGAUGU"
             
             -- https://github.com/neothemachine/rna/wiki/Example
-            --inp = "agcgu"
+            -- inp = "agcgu"
             
             inp = map toLower "ACGAUUCAACGU"
             
