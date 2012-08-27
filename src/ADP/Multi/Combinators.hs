@@ -1,3 +1,5 @@
+{-# LANGUAGE ImplicitParams #-}
+
 module ADP.Multi.Combinators where
 
 import Data.Maybe
@@ -58,14 +60,15 @@ infixl 7 ~~~|
            
 -- TODO the dimension of the resulting parser should result from c
 infix 6 >>>
-(>>>) :: Rewriting c => ([ParserInfo2], [Ranges] -> Parser2 a b) -> c -> RichParser2 a b
+(>>>) :: (?yieldAlg :: YieldAnalysisAlgorithm c, ?rangeAlg :: RangeConstructionAlgorithm c)
+      => ([ParserInfo2], [Ranges] -> Parser2 a b) -> c -> RichParser2 a b
 (>>>) (infos,p) f =
-        let yieldSize = determineYieldSize f infos
+        let yieldSize = ?yieldAlg f infos
         in trace (">>> yield size: " ++ show yieldSize) $
            (
               yieldSize,
               \ z subword ->
-                let ranges = constructRanges f infos subword
+                let ranges = ?rangeAlg f infos subword
                 in trace (">>> " ++ show subword) $
                 trace ("ranges: " ++ show ranges) $ 
                 [ result |

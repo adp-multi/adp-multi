@@ -1,7 +1,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module ADP.Multi.Rewriting.Explicit where
-
+module ADP.Multi.Rewriting.Explicit (
+        constructRanges,
+        determineYieldSize
+) where
 
 import Control.Exception
 import Data.List (elemIndex, find)
@@ -16,9 +18,9 @@ import ADP.Multi.Rewriting.YieldSize
 type Subword = (Int,Int)
 
 -- 2-dim to 2-dim
-instance Rewriting ([(Int,Int)] -> ([(Int,Int)],[(Int,Int)])) where
-  constructRanges _ _ b | trace ("constructRanges2 " ++ show b) False = undefined
-  constructRanges f infos (i,j,k,l) =
+constructRanges :: RangeConstructionAlgorithm ([(Int, Int)] -> ([(Int, Int)], [(Int, Int)]))
+constructRanges _ _ b | trace ("constructRanges2 " ++ show b) False = undefined
+constructRanges f infos (i,j,k,l) =
         assert (i <= j && j <= k && k <= l) $
         let parserCount = length infos
             args = concatMap (\ x -> [(x,1),(x,2)]) [1..parserCount]
@@ -28,10 +30,12 @@ instance Rewriting ([(Int,Int)] -> ([(Int,Int)],[(Int,Int)])) where
             rangeDescFiltered = filterEmptyRanges rangeDesc
         in if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
            else constructRangesRec (buildInfoMap infos) remainingSymbols rangeDescFiltered
-  determineYieldSize _ infos | trace ("determineYieldSize2 " ++ show infos) False = undefined
-  determineYieldSize f infos =
-        -- this is (temporarily) not in the instance itself to reuse it in ConstraintSolver.hs
-        doDetermineYieldSize f infos
+
+determineYieldSize :: YieldAnalysisAlgorithm ([(Int, Int)] -> ([(Int, Int)], [(Int, Int)]))
+determineYieldSize _ infos | trace ("determineYieldSize2 " ++ show infos) False = undefined
+determineYieldSize f infos =
+      -- this is (temporarily) not in the instance itself to reuse it in ConstraintSolver.hs
+      doDetermineYieldSize f infos
 
 
 
@@ -283,9 +287,3 @@ doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
                 ]
 
           | otherwise = error "invalid conditions, e.g. a1Idx == a2Idx == 0"
-
-
--- 2-dim to 1-dim
--- not possible yet, see comment at ~~~
-instance Rewriting ((a,a) -> [a]) where
-  constructRanges f subword = undefined

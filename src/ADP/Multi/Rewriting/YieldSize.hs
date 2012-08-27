@@ -6,6 +6,7 @@ import qualified Data.Map as Map
 
 import ADP.Debug
 import ADP.Multi.Parser
+import ADP.Multi.Rewriting
 
 {-
 This module might later be re-integrated into both Rewriting implementations.
@@ -13,7 +14,7 @@ It is unclear yet if generically determining the yield size for higher parser
 dimensions also needs a constraint solver.  
 -}
 
-doDetermineYieldSize ::  ([(Int, Int)] -> ([(Int, Int)], [(Int, Int)])) -> [ParserInfo2] -> ParserInfo2
+doDetermineYieldSize ::  YieldAnalysisAlgorithm ([(Int, Int)] -> ([(Int, Int)], [(Int, Int)]))
 doDetermineYieldSize f infos =
         let parserCount = length infos
             args = concatMap (\ x -> [(x,1),(x,2)]) [1..parserCount] 

@@ -3,24 +3,31 @@ version:        0.1
 cabal-version:  >= 1.6
 build-type:     Simple
 author:         Maik Riechert
-stability:      alpha
+stability:      experimental
 bug-reports:    https://github.com/neothemachine/adp-multi/issues
+homepage:       https://github.com/neothemachine/adp-multi
+copyright:      2012 Maik Riechert
+license:        BSD3
+license-file:   LICENSE
+tested-with:    GHC==7.4.1
+maintainer:     Maik Riechert
+synopsis:       ADP for multiple context-free grammars
+category:       Algorithms, Data Structures, Bioinformatics
 
 source-repository head
-  type: git
-  location: git://github.com/neothemachine/adp-multi.git
+  type:      git
+  location:  git://github.com/neothemachine/adp-multi.git
 
 library 
-  build-depends:   base >= 4,
+  build-depends:    base >= 4,
                    array,
                    containers,
                    htrace,
                    mtl,
                    monadiccp
-  hs-source-dirs:  src
-  ghc-options:     -Wall
-  exposed-modules: 
-                   ADP.Multi.Combinators,
+  hs-source-dirs:   src
+  ghc-options:      -Wall
+  exposed-modules:  ADP.Multi.Combinators,
                    ADP.Multi.Helpers,
                    ADP.Multi.Parser,
                    ADP.Multi.Rewriting.ConstraintSolver,
@@ -40,8 +47,7 @@ test-suite MainTestSuite
   hs-source-dirs:  src,
                    tests
   ghc-options:     -Wall -rtsopts
-  other-modules:   
-                   ADP.Multi.Combinators,
+  other-modules:   ADP.Multi.Combinators,
                    ADP.Multi.Helpers,
                    ADP.Multi.Parser,
                    ADP.Multi.Rewriting,
@@ -57,3 +63,27 @@ test-suite MainTestSuite
                    ADP.Tests.MonadicCpTest,
                    ADP.Tests.RGExample
   main-is:         ADP/Tests/Suite.hs
+
+executable adp-multi-benchmarks
+  build-depends:   base >= 4,
+                   criterion
+  hs-source-dirs:  benchmarks,
+                   src,
+                   tests
+  ghc-options:     -Wall -rtsopts
+  other-modules:   ADP.Tests.RGExample,
+                   ADP.Multi.Rewriting.Benchmarks.Explicit
+  main-is:         ConstraintSolverBenchmark.hs
+
+executable adp-rg
+  build-depends:   base >= 4
+  hs-source-dirs:  
+                   src, 
+                   tests
+  ghc-options:     -Wall -rtsopts
+  main-is:         ADP/Tests/Main.hs
+  other-modules:   
+                   ADP.Multi.Rewriting.ConstraintSolver,
+                   ADP.Multi.Rewriting.Explicit,
+                   ADP.Tests.RGExample
+

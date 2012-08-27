@@ -1,0 +1,3 @@
+run
+> adp-multi-benchmarks -o report.html
+to get a visual benchmark report

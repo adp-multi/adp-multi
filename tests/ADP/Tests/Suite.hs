@@ -11,6 +11,7 @@ import Test.QuickCheck
 import Data.Char (toLower)
 import Data.List
 
+import ADP.Multi.Rewriting.ConstraintSolver
 import qualified ADP.Tests.RGExample as RG
 
 main :: IO ()
@@ -27,6 +28,9 @@ main = defaultMain
                     ]
             ]
 
+rg :: RG.RG_Algebra Char answer -> String -> [answer]
+rg = RG.rgknot determineYieldSize constructRanges
+
 -- https://github.com/neothemachine/rna/wiki/Example
 testRgSimpleCompleteness =
    let inp = "agcgu"
@@ -42,7 +46,7 @@ testRgSimpleCompleteness =
                 "(().)",
                 "(.())"
           ]
-       result = RG.rgknot RG.prettyprint inp
+       result = rg RG.prettyprint inp
    in do length result @?= length referenceStructures
          all (\ ([structure],_) -> structure `elem` referenceStructures) result
            @? "reference structure not found"
@@ -50,7 +54,7 @@ testRgSimpleCompleteness =
 -- https://github.com/neothemachine/rna/wiki/Example
 testRgSimpleBasepairs =
    let inp = "agcgu"
-       [maxBasepairs] = RG.rgknot RG.maxBasepairs inp
+       [maxBasepairs] = rg RG.maxBasepairs inp
    in maxBasepairs @?= 2
 
 -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
@@ -58,7 +62,7 @@ testRgSimpleBasepairs =
 testRgRealPseudoknot =
    let inp = map toLower "CAAUUUUCUGAAAAUUUUCAC" 
        referenceStructure = ".(((((.[[[))))).]]]."
-       result = RG.rgknot RG.prettyprint inp
+       result = rg RG.prettyprint inp
    in any (\ ([structure],_) -> structure == referenceStructure) result
         @? "reference structure not found"
 

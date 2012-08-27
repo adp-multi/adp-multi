@@ -4,6 +4,7 @@ import ADP.Multi.Parser
 
 data Ranges = RangeMap Subword2 [Ranges] deriving Show
 
-class Rewriting f where
-  constructRanges :: f -> [ParserInfo2] -> Subword2 -> [Ranges]
-  determineYieldSize :: f -> [ParserInfo2] -> ParserInfo2 
+type YieldAnalysisAlgorithm a = a -> [ParserInfo2] -> ParserInfo2
+type RangeConstructionAlgorithm a = a -> [ParserInfo2] -> Subword2 -> [Ranges]
+
+type Dim2 = [(Int, Int)] -> ([(Int, Int)], [(Int, Int)]) 

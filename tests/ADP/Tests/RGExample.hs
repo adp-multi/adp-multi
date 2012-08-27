@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE ImplicitParams #-}
 
 {-
 Example using the Reeder&Giegerich class of pseudoknots.
@@ -30,8 +31,7 @@ import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
---import ADP.Multi.Rewriting.Explicit()
-import ADP.Multi.Rewriting.ConstraintSolver()
+import ADP.Multi.Rewriting
                                  
 type RG_Algebra alphabet answer = (
   () -> answer,                               -- nil
@@ -197,11 +197,23 @@ prettyprint = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    
    square l r = (map (const '[') l, map (const ']') r)
    
-rgknot :: RG_Algebra Char answer -> String -> [answer]
-rgknot alg inp = axiom s where
-  (nil,left,pair,knot,knot1,knot2,basepair,base,h) = alg
+rgknot :: YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
+       -> RG_Algebra Char answer -> String -> [answer]
+rgknot yieldAlg rangeAlg algebra inp =
+  -- These implicit parameters are used by >>>.
+  -- They were introduced to allow for exchanging the algorithms and
+  -- they were made implicit so that they don't ruin our nice syntax.
+  let ?yieldAlg = yieldAlg
+      ?rangeAlg = rangeAlg
+  in let
   
-  s1,s2,s3,s4,p',k1,k2 :: [(Int,Int)] -> ([(Int,Int)],[(Int,Int)])
+  (nil,left,pair,knot,knot1,knot2,basepair,base,h) = algebra
+  
+  s1,s2,s3,s4,p',k1,k2 :: Dim2
+  
+  -- TODO at least integrate dim-1 parsers
+  --      e.g. using different combinators or type-classing them
+  --      arity of return type of rewriting function determines dimension
   
   -- all s are 1-dim simulated as 2-dim
   s1 [c1,c2] = ([],[c1,c2])
@@ -244,3 +256,4 @@ rgknot alg inp = axiom s where
   tabulated = table2 n  
   axiom     = axiom' n z
   
+  in axiom s
