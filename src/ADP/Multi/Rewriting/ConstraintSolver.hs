@@ -6,6 +6,10 @@
 {-
 Use monadiccp as a finite-domain constraint solver to construct
 subwords in a generic way.
+
+TODO It is slow as hell. Maybe it is possible to "compile" the two inequality
+     systems so that they can later be run faster.
+     see http://www.cs.washington.edu/research/constraints/solvers/cp97.html
 -}
 module ADP.Multi.Rewriting.ConstraintSolver (
         determineYieldSize,
@@ -169,7 +173,7 @@ calcSubwordsIndependent infoMap pos@((i,j,_),_) =
                       --      include a new inequality at all (how?)
                   [len1,len2,len3] <- colList col 3
                   xsum col @= rangeLen
-                  len1 @>= minYLeft'
+                  len1 @>= minYLeft' 
                   len2 @>= minY'
                   len3 @>= minYRight'
                   len1 @<= maxYLeft'

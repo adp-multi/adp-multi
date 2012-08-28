@@ -71,8 +71,7 @@ executable adp-multi-benchmarks
                    src,
                    tests
   ghc-options:     -Wall -rtsopts
-  other-modules:   ADP.Tests.RGExample,
-                   ADP.Multi.Rewriting.Benchmarks.Explicit
+  other-modules:   ADP.Tests.RGExample
   main-is:         ConstraintSolverBenchmark.hs
 
 executable adp-rg
