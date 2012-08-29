@@ -197,59 +197,56 @@ prettyprint = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    
    square l r = (map (const '[') l, map (const ']') r)
    
-rgknot :: YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
+rgknot :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
+       -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
        -> RG_Algebra Char answer -> String -> [answer]
-rgknot yieldAlg rangeAlg algebra inp =
+rgknot yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
   -- These implicit parameters are used by >>>.
   -- They were introduced to allow for exchanging the algorithms and
   -- they were made implicit so that they don't ruin our nice syntax.
-  let ?yieldAlg = yieldAlg
-      ?rangeAlg = rangeAlg
+  let ?yieldAlg1 = yieldAlg1
+      ?rangeAlg1 = rangeAlg1
+      ?yieldAlg2 = yieldAlg2
+      ?rangeAlg2 = rangeAlg2
   in let
   
   (nil,left,pair,knot,knot1,knot2,basepair,base,h) = algebra
-  
-  s1,s2,s3,s4,p',k1,k2 :: Dim2
-  
-  -- TODO at least integrate dim-1 parsers
-  --      e.g. using different combinators or type-classing them
-  --      arity of return type of rewriting function determines dimension
-  
-  -- all s are 1-dim simulated as 2-dim
-  s1 [c1,c2] = ([],[c1,c2])
-  s2 [b1,b2,s1,s2] = ([],[b1,b2,s1,s2])  
-  s3 [p1,p2,s11,s12,s21,s22] = ([],[p1,s11,s12,p2,s21,s22])
+   
+  s1 [c1,c2] = [c1,c2]
+  s2 [b1,b2,s1,s2] = [b1,b2,s1,s2]  
+  s3 [p1,p2,s11,s12,s21,s22] = [p1,s11,s12,p2,s21,s22]
   s4 [k11,k12,k21,k22,s11,s12,s21,s22,s31,s32,s41,s42] = 
-        ([],[k11,s11,s12,k21,s21,s22,k12,s31,s32,k22,s41,s42])
+        [k11,s11,s12,k21,s21,s22,k12,s31,s32,k22,s41,s42]
   
   s = tabulated $
-      nil <<< () >>> s1 |||
-      left <<< b ~~~| s >>> s2 |||
-      pair <<< p ~~~| s ~~~| s >>> s3 |||
-      knot <<< k ~~~ k ~~~| s ~~~| s ~~~| s ~~~| s >>> s4 
+      nil <<< () >>>| s1 |||
+      left <<< b ~~~| s >>>| s2 |||
+      pair <<< p ~~~| s ~~~| s >>>| s3 |||
+      knot <<< k ~~~ k ~~~| s ~~~| s ~~~| s ~~~| s >>>| s4 
       ... h
-      
+  
+  b' [c1,c2] = ([],[c1,c2])  
   b = tabulated $
-      base <<< (EPS, 'a') >>> s1 |||
-      base <<< (EPS, 'u') >>> s1 |||
-      base <<< (EPS, 'c') >>> s1 |||
-      base <<< (EPS, 'g') >>> s1
+      base <<< (EPS, 'a') >>>|| b' |||
+      base <<< (EPS, 'u') >>>|| b' |||
+      base <<< (EPS, 'c') >>>|| b' |||
+      base <<< (EPS, 'g') >>>|| b'
   
   p' [c1,c2] = ([c1],[c2])
   p = tabulated $
-      basepair <<< ('a', 'u') >>> p' |||
-      basepair <<< ('u', 'a') >>> p' |||
-      basepair <<< ('c', 'g') >>> p' |||
-      basepair <<< ('g', 'c') >>> p' |||
-      basepair <<< ('g', 'u') >>> p' |||
-      basepair <<< ('u', 'g') >>> p'
+      basepair <<< ('a', 'u') >>>|| p' |||
+      basepair <<< ('u', 'a') >>>|| p' |||
+      basepair <<< ('c', 'g') >>>|| p' |||
+      basepair <<< ('g', 'c') >>>|| p' |||
+      basepair <<< ('g', 'u') >>>|| p' |||
+      basepair <<< ('u', 'g') >>>|| p'
   
   k1 [p1,p2,k1,k2] = ([k1,p1],[p2,k2])
   k2 [p1,p2] = ([p1],[p2])
   
   k = tabulated $
-      knot1 <<< p ~~~| k >>> k1 |||
-      knot2 <<< p >>> k2
+      knot1 <<< p ~~~| k >>>|| k1 |||
+      knot2 <<< p >>>|| k2
       
   z         = mk inp
   (_,n)     = bounds z  

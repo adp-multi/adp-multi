@@ -10,9 +10,35 @@ import ADP.Debug
 import ADP.Multi.Parser
 import ADP.Multi.Rewriting
 
+{-
+
+TODO
+
+Weakening types:
+
+The Subword in Parser could be made generic as a list. Then
+the subword in Ranges would also be a list instead of a tuple. The simple parser would
+then pattern match his accepting subword as e.g. [x1,x2,x3,x4] and this would happen for
+every call to a parser. It's not clear how well GHC optimizes this, probably not as much as tuples.
+We would loose some type-safety and (probably) performance but still have readable code.
+
+=> This branch tries the above approach.
+
+Using full type system without data-constructs:
+
+If no data-constructs are used, then instead we need many combinations of overloads simulated with
+type classes. Then the rewriting functions would also (need to) be type-safe, but it is not yet clear
+how to do that.
+
+
+-> Considering that this is a prototype and probably won't be used in this form, it might be too much effort
+to get full type-safety.
+ 
+
+-}
 
 infix 8 <<<
-(<<<) :: Parseable p a b => (b -> c) -> p -> ([ParserInfo2], [Ranges] -> Parser2 a c)
+(<<<) :: Parseable p a b => (b -> c) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
 (<<<) f parseable =
             let (info,parser) = toParser parseable
             in (
@@ -24,7 +50,7 @@ infix 8 <<<
 -- this isn't really a problem for now as lower dimensions can be
 -- simulated with higher dimensions by leaving some tuple elements of the rewriting rules empty
 infixl 7 ~~~
-(~~~) :: Parseable p a b => ([ParserInfo2], [Ranges] -> Parser2 a (b -> c)) -> p -> ([ParserInfo2], [Ranges] -> Parser2 a c)
+(~~~) :: Parseable p a b => ([ParserInfo], [Ranges] -> Parser a (b -> c)) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
 (~~~) (infos,leftParser) parseable =
         let (info,rightParser) = toParser parseable
         in (
@@ -44,10 +70,10 @@ infixl 7 ~~~
 -- necessary as this can also be solved by not using left-recursion.
 -- I guess this only works because of laziness (ignoring the info value of toParser).
 infixl 7 ~~~|
-(~~~|) :: Parseable p a b => ([ParserInfo2], [Ranges] -> Parser2 a (b -> c)) -> p -> ([ParserInfo2], [Ranges] -> Parser2 a c)
+(~~~|) :: Parseable p a b => ([ParserInfo], [Ranges] -> Parser a (b -> c)) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
 (~~~|) (infos,leftParser) parseable =
         let (_,rightParser) = toParser parseable
-            info = ParserInfo2 { minYield=(0,0), maxYield=(Nothing,Nothing) }
+            info = ParserInfo2 { minYield2=(0,0), maxYield2=(Nothing,Nothing) }
         in (
                 info : infos,
                 \ ranges z subword -> 
@@ -59,16 +85,23 @@ infixl 7 ~~~|
            )
            
 -- TODO the dimension of the resulting parser should result from c
-infix 6 >>>
-(>>>) :: (?yieldAlg :: YieldAnalysisAlgorithm c, ?rangeAlg :: RangeConstructionAlgorithm c)
-      => ([ParserInfo2], [Ranges] -> Parser2 a b) -> c -> RichParser2 a b
-(>>>) (infos,p) f =
-        let yieldSize = ?yieldAlg f infos
+infix 6 >>>|
+(>>>|) :: (?yieldAlg1 :: YieldAnalysisAlgorithm Dim1, ?rangeAlg1 :: RangeConstructionAlgorithm Dim1)
+      => ([ParserInfo], [Ranges] -> Parser a b) -> Dim1 -> RichParser a b
+(>>>|) = rewrite ?yieldAlg1 ?rangeAlg1
+
+infix 6 >>>||
+(>>>||) :: (?yieldAlg2 :: YieldAnalysisAlgorithm Dim2, ?rangeAlg2 :: RangeConstructionAlgorithm Dim2)
+      => ([ParserInfo], [Ranges] -> Parser a b) -> Dim2 -> RichParser a b
+(>>>||) = rewrite ?yieldAlg2 ?rangeAlg2
+           
+rewrite yieldAlg rangeAlg (infos,p) f =
+        let yieldSize = yieldAlg f infos
         in trace (">>> yield size: " ++ show yieldSize) $
            (
               yieldSize,
               \ z subword ->
-                let ranges = ?rangeAlg f infos subword
+                let ranges = rangeAlg f infos subword
                 in trace (">>> " ++ show subword) $
                 trace ("ranges: " ++ show ranges) $ 
                 [ result |
@@ -78,15 +111,15 @@ infix 6 >>>
            )
 
 infixr 5 ||| 
-(|||) :: RichParser2 a b -> RichParser2 a b -> RichParser2 a b
-(|||) (ParserInfo2 {minYield=minY1, maxYield=maxY1}, r) (ParserInfo2 {minYield=minY2, maxYield=maxY2}, q) = 
+(|||) :: RichParser a b -> RichParser a b -> RichParser a b
+(|||) (ParserInfo2 {minYield2=minY1, maxYield2=maxY1}, r) (ParserInfo2 {minYield2=minY2, maxYield2=maxY2}, q) = 
         (
               ParserInfo2 {
-                 minYield = combineMinYields minY1 minY2,
-                 maxYield = combineMaxYields maxY1 maxY2
+                 minYield2 = combineMinYields minY1 minY2,
+                 maxYield2 = combineMaxYields maxY1 maxY2
               },
-              \ z (i,j,k,l) -> r z (i,j,k,l) ++ q z (i,j,k,l)
-        )        
+              \ z subword -> r z subword ++ q z subword
+        )    
 
 combineMinYields :: (Int,Int) -> (Int,Int) -> (Int,Int)
 combineMinYields (min11,min12) (min21,min22) = (min min11 min21, min min12 min22)
@@ -98,14 +131,14 @@ combineMaxYields (a,b) (c,d) =
         )
 
 infix  4 ...
-(...) :: RichParser2 a b -> ([b] -> [b]) -> RichParser2 a b
+(...) :: RichParser a b -> ([b] -> [b]) -> RichParser a b
 (...) (info,r) h = (info, \ z subword -> h (r z subword) )
 --(...) richParser h = A.second (\ r z subword -> h (r z subword) ) richParser
 
 
-type Filter2 a = Array Int a -> Subword2 -> Bool
-with2 :: RichParser2 a b -> Filter2 a -> RichParser2 a b
-with2 (info,q) c =
+type Filter a = Array Int a -> Subword -> Bool
+with :: RichParser a b -> Filter a -> RichParser a b
+with (info,q) c =
         (
             info,
             \ z subword -> if c z subword then q z subword else []

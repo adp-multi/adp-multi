@@ -22,17 +22,18 @@ import qualified Data.Map as Map
 import Data.Maybe (fromJust, isNothing)
 
 import ADP.Debug
-import ADP.Multi.Parser
 import ADP.Multi.Rewriting
 import ADP.Multi.Rewriting.YieldSize
 
 import ADP.Multi.Rewriting.MonadicCpHelper
 import Control.CP.FD.Interface
-type Subword = (Int,Int)
 
-constructRanges :: RangeConstructionAlgorithm ([(Int, Int)] -> ([(Int, Int)], [(Int, Int)]))
+type Subword1 = (Int,Int)
+type Subword2 = (Int,Int,Int,Int)
+
+constructRanges :: RangeConstructionAlgorithm Dim2
 constructRanges _ _ b | trace ("constructRanges2 " ++ show b) False = undefined
-constructRanges f infos (i,j,k,l) =
+constructRanges f infos [i,j,k,l] =
         assert (i <= j && j <= k && k <= l) $
         let parserCount = length infos
             args = concatMap (\ x -> [(x,1),(x,2)]) [1..parserCount]
@@ -43,7 +44,7 @@ constructRanges f infos (i,j,k,l) =
         in if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
            else constructRangesRec (buildInfoMap infos) remainingSymbols rangeDescFiltered
 
-determineYieldSize :: YieldAnalysisAlgorithm ([(Int, Int)] -> ([(Int, Int)], [(Int, Int)]))
+determineYieldSize :: YieldAnalysisAlgorithm Dim2
 determineYieldSize _ infos | trace ("determineYieldSize2 " ++ show infos) False = undefined
 determineYieldSize f infos = doDetermineYieldSize f infos
 
@@ -57,9 +58,9 @@ constructRangesRec infoMap (current:rest) rangeDescs =
         let symbolLoc = findSymbol current rangeDescs
             subwords = calcSubwords infoMap symbolLoc
         in trace ("subwords: " ++ show subwords) $
-           [ RangeMap subword restRanges |
-             subword <- subwords,
-             let newDescs = constructNewRangeDescs rangeDescs symbolLoc subword,
+           [ RangeMap [i,j,k,l] restRanges |
+             (i,j,k,l) <- subwords,
+             let newDescs = constructNewRangeDescs rangeDescs symbolLoc (i,j,k,l),
              let restRanges = constructRangesRec infoMap rest newDescs
            ]
 constructRangesRec _ [] r@(_:_) = error ("programming error " ++ show r)
@@ -107,7 +108,7 @@ filterEmptyRanges l =
         let f (i,j,d) = not $ null d && i == j
         in filter f l
 
-processRangeDescSingle :: RangeDesc -> Int -> Subword -> [RangeDesc]
+processRangeDescSingle :: RangeDesc -> Int -> Subword1 -> [RangeDesc]
 processRangeDescSingle a b c | trace ("processRangeDescSingle " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
 processRangeDescSingle (i,j,r) aIdx (k,l)
   | aIdx == 0 = filterEmptyRanges [(l,j,tail r)]
@@ -158,7 +159,7 @@ calcSubwords infoMap (left@((i,j,r),a1Idx),right@((m,n,_),a2Idx))
                 ]
 
 -- assumes that other component is in a different part
-calcSubwordsIndependent :: InfoMap -> (RangeDesc,Int) -> [Subword]
+calcSubwordsIndependent :: InfoMap -> (RangeDesc,Int) -> [Subword1]
 calcSubwordsIndependent _ b | trace ("calcSubwordsIndependent " ++ show b) False = undefined
 calcSubwordsIndependent infoMap pos@((i,j,_),_) =
         let (minY,maxY) = infoFromPos infoMap pos

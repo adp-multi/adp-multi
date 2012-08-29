@@ -6,20 +6,25 @@ module ADP.Multi.Parser where
 
 import Data.Array
 
-type Subword2  = (Int,Int,Int,Int)
-type Parser2 a b = Array Int a -> Subword2 -> [b]
+type Subword = [Int]
+type Parser a b = Array Int a -> Subword -> [b]
 
-data ParserInfo2 = ParserInfo2 
+data ParserInfo = ParserInfo1
                    {
-                      minYield :: (Int,Int)
-                   ,  maxYield :: (Maybe Int,Maybe Int) 
+                      minYield :: Int
+                   , maxYield :: Maybe Int
                    }
-                   deriving Show
+                | ParserInfo2
+                   {
+                      minYield2 :: (Int,Int)
+                   , maxYield2 :: (Maybe Int,Maybe Int)
+                   }
+                deriving Show
                    
-type RichParser2 a b = (ParserInfo2, Parser2 a b)
+type RichParser a b = (ParserInfo, Parser a b)
 
 class Parseable p a b | p -> a b where
-    toParser :: p -> RichParser2 a b
+    toParser :: p -> RichParser a b
     
-instance Parseable (RichParser2 a b) a b where
+instance Parseable (RichParser a b) a b where
     toParser p = p

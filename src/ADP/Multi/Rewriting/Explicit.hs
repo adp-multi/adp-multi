@@ -15,12 +15,16 @@ import ADP.Multi.Parser
 import ADP.Multi.Rewriting
 import ADP.Multi.Rewriting.YieldSize
 
-type Subword = (Int,Int)
+type Subword1 = (Int,Int)
+type Subword2 = (Int,Int,Int,Int)
+
+
+-- TODO add support for 1-dim
 
 -- 2-dim to 2-dim
-constructRanges :: RangeConstructionAlgorithm ([(Int, Int)] -> ([(Int, Int)], [(Int, Int)]))
+constructRanges :: RangeConstructionAlgorithm Dim2
 constructRanges _ _ b | trace ("constructRanges2 " ++ show b) False = undefined
-constructRanges f infos (i,j,k,l) =
+constructRanges f infos [i,j,k,l] =
         assert (i <= j && j <= k && k <= l) $
         let parserCount = length infos
             args = concatMap (\ x -> [(x,1),(x,2)]) [1..parserCount]
@@ -49,9 +53,9 @@ constructRangesRec infoMap (current:rest) rangeDescs =
         let symbolLoc = findSymbol current rangeDescs
             subwords = calcSubwords infoMap symbolLoc
         in trace ("subwords: " ++ show subwords) $
-           [ RangeMap subword restRanges |
-             subword <- subwords,
-             let newDescs = constructNewRangeDescs rangeDescs symbolLoc subword,
+           [ RangeMap [i,j,k,l] restRanges |
+             (i,j,k,l) <- subwords,
+             let newDescs = constructNewRangeDescs rangeDescs symbolLoc (i,j,k,l),
              let restRanges = constructRangesRec infoMap rest newDescs
            ]
 constructRangesRec _ [] r@(_:_) = error ("programming error " ++ show r)
@@ -98,7 +102,7 @@ filterEmptyRanges l =
         let f (i,j,d) = not $ null d && i == j
         in filter f l
 
-processRangeDescSingle :: RangeDesc -> Int -> Subword -> [RangeDesc]
+processRangeDescSingle :: RangeDesc -> Int -> Subword1 -> [RangeDesc]
 processRangeDescSingle a b c | trace ("processRangeDescSingle " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
 processRangeDescSingle (i,j,r) aIdx (k,l)
   | aIdx == 0 = filterEmptyRanges [(l,j,tail r)]
@@ -160,7 +164,7 @@ combinedInfoRightOf infoMap (desc@(_,_,r),axIdx)
         in combineYields rightInfos
 
 -- assumes that other component is in a different part
-calcSubwordsIndependent :: InfoMap -> (RangeDesc,Int) -> [Subword]
+calcSubwordsIndependent :: InfoMap -> (RangeDesc,Int) -> [Subword1]
 calcSubwordsIndependent _ b | trace ("calcSubwordsIndependent " ++ show b) False = undefined
 calcSubwordsIndependent infoMap pos@((i,j,r),axIdx)
   | axIdx == 0 =
@@ -184,7 +188,7 @@ calcSubwordsIndependent infoMap pos@((i,j,r),axIdx)
         (minYLeft,maxYLeft) = combinedInfoLeftOf infoMap pos
         (minYRight,maxYRight) = combinedInfoRightOf infoMap pos
 
-adjustMinYield :: Subword -> (Int,Int) -> (Maybe Int,Maybe Int) -> Maybe (Int,Int)
+adjustMinYield :: Subword1 -> (Int,Int) -> (Maybe Int,Maybe Int) -> Maybe (Int,Int)
 adjustMinYield (i,j) (minl,minr) (maxl,maxr) =
         let len = j-i
             adjust oldMinY maxY = let x = maybe oldMinY (\m -> len - m) maxY

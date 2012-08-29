@@ -15,46 +15,46 @@ data EPS = EPS deriving (Eq, Show, Data, Typeable)
 
 -- # elementary parsers
 
-empty2 :: RichParser2 a ()
+empty2 :: RichParser a ()
 empty2 = (
-              ParserInfo2 {minYield=(0,0), maxYield=(Just 0,Just 0)},
-              \ _ (i,j,k,l) -> 
+              ParserInfo2 {minYield2=(0,0), maxYield2=(Just 0,Just 0)},
+              \ _ [i,j,k,l] -> 
                 [ () |
                   i == j && k == l
                 ]
          )
 
-anychars :: RichParser2 a (a,a)
+anychars :: RichParser a (a,a)
 anychars = (
-                ParserInfo2 {minYield=(1,1), maxYield=(Just 1,Just 1)},
-                \ z (i,j,k,l) -> 
+                ParserInfo2 {minYield2=(1,1), maxYield2=(Just 1,Just 1)},
+                \ z [i,j,k,l] -> 
                         [ (z!j, z!l) |
                           i+1 == j && k+1 == l
                         ]
            )
 
-chars :: Eq a => a -> a -> RichParser2 a (a,a)
+chars :: Eq a => a -> a -> RichParser a (a,a)
 chars c1 c2 = (
-                  ParserInfo2 {minYield=(1,1), maxYield=(Just 1,Just 1)},
-                  \ z (i,j,k,l) -> 
+                  ParserInfo2 {minYield2=(1,1), maxYield2=(Just 1,Just 1)},
+                  \ z [i,j,k,l] -> 
                         [ (z!j, z!l) |
                           i+1 == j && k+1 == l && z!j == c1 && z!l == c2
                         ]
               ) 
         
-charLeftOnly :: Eq a => a -> RichParser2 a (a,EPS)
+charLeftOnly :: Eq a => a -> RichParser a (a,EPS)
 charLeftOnly c = (
-                     ParserInfo2 {minYield=(1,0), maxYield=(Just 1,Just 0)},
-                     \ z (i,j,k,l) -> 
+                     ParserInfo2 {minYield2=(1,0), maxYield2=(Just 1,Just 0)},
+                     \ z [i,j,k,l] -> 
                         [ (c, EPS) |
                           i+1 == j && k == l && z!j == c
                         ]
                  )
 
-charRightOnly :: Eq a => a -> RichParser2 a (EPS,a)
+charRightOnly :: Eq a => a -> RichParser a (EPS,a)
 charRightOnly c = (
-                      ParserInfo2 {minYield=(0,1), maxYield=(Just 0,Just 1)},
-                      \ z (i,j,k,l) -> 
+                      ParserInfo2 {minYield2=(0,1), maxYield2=(Just 0,Just 1)},
+                      \ z [i,j,k,l] -> 
                         [ (EPS, c) |
                           i == j && k+1 == l && z!l == c
                         ]
