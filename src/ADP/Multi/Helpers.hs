@@ -1,15 +1,15 @@
-{-# LANGUAGE PatternGuards #-}
-
 module ADP.Multi.Helpers where
 
 import Data.Array
 import ADP.Multi.Parser
 
-axiom1 :: Array Int a -> RichParser a b -> [b]
-axiom1 z richParser
-  | RP1 (_,ax) <- richParser = ax z (0,l)
-  | otherwise = error "dimension of start must be 1"
-  where (_,l) = bounds z
+axiom :: Array Int a -> RichParser a b -> [b]
+axiom z (_,P1 ax) = 
+    let (_,l) = bounds z
+    in ax z (0,l)
+
+axiom _ _ = error "dimension of start must be 1"
+  
 
         
 -- # Create array from List

@@ -19,17 +19,19 @@ Weakening types:
 
 To support dim1&2, we could put Parser1 and Parser2 into a data Parser and then
 pattern match on that in the combinators. This won't cost performance as the pattern
-matching is only done once. If more dimensions are implemented, then all combinators
-need to be adjusted with new cases.
+matching is only done once. (wrong! see >>>|)
+If more dimensions are implemented, then all combinators need to be adjusted with new cases.
+
+=> In this branch, I tried that! Unfortunately, this led to nowhere. It complicates the code
+   extremely and introduces lots of pattern matches in the parsing phase. The problem always was 
+   to maintain type-safe Parser types which had either 2-tuple or 4-tuple as its accepted subword.
+   But this leads to unmaintainable and monolithic code.  
 
 An alternative to that would be to make the Subword in Parser generic as a list. Then
 the subword in Ranges would also be a list instead of a tuple. The simple parser would
 then pattern match his accepting subword as e.g. [x1,x2,x3,x4] and this would happen for
 every call to a parser. It's not clear how well GHC optimizes this, probably not as much as tuples.
-
-In any case, handing over the yieldAlg and rangeAlg is more
-complicated then, as there are 4 impls then. This doesn't scale! Maybe only the type (explicit, cs)
-should be handed over and the rest happens internally. 
+We would loose some type-safety and (probably) performance but still have readable code.
 
 
 Using full type system without data-constructs:
@@ -50,9 +52,14 @@ infix 8 <<<
 (<<<) :: Parseable p a b => (b -> c) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
 (<<<) f parseable =
             let (info,parser) = toParser parseable
+                result = case parser of
+                  P1 parser' ->
+                     \ [] -> P1 $ \ z subword -> map f (parser' z subword)
+                  P2 parser' ->
+                     \ [] -> P2 $ \ z subword -> map f (parser' z subword)
             in (
                  [info],
-                 \ [] z subword -> map f (parser z subword)                                  
+                 result                                  
             )
 
 -- TODO parsers of different dim's should be mixable
@@ -62,34 +69,17 @@ infixl 7 ~~~
 (~~~) :: Parseable p a b => ([ParserInfo], [Ranges] -> Parser a (b -> c)) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
 (~~~) (infos,leftParser) parseable =
     let (info,rightParser) = toParser parseable
-        newParser = case (leftParser,rightParser) of
-         (P1 leftP, P1 rightP) ->
-              P1 $ \ ranges z subword -> 
+        newParser = case rightParser of
+         P1 rightP ->
+              \ ranges -> P1 $ \ z subword -> 
                       [ pr qr |
-                        qr <- rightParser z subword
-                      , ~(Ranges1 sub rest) <- ranges
-                      , pr <- leftParser rest z sub 
-                      ]
-         (P1 leftP, P2 rightP) ->
-              P2 $ \ ranges z subword -> 
-                      [ pr qr |
-                        qr <- rightParser z subword
-                      , ~(Ranges1 sub rest) <- ranges
-                      , pr <- leftParser rest z sub 
-                      ]
-         (P2 leftP, P1 rightP) ->
-              P1 $ \ ranges z subword -> 
-                      [ pr qr |
-                        qr <- rightParser z subword
-                      , ~(Ranges2 sub rest) <- ranges
-                      , pr <- leftParser rest z sub 
-                      ]
-         (P2 leftP, P2 rightP) ->
-              P2 $ \ ranges z subword -> 
-                      [ pr qr |
-                        qr <- rightParser z subword
-                      , ~(Ranges2 sub rest) <- ranges
-                      , pr <- leftParser rest z sub 
+                        qr <- rightP z subword
+                      , range <- ranges
+                      , let lp = leftParser range
+                      , let pr' = case lp of
+                                     P1 lp' -> let Ranges1 rest sub = range in lp' z sub
+                                     P2 lp' -> let Ranges2 rest sub = range in lp' z sub
+                      , pr <- pr'
                       ]
     in (info : infos, newParser)
                              
@@ -136,23 +126,44 @@ infixl 7 ~~~|
     in (info : infos, newParser)
            
 -- TODO the dimension of the resulting parser should result from c
-infix 6 >>>
-(>>>) :: (?yieldAlg :: YieldAnalysisAlgorithm c, ?rangeAlg :: RangeConstructionAlgorithm c)
-      => ([ParserInfo], [Ranges] -> Parser a b) -> c -> RichParser a b
-(>>>) (infos,p) f =
-        let yieldSize = ?yieldAlg f infos
+infix 6 >>>|
+(>>>|) :: (?yieldAlg1 :: YieldAnalysisAlgorithm Dim1, ?rangeAlg1 :: RangeConstructionAlgorithm1)
+       => ([ParserInfo], [Ranges] -> Parser a b) -> Dim1 -> RichParser a b
+(>>>|) (infos,p) f =
+        let yieldSize = ?yieldAlg1 f infos
         in trace (">>> yield size: " ++ show yieldSize) $
-           (
-              yieldSize,
-              \ z subword ->
-                let ranges = ?rangeAlg f infos subword
-                in trace (">>> " ++ show subword) $
-                trace ("ranges: " ++ show ranges) $ 
-                [ result |
-                  RangeMap sub rest <- ranges
-                , result <- p rest z sub 
-                ]
-           )
+           case head infos of
+              ParserInfo1 {} ->
+               (yieldSize, P1 $
+                  \ z subword ->
+                    let ranges = ?rangeAlg1 f infos subword
+                    in trace (">>> " ++ show subword) $
+                       trace ("ranges: " ++ show ranges) $ 
+                       [ result |
+                         ~(Ranges1 sub rest) <- ranges
+                       , let P1 p' = p rest -- TODO this pattern match might cost some performance
+                       , result <- p' z sub 
+                       ]
+                )
+                
+infix 6 >>>||
+(>>>||) :: (?yieldAlg2 :: YieldAnalysisAlgorithm Dim2, ?rangeAlg2 :: RangeConstructionAlgorithm2)
+        => ([ParserInfo], [Ranges] -> Parser a b) -> Dim2 -> RichParser a b
+(>>>||) (infos,p) f =
+        let yieldSize = ?yieldAlg1 f infos
+        in trace (">>> yield size: " ++ show yieldSize) $
+           case head infos of
+              ParserInfo1 {} ->
+               (yieldSize, P1 $
+                  \ z subword ->
+                    let ranges = ?rangeAlg1 f infos subword
+                    in trace (">>> " ++ show subword) $
+                       trace ("ranges: " ++ show ranges) $ 
+                       [ result |
+                         ~(Ranges1 sub rest) <- ranges
+                       , result <- p rest z sub 
+                       ]
+                )
 
 infixr 5 ||| 
 (|||) :: RichParser a b -> RichParser a b -> RichParser a b
@@ -181,9 +192,9 @@ infix  4 ...
 
 
 type Filter2 a = Array Int a -> Subword2 -> Bool
-with2 :: RichParser2 a b -> Filter2 a -> RichParser2 a b
-with2 (info,q) c =
+with2 :: RichParser a b -> Filter2 a -> RichParser a b
+with2 (info,P2 q) c =
         (
             info,
-            \ z subword -> if c z subword then q z subword else []
+            P2 $ \ z subword -> if c z subword then q z subword else []
         )
