@@ -17,7 +17,7 @@ data EPS = EPS deriving (Eq, Show, Data, Typeable)
 
 empty2 :: RichParser2 a ()
 empty2 = (
-              ParserInfo2 {minYield=(0,0), maxYield=(Just 0,Just 0)},
+              ParserInfo2 {minYield2=(0,0), maxYield2=(Just 0,Just 0)},
               \ _ (i,j,k,l) -> 
                 [ () |
                   i == j && k == l
@@ -26,7 +26,7 @@ empty2 = (
 
 anychars :: RichParser2 a (a,a)
 anychars = (
-                ParserInfo2 {minYield=(1,1), maxYield=(Just 1,Just 1)},
+                ParserInfo2 {minYield2=(1,1), maxYield2=(Just 1,Just 1)},
                 \ z (i,j,k,l) -> 
                         [ (z!j, z!l) |
                           i+1 == j && k+1 == l
@@ -35,7 +35,7 @@ anychars = (
 
 chars :: Eq a => a -> a -> RichParser2 a (a,a)
 chars c1 c2 = (
-                  ParserInfo2 {minYield=(1,1), maxYield=(Just 1,Just 1)},
+                  ParserInfo2 {minYield2=(1,1), maxYield2=(Just 1,Just 1)},
                   \ z (i,j,k,l) -> 
                         [ (z!j, z!l) |
                           i+1 == j && k+1 == l && z!j == c1 && z!l == c2
@@ -44,7 +44,7 @@ chars c1 c2 = (
         
 charLeftOnly :: Eq a => a -> RichParser2 a (a,EPS)
 charLeftOnly c = (
-                     ParserInfo2 {minYield=(1,0), maxYield=(Just 1,Just 0)},
+                     ParserInfo2 {minYield2=(1,0), maxYield2=(Just 1,Just 0)},
                      \ z (i,j,k,l) -> 
                         [ (c, EPS) |
                           i+1 == j && k == l && z!j == c
@@ -53,7 +53,7 @@ charLeftOnly c = (
 
 charRightOnly :: Eq a => a -> RichParser2 a (EPS,a)
 charRightOnly c = (
-                      ParserInfo2 {minYield=(0,1), maxYield=(Just 0,Just 1)},
+                      ParserInfo2 {minYield2=(0,1), maxYield2=(Just 0,Just 1)},
                       \ z (i,j,k,l) -> 
                         [ (EPS, c) |
                           i == j && k+1 == l && z!l == c
@@ -63,13 +63,13 @@ charRightOnly c = (
 -- # some syntax sugar
 
 instance Parseable () a () where
-    toParser _ = empty2 
+    toParser _ = RP2 empty2 
 
 instance Eq a => Parseable (a,a) a (a,a) where
-    toParser (c1,c2) = chars c1 c2
+    toParser (c1,c2) = RP2 $ chars c1 c2
     
 instance Eq a => Parseable (EPS,a) a (EPS,a) where
-    toParser (_,c) = charRightOnly c
+    toParser (_,c) = RP2 $ charRightOnly c
     
 instance Eq a => Parseable (a,EPS) a (a,EPS) where
-    toParser (c,_) = charLeftOnly c
+    toParser (c,_) = RP2 $ charLeftOnly c

@@ -1,4 +1,4 @@
-module ADP.Multi.Rewriting.YieldSize where
+module ADP.Multi.Rewriting.YieldSize2 where
 
 import Data.Maybe
 import Data.Map (Map)
@@ -28,8 +28,8 @@ doDetermineYieldSize f infos =
            trace (show left) $
            trace (show right) $
            ParserInfo2 { 
-                minYield = (leftMin,rightMin),
-                maxYield = (leftMax,rightMax)
+                minYield2 = (leftMin,rightMin),
+                maxYield2 = (leftMax,rightMax)
            }
 
 combineYields :: [Info] -> Info
@@ -45,13 +45,16 @@ type Info = YieldSizes -- could later be extended with more static analysis data
 type InfoMap = Map (Int,Int) Info
 
 -- the input list is in reverse order, i.e. the first in the list is the last applied parser
-buildInfoMap :: [ParserInfo2] -> InfoMap
+buildInfoMap :: [ParserInfo] -> InfoMap
 buildInfoMap i | trace ("buildInfoMap " ++ show i) False = undefined
 buildInfoMap infos =
         let parserCount = length infos
-            list = concatMap (\ (x,info) -> 
-                       [ ((x,1), (fst $ minYield info, fst $ maxYield info) ) 
-                       , ((x,2), (snd $ minYield info, snd $ maxYield info) ) 
-                       ]
+            list = concatMap (\ (x,info) -> case info of
+                       ParserInfo1 { minYield = minY, maxYield = maxY } ->
+                           [ ((x,1), (minY, maxY) ) ]
+                       ParserInfo2 { minYield2 = minY, maxYield2 = maxY } ->
+                           [ ((x,1), (fst minY, fst maxY) ) 
+                           , ((x,2), (snd minY, snd maxY) ) 
+                           ]
                      ) $ zip [parserCount,parserCount-1..] infos
         in Map.fromList list

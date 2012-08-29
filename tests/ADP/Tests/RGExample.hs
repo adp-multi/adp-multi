@@ -253,7 +253,7 @@ rgknot yieldAlg rangeAlg algebra inp =
       
   z         = mk inp
   (_,n)     = bounds z  
-  tabulated = table2 n  
-  axiom     = axiom' n z
+  tabulated = table n  
+  axiom     = axiom1 z
   
   in axiom s

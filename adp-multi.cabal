@@ -18,6 +18,10 @@ source-repository head
   type:      git
   location:  git://github.com/neothemachine/adp-multi.git
 
+Flag buildTests
+  description: Build test / benchmark executables
+  default:     False
+
 library 
   build-depends:    base >= 4,
                    array,
@@ -27,13 +31,19 @@ library
                    monadiccp
   hs-source-dirs:   src
   ghc-options:      -Wall
-  exposed-modules:  ADP.Multi.Combinators,
+  exposed-modules:  
+                   ADP.Multi.Combinators,
                    ADP.Multi.Helpers,
-                   ADP.Multi.Parser,
                    ADP.Multi.Rewriting.ConstraintSolver,
                    ADP.Multi.Rewriting.Explicit,
                    ADP.Multi.SimpleParsers,
                    ADP.Multi.Tabulation
+  other-modules:   
+                   ADP.Debug,
+                   ADP.Multi.Rewriting,
+                   ADP.Multi.Rewriting.MonadicCpHelper,
+                   ADP.Multi.Rewriting.YieldSize2,
+                   ADP.Multi.Parser
 
 test-suite MainTestSuite
   type:            exitcode-stdio-1.0
@@ -47,34 +57,42 @@ test-suite MainTestSuite
   hs-source-dirs:  src,
                    tests
   ghc-options:     -Wall -rtsopts
-  other-modules:   ADP.Multi.Combinators,
+  other-modules:   
+                   ADP.Multi.Combinators,
                    ADP.Multi.Helpers,
-                   ADP.Multi.Parser,
                    ADP.Multi.Rewriting,
                    ADP.Multi.Rewriting.ConstraintSolver,
                    ADP.Multi.Rewriting.Explicit,
                    ADP.Multi.Rewriting.MonadicCpHelper,
-                   ADP.Multi.Rewriting.YieldSize,
                    ADP.Multi.SimpleParsers,
                    ADP.Multi.Tabulation,
                    ADP.Tests.Lab,
                    ADP.Tests.Main,
                    ADP.Tests.MonadicCpRegression,
                    ADP.Tests.MonadicCpTest,
-                   ADP.Tests.RGExample
+                   ADP.Tests.RGExample,
+                   ADP.Multi.Rewriting.YieldSize2,
+                   ADP.Multi.Parser
   main-is:         ADP/Tests/Suite.hs
 
 executable adp-multi-benchmarks
-  build-depends:   base >= 4,
-                   criterion
+  if flag(buildTests)
+    build-depends:   base >= 4,
+                     criterion
+  else
+    buildable: False
   hs-source-dirs:  benchmarks,
                    src,
                    tests
   ghc-options:     -Wall -rtsopts
-  other-modules:   ADP.Tests.RGExample
+  other-modules:   
+                   ADP.Tests.RGExample,
+                   ADP.Multi.Parser
   main-is:         ConstraintSolverBenchmark.hs
 
 executable adp-rg
+  if !flag(buildTests)
+    buildable: False
   build-depends:   base >= 4
   hs-source-dirs:  
                    src, 
@@ -84,5 +102,6 @@ executable adp-rg
   other-modules:   
                    ADP.Multi.Rewriting.ConstraintSolver,
                    ADP.Multi.Rewriting.Explicit,
-                   ADP.Tests.RGExample
+                   ADP.Tests.RGExample,
+                   ADP.Multi.Parser
 

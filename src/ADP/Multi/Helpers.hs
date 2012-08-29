@@ -1,15 +1,15 @@
+{-# LANGUAGE PatternGuards #-}
+
 module ADP.Multi.Helpers where
 
 import Data.Array
 import ADP.Multi.Parser
 
--- TODO this is a workaround for now as we don't directly support 1-dim yet
--- for this to work, there has to be start rules like this:
-{- s' (c1,c2) = ([],[c1,c2]) -- 1-dim simulated as 2-dim
-   s = start <<< k >>> s' 
--}
-axiom' :: Int -> Array Int a -> RichParser2 a b -> [b]
-axiom' l z (_,ax) =  ax z (0,0,0,l)
+axiom1 :: Array Int a -> RichParser a b -> [b]
+axiom1 z richParser
+  | RP1 (_,ax) <- richParser = ax z (0,l)
+  | otherwise = error "dimension of start must be 1"
+  where (_,l) = bounds z
 
         
 -- # Create array from List

@@ -4,9 +4,17 @@ import Data.Array
 import ADP.Multi.Parser
 
 
--- four-dimensional tabulation
-table2 :: Int -> RichParser2 a b -> RichParser2 a b
-table2 n (info,q) =
+table :: Int -> RichParser a b -> RichParser a b
+table n richParser = case richParser of
+  RP1 (info,q) -> RP1
+        (info, 
+          \ z -> (!) $ array ((0,0),(n,n))
+                      [ ((i,j),q z (i,j)) |
+                        i<- [0..n]
+                      , j<- [i..n]
+                      ]
+        )
+  RP2 (info,q) -> RP2
         (info, 
           \ z -> (!) $ array ((0,0,0,0),(n,n,n,n))
                       [ ((i,j,k,l),q z (i,j,k,l)) |

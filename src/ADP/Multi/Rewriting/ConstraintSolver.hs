@@ -24,13 +24,13 @@ import Data.Maybe (fromJust, isNothing)
 import ADP.Debug
 import ADP.Multi.Parser
 import ADP.Multi.Rewriting
-import ADP.Multi.Rewriting.YieldSize
+import ADP.Multi.Rewriting.YieldSize2
 
 import ADP.Multi.Rewriting.MonadicCpHelper
 import Control.CP.FD.Interface
 type Subword = (Int,Int)
 
-constructRanges :: RangeConstructionAlgorithm ([(Int, Int)] -> ([(Int, Int)], [(Int, Int)]))
+constructRanges :: RangeConstructionAlgorithm2
 constructRanges _ _ b | trace ("constructRanges2 " ++ show b) False = undefined
 constructRanges f infos (i,j,k,l) =
         assert (i <= j && j <= k && k <= l) $
@@ -57,7 +57,7 @@ constructRangesRec infoMap (current:rest) rangeDescs =
         let symbolLoc = findSymbol current rangeDescs
             subwords = calcSubwords infoMap symbolLoc
         in trace ("subwords: " ++ show subwords) $
-           [ RangeMap subword restRanges |
+           [ Ranges2 subword restRanges |
              subword <- subwords,
              let newDescs = constructNewRangeDescs rangeDescs symbolLoc subword,
              let restRanges = constructRangesRec infoMap rest newDescs
