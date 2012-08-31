@@ -15,11 +15,20 @@ data EPS = EPS deriving (Eq, Show, Data, Typeable)
 
 -- # elementary parsers
 
-empty2 :: RichParser a ()
+empty1 :: RichParser a EPS
+empty1 = (
+              ParserInfo1 {minYield=0, maxYield=Just 0},
+              \ _ [i,j] -> 
+                [ EPS |
+                  i == j
+                ]
+         )
+
+empty2 :: RichParser a (EPS,EPS)
 empty2 = (
               ParserInfo2 {minYield2=(0,0), maxYield2=(Just 0,Just 0)},
               \ _ [i,j,k,l] -> 
-                [ () |
+                [ (EPS,EPS) |
                   i == j && k == l
                 ]
          )
@@ -70,9 +79,6 @@ charRightOnly c = (
                   )
     
 -- # some syntax sugar
-
-instance Parseable () a () where
-    toParser _ = empty2 
 
 instance Eq a => Parseable (a,a) a (a,a) where
     toParser (c1,c2) = chars c1 c2

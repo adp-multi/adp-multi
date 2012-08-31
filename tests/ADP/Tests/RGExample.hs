@@ -34,7 +34,7 @@ import ADP.Multi.Helpers
 import ADP.Multi.Rewriting
                                  
 type RG_Algebra alphabet answer = (
-  () -> answer,                               -- nil
+  EPS -> answer,                               -- nil
   answer   -> answer -> answer,               -- left
   answer   -> answer -> answer -> answer,     -- pair
   answer   -> answer -> answer -> answer -> answer -> answer -> answer, -- knot
@@ -212,19 +212,19 @@ rgknot yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
   
   (nil,left,pair,knot,knot1,knot2,basepair,base,h) = algebra
    
-  s1 [c1,c2] = [c1,c2]
+  s1 [c] = [c]
   s2 [b,s] = [b,s]
   s3 [p1,p2,s1,s2] = [p1,s1,p2,s2]
   s4 [k11,k12,k21,k22,s1,s2,s3,s4] = [k11,s1,k21,s2,k12,s3,k22,s4]
   
   s = tabulated1 $
-      nil <<< () >>>| s1 |||
+      nil <<< empty1 >>>| s1 |||
       left <<< b ~~~| s >>>| s2 |||
       pair <<< p ~~~| s ~~~| s >>>| s3 |||
       knot <<< k ~~~ k ~~~| s ~~~| s ~~~| s ~~~| s >>>| s4 
       ... h
   
-  b' [c] = ([c])  
+  b' [c] = [c]  
   b = tabulated1 $
       base <<< char 'a' >>>| b' |||
       base <<< char 'u' >>>| b' |||
