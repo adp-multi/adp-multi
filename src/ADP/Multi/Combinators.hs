@@ -73,7 +73,7 @@ infixl 7 ~~~|
 (~~~|) :: Parseable p a b => ([ParserInfo], [Ranges] -> Parser a (b -> c)) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
 (~~~|) (infos,leftParser) parseable =
         let (_,rightParser) = toParser parseable
-            info = ParserInfo2 { minYield2=(0,0), maxYield2=(Nothing,Nothing) }
+            info = ParserInfoSelf
         in (
                 info : infos,
                 \ ranges z subword -> 
@@ -112,6 +112,14 @@ rewrite yieldAlg rangeAlg (infos,p) f =
 
 infixr 5 ||| 
 (|||) :: RichParser a b -> RichParser a b -> RichParser a b
+(|||) (ParserInfo1 {minYield=minY1, maxYield=maxY1}, r) (ParserInfo1 {minYield=minY2, maxYield=maxY2}, q) = 
+        (
+              ParserInfo1 {
+                 minYield = min minY1 minY2,
+                 maxYield = if isNothing maxY1 || isNothing maxY2 then Nothing else max maxY1 maxY2
+              },
+              \ z subword -> r z subword ++ q z subword
+        )    
 (|||) (ParserInfo2 {minYield2=minY1, maxYield2=maxY1}, r) (ParserInfo2 {minYield2=minY2, maxYield2=maxY2}, q) = 
         (
               ParserInfo2 {
@@ -119,7 +127,8 @@ infixr 5 |||
                  maxYield2 = combineMaxYields maxY1 maxY2
               },
               \ z subword -> r z subword ++ q z subword
-        )    
+        )
+(|||) _ _ = error "Different parser dimensions can't be combined with ||| !"
 
 combineMinYields :: (Int,Int) -> (Int,Int) -> (Int,Int)
 combineMinYields (min11,min12) (min21,min22) = (min min11 min21, min min12 min22)

@@ -2,8 +2,8 @@ import System.IO (hSetBuffering, stdout, BufferMode (LineBuffering))
 import Data.Char (toLower)
 import Control.Monad (forM_)
 import qualified ADP.Tests.RGExample as RG
---import ADP.Multi.Rewriting.ConstraintSolver
-import ADP.Multi.Rewriting.Explicit
+import ADP.Multi.Rewriting.ConstraintSolver
+--import ADP.Multi.Rewriting.Explicit
 
 
 main::IO()
@@ -13,7 +13,7 @@ main = do
         --forM_ result print
         forM_ result2 print
         --forM_ result3 print
-        --forM_ result4 print
+        forM_ result4 print
         --forM_ result5 print
         
         where
@@ -31,7 +31,7 @@ main = do
             
             --inp = map toLower "ACGAUUCAACGU"
             
-            rg = RG.rgknot determineYieldSize constructRanges
+            rg = RG.rgknot determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
             
             result = rg RG.enum inp
             result2 = rg RG.maxBasepairs inp

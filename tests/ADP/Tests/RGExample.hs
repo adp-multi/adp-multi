@@ -41,7 +41,7 @@ type RG_Algebra alphabet answer = (
   answer   -> answer -> answer,               -- knot1
   answer   -> answer,                         -- knot2
   (alphabet, alphabet) -> answer,             -- basepair
-  (EPS, alphabet) -> answer,                  -- base
+  alphabet -> answer,                  -- base
   [answer] -> [answer]                        -- h
   )
   
@@ -94,7 +94,7 @@ data Start = Nil
            | Knot1 Start Start
            | Knot2 Start
            | BasePair (Char, Char)
-           | Base (EPS, Char)
+           | Base Char
            deriving (Eq, Show, Data, Typeable)
 
 -- without consistency checks
@@ -192,7 +192,7 @@ prettyprint = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
         )
    knot2 (pl,pr) = (pl, pr)
    basepair (b1,b2) = (["(",")"], [[b1],[b2]])
-   base (EPS,b) = (["."], [[b]])
+   base b = (["."], [[b]])
    h = id
    
    square l r = (map (const '[') l, map (const ']') r)
@@ -213,27 +213,26 @@ rgknot yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
   (nil,left,pair,knot,knot1,knot2,basepair,base,h) = algebra
    
   s1 [c1,c2] = [c1,c2]
-  s2 [b1,b2,s1,s2] = [b1,b2,s1,s2]  
-  s3 [p1,p2,s11,s12,s21,s22] = [p1,s11,s12,p2,s21,s22]
-  s4 [k11,k12,k21,k22,s11,s12,s21,s22,s31,s32,s41,s42] = 
-        [k11,s11,s12,k21,s21,s22,k12,s31,s32,k22,s41,s42]
+  s2 [b,s] = [b,s]
+  s3 [p1,p2,s1,s2] = [p1,s1,p2,s2]
+  s4 [k11,k12,k21,k22,s1,s2,s3,s4] = [k11,s1,k21,s2,k12,s3,k22,s4]
   
-  s = tabulated $
+  s = tabulated1 $
       nil <<< () >>>| s1 |||
       left <<< b ~~~| s >>>| s2 |||
       pair <<< p ~~~| s ~~~| s >>>| s3 |||
       knot <<< k ~~~ k ~~~| s ~~~| s ~~~| s ~~~| s >>>| s4 
       ... h
   
-  b' [c1,c2] = ([],[c1,c2])  
-  b = tabulated $
-      base <<< (EPS, 'a') >>>|| b' |||
-      base <<< (EPS, 'u') >>>|| b' |||
-      base <<< (EPS, 'c') >>>|| b' |||
-      base <<< (EPS, 'g') >>>|| b'
+  b' [c] = ([c])  
+  b = tabulated1 $
+      base <<< char 'a' >>>| b' |||
+      base <<< char 'u' >>>| b' |||
+      base <<< char 'c' >>>| b' |||
+      base <<< char 'g' >>>| b'
   
   p' [c1,c2] = ([c1],[c2])
-  p = tabulated $
+  p = tabulated2 $
       basepair <<< ('a', 'u') >>>|| p' |||
       basepair <<< ('u', 'a') >>>|| p' |||
       basepair <<< ('c', 'g') >>>|| p' |||
@@ -244,13 +243,12 @@ rgknot yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
   k1 [p1,p2,k1,k2] = ([k1,p1],[p2,k2])
   k2 [p1,p2] = ([p1],[p2])
   
-  k = tabulated $
+  k = tabulated2 $
       knot1 <<< p ~~~| k >>>|| k1 |||
       knot2 <<< p >>>|| k2
       
-  z         = mk inp
-  (_,n)     = bounds z  
-  tabulated = table2 n  
-  axiom     = axiom' n z
+  z = mk inp
+  tabulated1 = table1 z
+  tabulated2 = table2 z
   
-  in axiom s
+  in axiom z s

@@ -14,15 +14,26 @@ It is unclear yet if generically determining the yield size for higher parser
 dimensions also needs a constraint solver.  
 -}
 
--- TODO add support for dim1
---      be careful: dim1 and dim2 can be mixed (inspect ParserInfo!)
 
-doDetermineYieldSize ::  YieldAnalysisAlgorithm Dim2
-doDetermineYieldSize f infos =
-        let parserCount = length infos
-            args = concatMap (\ x -> [(x,1),(x,2)]) [1..parserCount] 
-            (left,right) = f args
-            elemInfo = buildInfoMap infos
+doDetermineYieldSize1 ::  YieldAnalysisAlgorithm Dim1
+doDetermineYieldSize1 f infos =
+        let selfRecursion = ParserInfo1 { minYield = 0, maxYield = Nothing }
+            elemInfo = buildInfoMap selfRecursion infos
+            rewritten = f (Map.keys elemInfo)
+            yields = map (\(i,j) -> elemInfo Map.! (i,j)) rewritten
+            (yieldMin,yieldMax) = combineYields yields 
+        in trace (show elemInfo) $
+           trace (show yields) $
+           ParserInfo1 { 
+                minYield = yieldMin,
+                maxYield = yieldMax
+           }
+
+doDetermineYieldSize2 ::  YieldAnalysisAlgorithm Dim2
+doDetermineYieldSize2 f infos =
+        let selfRecursion = ParserInfo2 { minYield2 = (0,0), maxYield2 = (Nothing,Nothing) }
+            elemInfo = buildInfoMap selfRecursion infos
+            (left,right) = f (Map.keys elemInfo)
             leftYields = map (\(i,j) -> elemInfo Map.! (i,j)) left
             rightYields = map (\(i,j) -> elemInfo Map.! (i,j)) right
             (leftMin,leftMax) = combineYields leftYields
@@ -47,11 +58,20 @@ type YieldSizes = (Int,Maybe Int) -- min and max yield sizes
 type Info = YieldSizes -- could later be extended with more static analysis data
 type InfoMap = Map (Int,Int) Info
 
+-- | Replaces all instances of a value in a list by another value.
+replace :: Eq a =>
+           a   -- ^ Value to look for
+        -> a   -- ^ Value to replace it with
+        -> [a] -- ^ Input list
+        -> [a] -- ^ Output list
+replace x y = map (\z -> if z == x then y else z) 
+
 -- the input list is in reverse order, i.e. the first in the list is the last applied parser
-buildInfoMap :: [ParserInfo] -> InfoMap
-buildInfoMap i | trace ("buildInfoMap " ++ show i) False = undefined
-buildInfoMap infos =
-        let parserCount = length infos
+buildInfoMap :: ParserInfo -> [ParserInfo] -> InfoMap
+buildInfoMap _ i | trace ("buildInfoMap " ++ show i) False = undefined
+buildInfoMap recursionDefault infos' =
+        let infos = replace ParserInfoSelf recursionDefault infos'
+            parserCount = length infos
             list = concatMap (\ (x,info) -> case info of
                        ParserInfo1 { minYield = minY, maxYield = maxY } ->
                            [ ((x,1), (minY, maxY) ) ]

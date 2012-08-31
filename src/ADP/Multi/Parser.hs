@@ -11,15 +11,16 @@ type Parser a b = Array Int a -> Subword -> [b]
 
 data ParserInfo = ParserInfo1
                    {
-                      minYield :: Int
+                     minYield :: Int
                    , maxYield :: Maybe Int
                    }
                 | ParserInfo2
                    {
-                      minYield2 :: (Int,Int)
+                     minYield2 :: (Int,Int)
                    , maxYield2 :: (Maybe Int,Maybe Int)
                    }
-                deriving Show
+                | ParserInfoSelf -- self-recursion, we don't know our own dimension in this case
+                deriving (Eq, Show)
                    
 type RichParser a b = (ParserInfo, Parser a b)
 

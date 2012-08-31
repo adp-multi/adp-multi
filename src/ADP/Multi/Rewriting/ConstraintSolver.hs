@@ -12,8 +12,10 @@ TODO It is slow as hell. Maybe it is possible to "compile" the two inequality
      see http://www.cs.washington.edu/research/constraints/solvers/cp97.html
 -}
 module ADP.Multi.Rewriting.ConstraintSolver (
-        determineYieldSize,
-        constructRanges
+        determineYieldSize1,
+        determineYieldSize2,
+        constructRanges1,
+        constructRanges2
 ) where
 
 import Control.Exception
@@ -22,6 +24,7 @@ import qualified Data.Map as Map
 import Data.Maybe (fromJust, isNothing)
 
 import ADP.Debug
+import ADP.Multi.Parser
 import ADP.Multi.Rewriting
 import ADP.Multi.Rewriting.YieldSize
 
@@ -31,65 +34,119 @@ import Control.CP.FD.Interface
 type Subword1 = (Int,Int)
 type Subword2 = (Int,Int,Int,Int)
 
-constructRanges :: RangeConstructionAlgorithm Dim2
-constructRanges _ _ b | trace ("constructRanges2 " ++ show b) False = undefined
-constructRanges f infos [i,j,k,l] =
+constructRanges1 :: RangeConstructionAlgorithm Dim1
+constructRanges1 _ _ b | trace ("constructRanges1 " ++ show b) False = undefined
+constructRanges1 f infos' [i,j] =
+        assert (i <= j) $
+        let infos = replace ParserInfoSelf (ParserInfo1 { minYield = 0, maxYield = Nothing }) infos' 
+            parserCount = length infos            
+            elemInfo = buildInfoMap (ParserInfo1 { minYield = 0, maxYield = Nothing }) infos
+            rewritten = f (Map.keys elemInfo)
+            remainingSymbols = [parserCount,parserCount-1..1] `zip` infos
+            rangeDesc = [(i,j,rewritten)]
+            rangeDescFiltered = filterEmptyRanges rangeDesc
+        in trace (show remainingSymbols) $
+           if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
+           else constructRangesRec elemInfo remainingSymbols rangeDescFiltered
+
+constructRanges2 :: RangeConstructionAlgorithm Dim2
+constructRanges2 _ _ b | trace ("constructRanges2 " ++ show b) False = undefined
+constructRanges2 f infos' [i,j,k,l] =
         assert (i <= j && j <= k && k <= l) $
-        let parserCount = length infos
-            args = concatMap (\ x -> [(x,1),(x,2)]) [1..parserCount]
-            (left,right) = f args
-            remainingSymbols = [parserCount,parserCount-1..1]
+        let infos = replace ParserInfoSelf (ParserInfo2 { minYield2 = (0,0), maxYield2 = (Nothing,Nothing) }) infos' 
+            parserCount = length infos
+            elemInfo = buildInfoMap (ParserInfo2 { minYield2 = (0,0), maxYield2 = (Nothing,Nothing) }) infos
+            (left,right) = f (Map.keys elemInfo)
+            remainingSymbols = [parserCount,parserCount-1..1] `zip` infos
             rangeDesc = [(i,j,left),(k,l,right)]
             rangeDescFiltered = filterEmptyRanges rangeDesc
         in if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
-           else constructRangesRec (buildInfoMap infos) remainingSymbols rangeDescFiltered
+           else constructRangesRec elemInfo remainingSymbols rangeDescFiltered
 
-determineYieldSize :: YieldAnalysisAlgorithm Dim2
-determineYieldSize _ infos | trace ("determineYieldSize2 " ++ show infos) False = undefined
-determineYieldSize f infos = doDetermineYieldSize f infos
+determineYieldSize1 :: YieldAnalysisAlgorithm Dim1
+determineYieldSize1 _ infos | trace ("determineYieldSize1 " ++ show infos) False = undefined
+determineYieldSize1 f infos = doDetermineYieldSize1 f infos
+
+determineYieldSize2 :: YieldAnalysisAlgorithm Dim2
+determineYieldSize2 _ infos | trace ("determineYieldSize2 " ++ show infos) False = undefined
+determineYieldSize2 f infos = doDetermineYieldSize2 f infos
 
 
 type RangeDesc = (Int,Int,[(Int,Int)])
 
-constructRangesRec :: InfoMap -> [Int] -> [RangeDesc] -> [Ranges]
+constructRangesRec :: InfoMap -> [(Int,ParserInfo)] -> [RangeDesc] -> [Ranges]
 constructRangesRec a b c | trace ("constructRangesRec " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
 constructRangesRec _ [] [] = []
-constructRangesRec infoMap (current:rest) rangeDescs =
-        let symbolLoc = findSymbol current rangeDescs
-            subwords = calcSubwords infoMap symbolLoc
-        in trace ("subwords: " ++ show subwords) $
+constructRangesRec infoMap ((current,ParserInfo2 {}):rest) rangeDescs =
+        let symbolLoc = findSymbol2 current rangeDescs
+            subwords = calcSubwords2 infoMap symbolLoc
+        in trace ("calc subwords for dim2") $
+           trace ("subwords: " ++ show subwords) $
            [ RangeMap [i,j,k,l] restRanges |
              (i,j,k,l) <- subwords,
-             let newDescs = constructNewRangeDescs rangeDescs symbolLoc (i,j,k,l),
+             let newDescs = constructNewRangeDescs2 rangeDescs symbolLoc (i,j,k,l),
+             let restRanges = constructRangesRec infoMap rest newDescs
+           ]
+constructRangesRec infoMap ((current,ParserInfo1 {}):rest) rangeDescs =
+        let symbolLoc = findSymbol1 current rangeDescs
+            subwords = calcSubwords1 infoMap symbolLoc
+        in trace ("calc subwords for dim1") $
+           trace ("subwords: " ++ show subwords) $
+           [ RangeMap [i,j] restRanges |
+             (i,j) <- subwords,
+             let newDescs = constructNewRangeDescs1 rangeDescs symbolLoc (i,j),
              let restRanges = constructRangesRec infoMap rest newDescs
            ]
 constructRangesRec _ [] r@(_:_) = error ("programming error " ++ show r)
 
-findSymbol :: Int -> [RangeDesc] -> ((RangeDesc,Int),(RangeDesc,Int))
-findSymbol s r | trace ("findSymbol " ++ show s ++ " " ++ show r) False = undefined
-findSymbol s rangeDesc =
-         let Just (i,j,r)  = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == 1) l') rangeDesc
-             Just (m,n,r') = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == 2) l') rangeDesc
-             Just a1Idx = elemIndex (s,1) r
-             Just a2Idx = elemIndex (s,2) r'
-         in (((i,j,r),a1Idx),((m,n,r'),a2Idx))
+findSymbol :: Int -> Int -> [RangeDesc] -> (RangeDesc,Int)
+findSymbol s idx r | trace ("findSymbol " ++ show s ++ "," ++ show idx ++ " " ++ show r) False = undefined
+findSymbol s idx rangeDesc =
+         let Just (i,j,r)  = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == idx) l') rangeDesc
+             Just aIdx = elemIndex (s,idx) r
+         in ((i,j,r),aIdx)
+
+findSymbol1 :: Int -> [RangeDesc] -> (RangeDesc,Int)
+findSymbol1 s = findSymbol s 1
+
+findSymbol2 :: Int -> [RangeDesc] -> ((RangeDesc,Int),(RangeDesc,Int))
+findSymbol2 s rangeDesc = (findSymbol s 1 rangeDesc, findSymbol s 2 rangeDesc)
 
 -- TODO refactor (code duplication with Explicit module)
-constructNewRangeDescs :: [RangeDesc] -> ((RangeDesc,Int),(RangeDesc,Int)) -> Subword2 -> [RangeDesc]
-constructNewRangeDescs d p s | trace ("constructNewRangeDescs " ++ show d ++ " " ++ show p ++ " " ++ show s) False = undefined
-constructNewRangeDescs descs symbolPositions subword =
+
+constructNewRangeDescs1 :: [RangeDesc] -> (RangeDesc,Int) -> Subword1 -> [RangeDesc]
+constructNewRangeDescs1 d p s | trace ("constructNewRangeDescs " ++ show d ++ " " ++ show p ++ " " ++ show s) False = undefined
+constructNewRangeDescs1 descs symbolPosition subword =
         let newDescs = [ newDesc |
                          desc <- descs
-                       , newDesc <- processRangeDesc desc symbolPositions subword
+                       , newDesc <- processRangeDesc1 desc symbolPosition subword
                        ]
             count = foldr (\(_,_,l) r -> r + length l) 0
         in assert (count descs > count newDescs) $
            trace (show newDescs) $
            newDescs
 
-processRangeDesc :: RangeDesc -> ((RangeDesc,Int),(RangeDesc,Int)) -> Subword2 -> [RangeDesc]
-processRangeDesc a b c | trace ("processRangeDesc " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
-processRangeDesc inp ((left,a1Idx),(right,a2Idx)) (m,n,o,p)
+constructNewRangeDescs2 :: [RangeDesc] -> ((RangeDesc,Int),(RangeDesc,Int)) -> Subword2 -> [RangeDesc]
+constructNewRangeDescs2 d p s | trace ("constructNewRangeDescs " ++ show d ++ " " ++ show p ++ " " ++ show s) False = undefined
+constructNewRangeDescs2 descs symbolPositions subword =
+        let newDescs = [ newDesc |
+                         desc <- descs
+                       , newDesc <- processRangeDesc2 desc symbolPositions subword
+                       ]
+            count = foldr (\(_,_,l) r -> r + length l) 0
+        in assert (count descs > count newDescs) $
+           trace (show newDescs) $
+           newDescs
+
+processRangeDesc1 :: RangeDesc -> (RangeDesc,Int) -> Subword1 -> [RangeDesc]
+processRangeDesc1 a b c | trace ("processRangeDesc1 " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
+processRangeDesc1 inp (desc,aIdx) (m,n)
+  | inp /= desc = [inp]
+  | otherwise = processRangeDescSingle desc aIdx (m,n)
+
+processRangeDesc2 :: RangeDesc -> ((RangeDesc,Int),(RangeDesc,Int)) -> Subword2 -> [RangeDesc]
+processRangeDesc2 a b c | trace ("processRangeDesc2 " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
+processRangeDesc2 inp ((left,a1Idx),(right,a2Idx)) (m,n,o,p)
   | inp /= left && inp /= right = [inp]
   | inp == left && inp == right =
         -- at this point it doesn't matter what the actual ordering is
@@ -149,19 +206,19 @@ combinedInfoRightOf infoMap (desc@(_,_,r),axIdx)
         in combineYields rightInfos
 
 
-calcSubwords :: InfoMap -> ((RangeDesc,Int),(RangeDesc,Int)) -> [Subword2]
-calcSubwords a b | trace ("calcSubwords " ++ show a ++ " " ++ show b) False = undefined
-calcSubwords infoMap (left@((i,j,r),a1Idx),right@((m,n,_),a2Idx))
-  | i == m && j == n = calcSubwordsDependent infoMap (i,j,r) a1Idx a2Idx
+calcSubwords2 :: InfoMap -> ((RangeDesc,Int),(RangeDesc,Int)) -> [Subword2]
+calcSubwords2 a b | trace ("calcSubwords " ++ show a ++ " " ++ show b) False = undefined
+calcSubwords2 infoMap (left@((i,j,r),a1Idx),right@((m,n,_),a2Idx))
+  | i == m && j == n = calcSubwords2Dependent infoMap (i,j,r) a1Idx a2Idx
   | otherwise = [ (i',j',k',l') |
-                  (i',j') <- calcSubwordsIndependent infoMap left
-                , (k',l') <- calcSubwordsIndependent infoMap right
+                  (i',j') <- calcSubwords1 infoMap left
+                , (k',l') <- calcSubwords1 infoMap right
                 ]
 
 -- assumes that other component is in a different part
-calcSubwordsIndependent :: InfoMap -> (RangeDesc,Int) -> [Subword1]
-calcSubwordsIndependent _ b | trace ("calcSubwordsIndependent " ++ show b) False = undefined
-calcSubwordsIndependent infoMap pos@((i,j,_),_) =
+calcSubwords1 :: InfoMap -> (RangeDesc,Int) -> [Subword1]
+calcSubwords1 _ b | trace ("calcSubwordsIndependent " ++ show b) False = undefined
+calcSubwords1 infoMap pos@((i,j,_),_) =
         let (minY,maxY) = infoFromPos infoMap pos
             (minYLeft,maxYLeft) = combinedInfoLeftOf infoMap pos
             (minYRight,maxYRight) = combinedInfoRightOf infoMap pos
@@ -187,17 +244,17 @@ calcSubwordsIndependent infoMap pos@((i,j,_),_) =
         in map (\[len1,_,len3] -> (i+len1, j-len3)) $ solveModel model
 
 
-calcSubwordsDependent :: InfoMap -> RangeDesc -> Int -> Int -> [Subword2]
-calcSubwordsDependent _ b c d | trace ("calcSubwordsDependent " ++ show b ++ " " ++ show c ++ " " ++ show d) False = undefined
-calcSubwordsDependent infoMap desc a1Idx a2Idx =
+calcSubwords2Dependent :: InfoMap -> RangeDesc -> Int -> Int -> [Subword2]
+calcSubwords2Dependent _ b c d | trace ("calcSubwordsDependent " ++ show b ++ " " ++ show c ++ " " ++ show d) False = undefined
+calcSubwords2Dependent infoMap desc a1Idx a2Idx =
         let a1Idx' = if a1Idx < a2Idx then a1Idx else a2Idx
             a2Idx' = if a1Idx < a2Idx then a2Idx else a1Idx
-            subs = doCalcSubwordsDependent infoMap desc a1Idx' a2Idx'
+            subs = doCalcSubwords2Dependent infoMap desc a1Idx' a2Idx'
         in if a1Idx < a2Idx then subs
            else [ (k,l,m,n) | (m,n,k,l) <- subs ]
 
-doCalcSubwordsDependent :: InfoMap -> RangeDesc -> Int -> Int -> [Subword2]
-doCalcSubwordsDependent infoMap desc@(i,j,_) a1Idx a2Idx =
+doCalcSubwords2Dependent :: InfoMap -> RangeDesc -> Int -> Int -> [Subword2]
+doCalcSubwords2Dependent infoMap desc@(i,j,_) a1Idx a2Idx =
         let (minY1,maxY1) = infoFromPos infoMap (desc,a1Idx)
             (minY2,maxY2) = infoFromPos infoMap (desc,a2Idx)
             (minYLeft1,maxYLeft1) = combinedInfoLeftOf infoMap (desc,a1Idx)

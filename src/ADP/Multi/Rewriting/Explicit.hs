@@ -1,8 +1,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module ADP.Multi.Rewriting.Explicit (
-        constructRanges,
-        determineYieldSize
+--        constructRanges,
+--        determineYieldSize
 ) where
 
 import Control.Exception
@@ -10,6 +10,7 @@ import Data.List (elemIndex, find)
 import qualified Data.Map as Map
 import Data.Maybe
 
+{-
 import ADP.Debug
 import ADP.Multi.Parser
 import ADP.Multi.Rewriting
@@ -291,3 +292,4 @@ doCalcSubwordsDependent infoMap desc@(i,j,r) a1Idx a2Idx =
                 ]
 
           | otherwise = error "invalid conditions, e.g. a1Idx == a2Idx == 0"
+-}
