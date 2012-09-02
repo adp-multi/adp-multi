@@ -80,11 +80,20 @@ charRightOnly c = (
     
 -- # some syntax sugar
 
-instance Eq a => Parseable (a,a) a (a,a) where
+instance Parseable EPS Char EPS where
+    toParser _ = empty1
+
+instance Parseable Char Char Char where
+    toParser = char
+
+instance Parseable (EPS,EPS) Char (EPS,EPS) where
+    toParser _ = empty2
+
+instance Parseable (Char,Char) Char (Char,Char) where
     toParser (c1,c2) = chars c1 c2
     
-instance Eq a => Parseable (EPS,a) a (EPS,a) where
+instance Parseable (EPS,Char) Char (EPS,Char) where
     toParser (_,c) = charRightOnly c
     
-instance Eq a => Parseable (a,EPS) a (a,EPS) where
+instance Parseable (Char,EPS) Char (Char,EPS) where
     toParser (c,_) = charLeftOnly c

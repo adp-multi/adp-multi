@@ -218,7 +218,7 @@ rgknot yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
   s4 [k11,k12,k21,k22,s1,s2,s3,s4] = [k11,s1,k21,s2,k12,s3,k22,s4]
   
   s = tabulated1 $
-      nil <<< empty1 >>>| s1 |||
+      nil  <<< EPS >>>| s1 |||
       left <<< b ~~~| s >>>| s2 |||
       pair <<< p ~~~| s ~~~| s >>>| s3 |||
       knot <<< k ~~~ k ~~~| s ~~~| s ~~~| s ~~~| s >>>| s4 
@@ -226,10 +226,10 @@ rgknot yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
   
   b' [c] = [c]  
   b = tabulated1 $
-      base <<< char 'a' >>>| b' |||
-      base <<< char 'u' >>>| b' |||
-      base <<< char 'c' >>>| b' |||
-      base <<< char 'g' >>>| b'
+      base <<< 'a' >>>| b' |||
+      base <<< 'u' >>>| b' |||
+      base <<< 'c' >>>| b' |||
+      base <<< 'g' >>>| b'
   
   p' [c1,c2] = ([c1],[c2])
   p = tabulated2 $
