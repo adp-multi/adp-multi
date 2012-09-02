@@ -8,11 +8,11 @@ main :: IO ()
 main = defaultMain 
           [
               bgroup "quick" [
-                     bench "explicit" $ nf (simple EX.determineYieldSize) EX.constructRanges,
-                     bench "constraint solver" $ nf (simple CS.determineYieldSize) CS.constructRanges
+                     bench "explicit" $ nf (simple EX.determineYieldSize1 EX.constructRanges1 EX.determineYieldSize2) EX.constructRanges2,
+                     bench "constraint solver" $ nf (simple CS.determineYieldSize1 CS.constructRanges1 CS.determineYieldSize2) CS.constructRanges2
                 ]
           ]
        
 
-simple yieldAlg rangeAlg = 
-       RG.rgknot yieldAlg rangeAlg RG.maxBasepairs "agcgu"
+simple yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 = 
+       RG.rgknot yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 RG.maxBasepairs "agcgu"

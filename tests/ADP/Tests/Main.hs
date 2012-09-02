@@ -2,8 +2,8 @@ import System.IO (hSetBuffering, stdout, BufferMode (LineBuffering))
 import Data.Char (toLower)
 import Control.Monad (forM_)
 import qualified ADP.Tests.RGExample as RG
-import ADP.Multi.Rewriting.ConstraintSolver
---import ADP.Multi.Rewriting.Explicit
+--import ADP.Multi.Rewriting.ConstraintSolver
+import ADP.Multi.Rewriting.Explicit
 
 
 main::IO()

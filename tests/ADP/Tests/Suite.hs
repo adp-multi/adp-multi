@@ -29,7 +29,7 @@ main = defaultMain
             ]
 
 rg :: RG.RG_Algebra Char answer -> String -> [answer]
-rg = RG.rgknot determineYieldSize constructRanges
+rg = RG.rgknot determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
 
 -- https://github.com/neothemachine/rna/wiki/Example
 testRgSimpleCompleteness =
