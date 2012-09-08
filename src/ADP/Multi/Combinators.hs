@@ -37,6 +37,18 @@ to get full type-safety.
 
 -}
 
+
+
+-- TODO use static info about min yield sizes for self-recursion
+--      This is not easy to solve for indirect recursion like S -> a | aP, P -> aS | a
+--      At the moment we would use S -> a | a ~~~| P and P -> a ~~~| S | a to prevent
+--      endless recursion at yield size analysis. Therefore, as ~~~| isn't only used
+--      for direct self-recursion, we would need to analyse the grammar in its whole to
+--      detect cycles which seems impossible without creating a complete AST.
+-- TODO define which grammars are not useable without a whole-grammar yield size analysis
+
+
+
 infix 8 <<<
 (<<<) :: Parseable p a b => (b -> c) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
 (<<<) f parseable =

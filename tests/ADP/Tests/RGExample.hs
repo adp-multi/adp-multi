@@ -212,40 +212,35 @@ rgknot yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
   
   (nil,left,pair,knot,knot1,knot2,basepair,base,h) = algebra
    
-  s1 [c] = [c]
-  s2 [b,s] = [b,s]
-  s3 [p1,p2,s1,s2] = [p1,s1,p2,s2]
-  s4 [k11,k12,k21,k22,s1,s2,s3,s4] = [k11,s1,k21,s2,k12,s3,k22,s4]
+  rewritePair [p1,p2,s1,s2] = [p1,s1,p2,s2]
+  rewriteKnot [k11,k12,k21,k22,s1,s2,s3,s4] = [k11,s1,k21,s2,k12,s3,k22,s4]
   
   s = tabulated1 $
-      nil  <<< EPS >>>| s1 |||
-      left <<< b ~~~| s >>>| s2 |||
-      pair <<< p ~~~| s ~~~| s >>>| s3 |||
-      knot <<< k ~~~ k ~~~| s ~~~| s ~~~| s ~~~| s >>>| s4 
+      nil  <<< EPS >>>| id |||
+      left <<< b ~~~| s >>>| id |||
+      pair <<< p ~~~| s ~~~| s >>>| rewritePair |||
+      knot <<< k ~~~ k ~~~| s ~~~| s ~~~| s ~~~| s >>>| rewriteKnot
       ... h
   
-  b' [c] = [c]  
   b = tabulated1 $
-      base <<< 'a' >>>| b' |||
-      base <<< 'u' >>>| b' |||
-      base <<< 'c' >>>| b' |||
-      base <<< 'g' >>>| b'
+      base <<< 'a' >>>| id |||
+      base <<< 'u' >>>| id |||
+      base <<< 'c' >>>| id |||
+      base <<< 'g' >>>| id
   
-  p' [c1,c2] = ([c1],[c2])
   p = tabulated2 $
-      basepair <<< ('a', 'u') >>>|| p' |||
-      basepair <<< ('u', 'a') >>>|| p' |||
-      basepair <<< ('c', 'g') >>>|| p' |||
-      basepair <<< ('g', 'c') >>>|| p' |||
-      basepair <<< ('g', 'u') >>>|| p' |||
-      basepair <<< ('u', 'g') >>>|| p'
+      basepair <<< ('a', 'u') >>>|| id2 |||
+      basepair <<< ('u', 'a') >>>|| id2 |||
+      basepair <<< ('c', 'g') >>>|| id2 |||
+      basepair <<< ('g', 'c') >>>|| id2 |||
+      basepair <<< ('g', 'u') >>>|| id2 |||
+      basepair <<< ('u', 'g') >>>|| id2
   
-  k1 [p1,p2,k1,k2] = ([k1,p1],[p2,k2])
-  k2 [p1,p2] = ([p1],[p2])
+  rewriteKnot1 [p1,p2,k1,k2] = ([k1,p1],[p2,k2])
   
   k = tabulated2 $
-      knot1 <<< p ~~~| k >>>|| k1 |||
-      knot2 <<< p >>>|| k2
+      knot1 <<< p ~~~| k >>>|| rewriteKnot1 |||
+      knot2 <<< p >>>|| id2
       
   z = mk inp
   tabulated1 = table1 z

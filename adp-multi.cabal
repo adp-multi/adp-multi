@@ -47,7 +47,8 @@ test-suite MainTestSuite
   hs-source-dirs:  src,
                    tests
   ghc-options:     -Wall -rtsopts
-  other-modules:   ADP.Multi.Combinators,
+  other-modules:   
+                   ADP.Multi.Combinators,
                    ADP.Multi.Helpers,
                    ADP.Multi.Parser,
                    ADP.Multi.Rewriting,
@@ -61,7 +62,8 @@ test-suite MainTestSuite
                    ADP.Tests.Main,
                    ADP.Tests.MonadicCpRegression,
                    ADP.Tests.MonadicCpTest,
-                   ADP.Tests.RGExample
+                   ADP.Tests.RGExample,
+                   ADP.Tests.NestedExample
   main-is:         ADP/Tests/Suite.hs
 
 executable adp-multi-benchmarks
@@ -71,7 +73,9 @@ executable adp-multi-benchmarks
                    src,
                    tests
   ghc-options:     -Wall -rtsopts
-  other-modules:   ADP.Tests.RGExample
+  other-modules:   
+                   ADP.Tests.RGExample,
+                   ADP.Tests.NestedExample
   main-is:         ConstraintSolverBenchmark.hs
 
 executable adp-rg
@@ -84,5 +88,6 @@ executable adp-rg
   other-modules:   
                    ADP.Multi.Rewriting.ConstraintSolver,
                    ADP.Multi.Rewriting.Explicit,
-                   ADP.Tests.RGExample
+                   ADP.Tests.RGExample,
+                   ADP.Tests.NestedExample
 
