@@ -60,10 +60,11 @@ testRgSimpleBasepairs =
 -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
 -- This test runs quite long and should only be run manually if needed.
 testRgRealPseudoknot =
-   let inp = map toLower "CAAUUUUCUGAAAAUUUUCAC" 
-       referenceStructure = ".(((((.[[[))))).]]]."
+   let inp = map toLower     "CAAUUUUCUGAAAAUUUUCAC" 
+       referenceStructure  = ".(((((..[[[))))).]]]."
+       referenceStructure2 = ".[[[[[..(((]]]]].)))."
        result = rg RG.prettyprint inp
-   in any (\ ([structure],_) -> structure == referenceStructure) result
+   in any (\ ([structure],_) -> structure == referenceStructure || structure == referenceStructure2) result
         @? "reference structure not found"
 
 prop_sort1 (xs :: [Int]) = sort xs == sortBy compare xs

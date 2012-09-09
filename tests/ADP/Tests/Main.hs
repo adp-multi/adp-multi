@@ -14,22 +14,21 @@ main = do
         --forM_ result print
         --forM_ result2 print
         --forM_ result3 print
-        --forM_ result4 print
+        forM_ result4 print
         --forM_ result5 print
-        forM_ result6 putStrLn
+        --forM_ result6 putStrLn
         
         where
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
-            -- struc = ".(((((.[[[))))).]]]."
-            -- inp = map toLower "CAAUUUUCUGAAAAUUUUCAC"
+            -- struc = ".(((((..[[[))))).]]]."
+            inp = map toLower "CAAUUUUCUGAAAAUUUUCAC"
             
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00289.HTML
-            -- longer, but produces results earlier
             -- struc = "..((((..[[[[)))).....]]]]..."
             -- inp = map toLower "ACCGUCGUUCCCGACGUAAAAGGGAUGU"
             
             -- https://github.com/neothemachine/rna/wiki/Example
-            inp = "agcgu"
+            -- inp = "agcgu"
             
             --inp = map toLower "ACGAUUCAACGU"
             
