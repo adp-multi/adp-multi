@@ -3,6 +3,7 @@ import Data.Char (toLower)
 import Control.Monad (forM_)
 import qualified ADP.Tests.RGExample as RG
 import qualified ADP.Tests.NestedExample as N
+import qualified ADP.Tests.CopyExample as C
 --import ADP.Multi.Rewriting.ConstraintSolver
 import ADP.Multi.Rewriting.Explicit
 
@@ -14,9 +15,10 @@ main = do
         --forM_ result print
         --forM_ result2 print
         --forM_ result3 print
-        forM_ result4 print
+        --forM_ result4 print
         --forM_ result5 print
         --forM_ result6 putStrLn
+        forM_ result7 print
         
         where
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
@@ -43,3 +45,6 @@ main = do
             
             nested = N.nested determineYieldSize1 constructRanges1
             result6 = nested (N.pstree) inp
+            
+            copy = C.copyGr determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
+            result7 = copy (C.countABs) "abaaabaa"
