@@ -5,7 +5,7 @@ build-type:     Simple
 author:         Maik Riechert
 stability:      experimental
 bug-reports:    https://github.com/neothemachine/adp-multi/issues
-homepage:       https://github.com/neothemachine/adp-multi
+homepage:       http://adp-multi.ruhoh.com
 copyright:      2012 Maik Riechert
 license:        BSD3
 license-file:   LICENSE
@@ -17,6 +17,10 @@ category:       Algorithms, Data Structures, Bioinformatics
 source-repository head
   type:      git
   location:  git://github.com/neothemachine/adp-multi.git
+
+Flag buildTests
+  description: Build test / benchmark executables
+  default: False
 
 library 
   build-depends:    base >= 4,
@@ -67,8 +71,11 @@ test-suite MainTestSuite
   main-is:         ADP/Tests/Suite.hs
 
 executable adp-multi-benchmarks
-  build-depends:   base >= 4,
-                   criterion
+  if flag(buildTests)
+    build-depends: base >= 4,
+                     criterion
+  else
+    buildable: False
   hs-source-dirs:  benchmarks,
                    src,
                    tests
@@ -79,6 +86,8 @@ executable adp-multi-benchmarks
   main-is:         ConstraintSolverBenchmark.hs
 
 executable adp-rg
+  if !flag(buildTests)
+    buildable: False
   build-depends:   base >= 4
   hs-source-dirs:  
                    src, 
