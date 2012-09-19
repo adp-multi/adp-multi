@@ -15,7 +15,7 @@ Quick start
 1. Check out the git repository
 2. Run `cabal install --flags="+buildTests"` inside the checked out folder
 3. Run `adp-rg` to see if there's some output (then it works)
-4. Explore the code (start at `test/ADP/Test/Main.hs`)
+4. Explore the code (start at `tests/ADP/Tests/Main.hs`)
 
 How to debug errors
 -------------------
