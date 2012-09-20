@@ -7,9 +7,20 @@ axiom :: Array Int a -> RichParser a b -> [b]
 axiom z (_,ax) =
     let (_,l) = bounds z
     in ax z [0,l]
+    
+
+axiomTwoTrack :: [a] -> [a] -> RichParser a b -> [b]
+axiomTwoTrack inp1 inp2  (_,ax) =
+    let l1 = length inp1
+        l2 = length inp2
+        z = mkTwoTrack inp1 inp2
+    in ax z [0,l1,0,l2]
 
         
 -- # Create array from List
 
 mk :: [a] -> Array Int a
 mk xs = array (1,length xs) (zip [1..] xs)
+
+mkTwoTrack :: [a] -> [a] -> Array Int a
+mkTwoTrack xs ys = mk (xs ++ ys)
