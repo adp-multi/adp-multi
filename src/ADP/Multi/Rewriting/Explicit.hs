@@ -24,11 +24,10 @@ type Subword2 = (Int,Int,Int,Int)
 
 constructRanges1 :: RangeConstructionAlgorithm Dim1
 constructRanges1 _ _ b | trace ("constructRanges1 " ++ show b) False = undefined
-constructRanges1 f infos' [i,j] =
+constructRanges1 f infos [i,j] =
         assert (i <= j) $
-        let infos = replace ParserInfoSelf (ParserInfo1 { minYield = 0, maxYield = Nothing }) infos' 
-            parserCount = length infos            
-            elemInfo = buildInfoMap (ParserInfo1 { minYield = 0, maxYield = Nothing }) infos
+        let parserCount = length infos            
+            elemInfo = buildInfoMap infos
             rewritten = f (Map.keys elemInfo)
             remainingSymbols = [parserCount,parserCount-1..1] `zip` infos
             rangeDesc = [(i,j,rewritten)]
@@ -39,11 +38,10 @@ constructRanges1 f infos' [i,j] =
 
 constructRanges2 :: RangeConstructionAlgorithm Dim2
 constructRanges2 _ _ b | trace ("constructRanges2 " ++ show b) False = undefined
-constructRanges2 f infos' [i,j,k,l] =
+constructRanges2 f infos [i,j,k,l] =
         assert (i <= j && j <= k && k <= l) $
-        let infos = replace ParserInfoSelf (ParserInfo2 { minYield2 = (0,0), maxYield2 = (Nothing,Nothing) }) infos' 
-            parserCount = length infos
-            elemInfo = buildInfoMap (ParserInfo2 { minYield2 = (0,0), maxYield2 = (Nothing,Nothing) }) infos
+        let parserCount = length infos
+            elemInfo = buildInfoMap infos
             (left,right) = f (Map.keys elemInfo)
             remainingSymbols = [parserCount,parserCount-1..1] `zip` infos
             rangeDesc = [(i,j,left),(k,l,right)]

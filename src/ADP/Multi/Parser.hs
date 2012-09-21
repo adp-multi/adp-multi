@@ -19,7 +19,6 @@ data ParserInfo = ParserInfo1
                      minYield2 :: (Int,Int)
                    , maxYield2 :: (Maybe Int,Maybe Int)
                    }
-                | ParserInfoSelf -- self-recursion, we don't know our own dimension in this case
                 deriving (Eq, Show)
                    
 type RichParser a b = (ParserInfo, Parser a b)

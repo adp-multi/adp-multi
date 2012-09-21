@@ -59,8 +59,8 @@ copyGr yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
   
   rewriteCopy [a',a'',c1,c2] = ([a',c1],[a'',c2])
   c = tabulated2 $
-      copy' <<< 'a' ~~~ 'a' ~~~| c >>>|| rewriteCopy |||
-      copy' <<< 'b' ~~~ 'b' ~~~| c >>>|| rewriteCopy |||
+      copy' <<< 'a' ~~~ 'a' ~~~|| c >>>|| rewriteCopy |||
+      copy' <<< 'b' ~~~ 'b' ~~~|| c >>>|| rewriteCopy |||
       nil   <<< (EPS,EPS) >>>|| id2
       
   z = mk inp

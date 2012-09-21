@@ -239,7 +239,7 @@ rgknot yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
   rewriteKnot1 [p1,p2,k1,k2] = ([k1,p1],[p2,k2])
   
   k = tabulated2 $
-      knot1 <<< p ~~~| k >>>|| rewriteKnot1 |||
+      knot1 <<< p ~~~|| k >>>|| rewriteKnot1 |||
       knot2 <<< p >>>|| id2
       
   z = mk inp

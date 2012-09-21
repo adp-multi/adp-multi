@@ -67,7 +67,9 @@ test-suite MainTestSuite
                    ADP.Tests.MonadicCpRegression,
                    ADP.Tests.MonadicCpTest,
                    ADP.Tests.RGExample,
-                   ADP.Tests.NestedExample
+                   ADP.Tests.NestedExample,
+                   ADP.Tests.RIGExample,
+                   ADP.Tests.OneStructureExample
   main-is:         ADP/Tests/Suite.hs
 
 executable adp-multi-benchmarks
@@ -82,7 +84,9 @@ executable adp-multi-benchmarks
   ghc-options:     -Wall -rtsopts
   other-modules:   
                    ADP.Tests.RGExample,
-                   ADP.Tests.NestedExample
+                   ADP.Tests.NestedExample,
+                   ADP.Tests.RIGExample,
+                   ADP.Tests.OneStructureExample
   main-is:         ConstraintSolverBenchmark.hs
 
 executable adp-rg
@@ -98,5 +102,7 @@ executable adp-rg
                    ADP.Multi.Rewriting.ConstraintSolver,
                    ADP.Multi.Rewriting.Explicit,
                    ADP.Tests.RGExample,
-                   ADP.Tests.NestedExample
+                   ADP.Tests.NestedExample,
+                   ADP.Tests.RIGExample,
+                   ADP.Tests.OneStructureExample
 

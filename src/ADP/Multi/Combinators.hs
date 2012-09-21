@@ -77,15 +77,33 @@ infixl 7 ~~~
                              
      
 -- special version of ~~~ which ignores the right parser for determining the yield sizes
--- this must be used for self-recursion
+-- this must be used for self-recursion, mutual recursion etc. There must be no cycles! 
 -- To make it complete, there should also be a special version of <<< but this isn't strictly
 -- necessary as this can also be solved by not using left-recursion.
 -- I guess this only works because of laziness (ignoring the info value of toParser).
+
+-- for 1-dim parsers 
 infixl 7 ~~~|
 (~~~|) :: Parseable p a b => ([ParserInfo], [Ranges] -> Parser a (b -> c)) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
 (~~~|) (infos,leftParser) parseable =
         let (_,rightParser) = toParser parseable
-            info = ParserInfoSelf
+            info = ParserInfo1 { minYield = 0, maxYield = Nothing }
+        in (
+                info : infos,
+                \ ranges z subword -> 
+                        [ pr qr |
+                          qr <- rightParser z subword
+                        , RangeMap sub rest <- ranges
+                        , pr <- leftParser rest z sub 
+                        ]
+           )
+
+-- for 2-dim parsers
+infixl 7 ~~~||
+(~~~||) :: Parseable p a b => ([ParserInfo], [Ranges] -> Parser a (b -> c)) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
+(~~~||) (infos,leftParser) parseable =
+        let (_,rightParser) = toParser parseable
+            info = ParserInfo2 { minYield2 = (0,0), maxYield2 = (Nothing,Nothing) }
         in (
                 info : infos,
                 \ ranges z subword -> 
