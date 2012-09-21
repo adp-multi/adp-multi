@@ -52,4 +52,4 @@ main = do
             result7 = copy (C.countABs) "abaaabaa"
             
             oneStructure = One.oneStructure determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
-            result8 = oneStructure (One.enum) inp
+            result8 = oneStructure (One.prettyprint) inp

@@ -1,13 +1,11 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ImplicitParams #-}
 
-{- "Topology and prediction of RNA pseudoknots" by Reidys et al., 2011
-
+{- This example implements the 1-structure grammar from
+   "Topology and prediction of RNA pseudoknots" by Reidys et al., 2011
 -}
 module ADP.Tests.OneStructureExample where
 
-import Data.Typeable
-import Data.Data
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
@@ -23,12 +21,18 @@ type OneStructure_Algebra alphabet answer = (
   answer -> answer,                           -- i1
   answer -> answer,                           -- i2
   answer -> answer -> answer -> answer -> answer, -- tstart
-  answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knot1
-  answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knot2
-  answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knot3
-  answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knot4
-  answer -> answer -> answer -> answer -> answer, -- xknot1
-  answer -> answer,                           -- xknot2
+  answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knotH
+  answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knotK
+  answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knotL
+  answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knotM
+  answer -> answer -> answer -> answer -> answer, -- aknot1
+  answer -> answer,                               -- aknot2
+  answer -> answer -> answer -> answer -> answer, -- bknot1
+  answer -> answer,                               -- bknot2
+  answer -> answer -> answer -> answer -> answer, -- cknot1
+  answer -> answer,                               -- cknot2
+  answer -> answer -> answer -> answer -> answer, -- dknot1
+  answer -> answer,                               -- dknot2
   [answer] -> [answer]                        -- h
   )
   
@@ -40,16 +44,17 @@ data T = Nil
        | I1 T
        | I2 T
        | TStart T T T T
-       | Knot1 T T T T T T T
-       | Knot2 T T T T T T T T T T
-       | Knot3 T T T T T T T T T T
-       | Knot4 T T T T T T T T T T T T T
+       | KnotH T T T T T T T
+       | KnotK T T T T T T T T T T
+       | KnotL T T T T T T T T T T
+       | KnotM T T T T T T T T T T T T T
        | XKnot1 T T T T
        | XKnot2 T
-       deriving (Eq, Show, Data, Typeable)
+       deriving (Eq, Show)
 
 enum :: OneStructure_Algebra Char T
-enum = (nil,left,pair,basepair,base,i1,i2,tstart,knot1,knot2,knot3,knot4,xknot1,xknot2,h) where
+enum = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
+       ,aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) where
    nil _     = Nil
    left      = Left'
    pair      = Pair 
@@ -58,13 +63,51 @@ enum = (nil,left,pair,basepair,base,i1,i2,tstart,knot1,knot2,knot3,knot4,xknot1,
    i1        = I1
    i2        = I2
    tstart    = TStart
-   knot1     = Knot1
-   knot2     = Knot2
-   knot3     = Knot3
-   knot4     = Knot4
-   xknot1    = XKnot1
-   xknot2    = XKnot2
+   knotH     = KnotH
+   knotK     = KnotK
+   knotL     = KnotL
+   knotM     = KnotM
+   aknot1    = XKnot1
+   aknot2    = XKnot2
+   bknot1    = XKnot1
+   bknot2    = XKnot2
+   cknot1    = XKnot1
+   cknot2    = XKnot2
+   dknot1    = XKnot1
+   dknot2    = XKnot2
    h         = id 
+   
+prettyprint :: OneStructure_Algebra Char [String]
+prettyprint = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
+              ,aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) where
+   nil _ = [""]
+   left b s = [concat $ b ++ s]
+   pair (p1:p2:[]) s1 s2 = [concat $ [p1] ++ s1 ++ [p2] ++ s2]
+   basepair _ = ["(",")"]
+   base _ = ["."]
+   i1 s = s
+   i2 t = t
+   tstart (p1:p2:[]) i t s = [concat $ i ++ [p1] ++ t ++ [p2] ++ s]
+   knotH s i1 i2 i3 i4 (a1:a2:[]) (b1:b2:[]) =
+      [concat $ i1 ++ [a1] ++ i2 ++ [b1] ++ i3 ++ [a2] ++ i4 ++ [b2] ++ s]
+   knotK s i1 i2 i3 i4 i5 i6 (a1:a2:[]) (b1:b2:[]) (c1:c2:[]) =
+      [concat $ i1 ++ [a1] ++ i2 ++ [b1] ++ i3 ++ [a2] ++ i4 ++ [c1] ++ i5 ++ [b2] ++ i6 ++ [c2] ++ s]
+   knotL s i1 i2 i3 i4 i5 i6 (a1:a2:[]) (b1:b2:[]) (c1:c2:[]) =
+      [concat $ i1 ++ [a1] ++ i2 ++ [b1] ++ i3 ++ [c1] ++ i4 ++ [a2] ++ i5 ++ [b2] ++ i6 ++ [c2] ++ s]
+   knotM s i1 i2 i3 i4 i5 i6 i7 i8 (a1:a2:[]) (b1:b2:[]) (c1:c2:[]) (d1:d2:[]) =
+      [concat $ i1 ++ [a1] ++ i2 ++ [b1] ++ i3 ++ [c1] ++ i4 ++ [a2] ++ i5 ++ [d1] ++ i6 ++ [b2] ++ i7 ++ [c2] ++ i8 ++ [d2] ++ s]
+   aknot1 _ = xknot1 "(" ")"
+   aknot2 _ = [ "(" , ")" ]
+   bknot1 _ = xknot1 "[" "]"
+   bknot2 _ = [ "{" , "}" ]
+   cknot1 _ = xknot1 "{" "}"
+   cknot2 _ = [ "{" , "}" ]
+   dknot1 _ = xknot1 "<" ">"
+   dknot2 _ = [ "<" , ">" ]
+   
+   xknot1 parenL parenR i1 i2 (x1:x2:[]) = [concat $ [parenL] ++ i1 ++ [x1], concat $ [x2] ++ i2 ++ [parenR]]
+      
+   h = id
    
 oneStructure :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
        -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
@@ -79,7 +122,7 @@ oneStructure yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
       ?rangeAlg2 = rangeAlg2
   in let
   
-  (nil,left,pair,basepair,base,i1,i2,tstart,knot1,knot2,knot3,knot4,xknot1,xknot2,h) = algebra
+  (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM,aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) = algebra
    
   i = tabulated1 $
       i1 <<< s >>>| id |||
@@ -93,23 +136,34 @@ oneStructure yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
       pair <<< p ~~~| s ~~~| s >>>| rewritePair
       
   rewriteTStart [p1,p2,i,t,s] = [i,p1,t,p2,s]
-  rewriteKnot1 [s,i1,i2,i3,i4,x11,x12,x21,x22] = [i1,x11,i2,x21,i3,x12,i4,x22,s]
-  rewriteKnot2 [s,i1,i2,i3,i4,i5,i6,x11,x12,x21,x22,x31,x32] = [i1,x11,i2,x21,i3,x12,i4,x31,i5,x22,i6,x32,s]
-  rewriteKnot3 [s,i1,i2,i3,i4,i5,i6,x11,x12,x21,x22,x31,x32] = [i1,x11,i2,x21,i3,x31,i4,x12,i5,x22,i6,x32,s]
-  rewriteKnot4 [s,i1,i2,i3,i4,i5,i6,i7,i8,x11,x12,x21,x22,x31,x32,x41,x42] =
+  rewriteKnotH [s,i1,i2,i3,i4,x11,x12,x21,x22] = [i1,x11,i2,x21,i3,x12,i4,x22,s]
+  rewriteKnotK [s,i1,i2,i3,i4,i5,i6,x11,x12,x21,x22,x31,x32] = [i1,x11,i2,x21,i3,x12,i4,x31,i5,x22,i6,x32,s]
+  rewriteKnotL [s,i1,i2,i3,i4,i5,i6,x11,x12,x21,x22,x31,x32] = [i1,x11,i2,x21,i3,x31,i4,x12,i5,x22,i6,x32,s]
+  rewriteKnotM [s,i1,i2,i3,i4,i5,i6,i7,i8,x11,x12,x21,x22,x31,x32,x41,x42] =
           [i1,x11,i2,x21,i3,x31,i4,x12,i5,x41,i6,x22,i7,x32,i8,x42,s]
   t = tabulated1 $
       tstart <<< p ~~~| i ~~~| t ~~~ s >>>| rewriteTStart |||
-      knot1 <<< s ~~~| i ~~~| i ~~~| i ~~~| i ~~~ x ~~~ x >>>| rewriteKnot1 |||
-      knot2 <<< s ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~ x ~~~ x ~~~ x >>>| rewriteKnot2 |||
-      knot3 <<< s ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~ x ~~~ x ~~~ x >>>| rewriteKnot3 |||
-      knot4 <<< s ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~ x ~~~ x ~~~ x ~~~ x >>>| rewriteKnot4
+      knotH <<< s ~~~| i ~~~| i ~~~| i ~~~| i ~~~ xa ~~~ xb >>>| rewriteKnotH |||
+      knotK <<< s ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~ xa ~~~ xb ~~~ xc >>>| rewriteKnotK |||
+      knotL <<< s ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~ xa ~~~ xb ~~~ xc >>>| rewriteKnotL |||
+      knotM <<< s ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~ xa ~~~ xb ~~~ xc ~~~ xd >>>| rewriteKnotM
       
   rewriteXKnot1 [p1,p2,i1,i2,x1,x2] = ([p1,i1,x1],[x2,i2,p2])
-  rewriteXKnot1 a = error (show a)
-  x = tabulated2 $
-      xknot1 <<< p ~~~| i ~~~| i ~~~|| x >>>|| rewriteXKnot1 |||
-      xknot2 <<< p >>>|| id2
+  xa = tabulated2 $
+      aknot1 <<< p ~~~| i ~~~| i ~~~|| xa >>>|| rewriteXKnot1 |||
+      aknot2 <<< p >>>|| id2
+      
+  xb = tabulated2 $
+      bknot1 <<< p ~~~| i ~~~| i ~~~|| xb >>>|| rewriteXKnot1 |||
+      bknot2 <<< p >>>|| id2
+      
+  xc = tabulated2 $
+      cknot1 <<< p ~~~| i ~~~| i ~~~|| xb >>>|| rewriteXKnot1 |||
+      cknot2 <<< p >>>|| id2
+      
+  xd = tabulated2 $
+      dknot1 <<< p ~~~| i ~~~| i ~~~|| xb >>>|| rewriteXKnot1 |||
+      dknot2 <<< p >>>|| id2
   
   b = tabulated1 $
       base <<< 'a' >>>| id |||

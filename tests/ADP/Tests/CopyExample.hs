@@ -4,8 +4,6 @@
 -- Copy language L = { ww | w € {a,b}^* }
 module ADP.Tests.CopyExample where
 
-import Data.Typeable
-import Data.Data
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
@@ -21,7 +19,7 @@ type Copy_Algebra alphabet answer = (
 data Start = Nil
            | Copy Start
            | Copy' Char Char Start
-           deriving (Eq, Show, Data, Typeable)
+           deriving (Eq, Show)
 
 -- without consistency checks
 enum :: Copy_Algebra Char Start

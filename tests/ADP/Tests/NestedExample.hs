@@ -3,8 +3,6 @@
 
 module ADP.Tests.NestedExample where
 
-import Data.Typeable
-import Data.Data
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
@@ -42,7 +40,7 @@ data Start = Nil
            | Pair Start Start
            | BasePair Char Start Char
            | Base Char
-           deriving (Eq, Show, Data, Typeable)
+           deriving (Eq, Show)
 
 -- without consistency checks
 enum :: Nested_Algebra Char Start
