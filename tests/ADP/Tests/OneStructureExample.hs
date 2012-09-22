@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ImplicitParams #-}
 
 {- This example implements the 1-structure grammar from
@@ -6,6 +5,9 @@
 -}
 module ADP.Tests.OneStructureExample where
 
+import Data.Array
+
+import ADP.Multi.Parser
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
@@ -53,29 +55,8 @@ data T = Nil
        deriving (Eq, Show)
 
 enum :: OneStructure_Algebra Char T
-enum = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
-       ,aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) where
-   nil _     = Nil
-   left      = Left'
-   pair      = Pair 
-   basepair  = BasePair
-   base      = Base
-   i1        = I1
-   i2        = I2
-   tstart    = TStart
-   knotH     = KnotH
-   knotK     = KnotK
-   knotL     = KnotL
-   knotM     = KnotM
-   aknot1    = XKnot1
-   aknot2    = XKnot2
-   bknot1    = XKnot1
-   bknot2    = XKnot2
-   cknot1    = XKnot1
-   cknot2    = XKnot2
-   dknot1    = XKnot1
-   dknot2    = XKnot2
-   h         = id 
+enum = (\_->Nil,Left',Pair,BasePair,Base,I1,I2,TStart,KnotH,KnotK,KnotL,KnotM
+       ,XKnot1,XKnot2,XKnot1,XKnot2,XKnot1,XKnot2,XKnot1,XKnot2,id)
    
 prettyprint :: OneStructure_Algebra Char [String]
 prettyprint = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
@@ -108,11 +89,23 @@ prettyprint = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
    xknot1 parenL parenR i1 i2 (x1:x2:[]) = [concat $ [parenL] ++ i1 ++ [x1], concat $ [x2] ++ i2 ++ [parenR]]
       
    h = id
-   
+
+{- To make the grammar reusable, its definition has been split up into the
+   actual grammar which exposes the start symbol as a parser (oneStructureGrammar)
+   and a convenience function which actually runs the grammar on a given input (oneStructure).
+-}
 oneStructure :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
        -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
        -> OneStructure_Algebra Char answer -> String -> [answer]
 oneStructure yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
+    let z = mk inp
+        grammar = oneStructureGrammar yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra z
+    in axiom z grammar
+
+oneStructureGrammar :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
+       -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
+       -> OneStructure_Algebra Char answer -> Array Int Char -> RichParser Char answer
+oneStructureGrammar yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra z =
   -- These implicit parameters are used by >>>.
   -- They were introduced to allow for exchanging the algorithms and
   -- they were made implicit so that they don't ruin our nice syntax.
@@ -122,7 +115,8 @@ oneStructure yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
       ?rangeAlg2 = rangeAlg2
   in let
   
-  (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM,aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) = algebra
+  (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM,
+   aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) = algebra
    
   i = tabulated1 $
       i1 <<< s >>>| id |||
@@ -179,8 +173,7 @@ oneStructure yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
       basepair <<< ('g', 'u') >>>|| id2 |||
       basepair <<< ('u', 'g') >>>|| id2
        
-  z = mk inp
   tabulated1 = table1 z
   tabulated2 = table2 z
   
-  in axiom z i
+  in i

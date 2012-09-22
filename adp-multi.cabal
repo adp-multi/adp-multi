@@ -62,14 +62,14 @@ test-suite MainTestSuite
                    ADP.Multi.Rewriting.YieldSize,
                    ADP.Multi.SimpleParsers,
                    ADP.Multi.Tabulation,
-                   ADP.Tests.Lab,
                    ADP.Tests.Main,
                    ADP.Tests.MonadicCpRegression,
                    ADP.Tests.MonadicCpTest,
                    ADP.Tests.RGExample,
                    ADP.Tests.NestedExample,
                    ADP.Tests.RIGExample,
-                   ADP.Tests.OneStructureExample
+                   ADP.Tests.OneStructureExample,
+                   ADP.Tests.ZeroStructureTwoBackbonesExample
   main-is:         ADP/Tests/Suite.hs
 
 executable adp-multi-benchmarks
@@ -86,10 +86,11 @@ executable adp-multi-benchmarks
                    ADP.Tests.RGExample,
                    ADP.Tests.NestedExample,
                    ADP.Tests.RIGExample,
-                   ADP.Tests.OneStructureExample
+                   ADP.Tests.OneStructureExample,
+                   ADP.Tests.ZeroStructureTwoBackbonesExample
   main-is:         ConstraintSolverBenchmark.hs
 
-executable adp-rg
+executable adp-test
   if !flag(buildTests)
     buildable: False
   build-depends:   base >= 4
@@ -104,5 +105,6 @@ executable adp-rg
                    ADP.Tests.RGExample,
                    ADP.Tests.NestedExample,
                    ADP.Tests.RIGExample,
-                   ADP.Tests.OneStructureExample
+                   ADP.Tests.OneStructureExample,
+                   ADP.Tests.ZeroStructureTwoBackbonesExample
 

@@ -1,5 +1,6 @@
 module ADP.Multi.Helpers where
 
+import Control.Exception
 import Data.Array
 import ADP.Multi.Parser
 
@@ -9,12 +10,12 @@ axiom z (_,ax) =
     in ax z [0,l]
     
 
-axiomTwoTrack :: [a] -> [a] -> RichParser a b -> [b]
-axiomTwoTrack inp1 inp2  (_,ax) =
-    let l1 = length inp1
-        l2 = length inp2
-        z = mkTwoTrack inp1 inp2
-    in ax z [0,l1,0,l2]
+axiomTwoTrack :: Eq a => Array Int a -> [a] -> [a] -> RichParser a b -> [b]
+axiomTwoTrack z inp1 inp2 (_,ax) =
+    assert (z == mkTwoTrack inp1 inp2) $
+    ax z [0,l1,l1,l1+l2]
+    where l1 = length inp1
+          l2 = length inp2
 
         
 -- # Create array from List

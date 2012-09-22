@@ -5,6 +5,7 @@ import qualified ADP.Tests.RGExample as RG
 import qualified ADP.Tests.NestedExample as N
 import qualified ADP.Tests.CopyExample as C
 import qualified ADP.Tests.OneStructureExample as One
+import qualified ADP.Tests.ZeroStructureTwoBackbonesExample as ZeroTT
 --import ADP.Multi.Rewriting.ConstraintSolver
 import ADP.Multi.Rewriting.Explicit
 
@@ -20,7 +21,8 @@ main = do
         --forM_ result5 print
         --forM_ result6 putStrLn
         --forM_ result7 print
-        forM_ result8 print
+        --forM_ result8 print
+        forM_ result9 print
         
         where
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
@@ -53,3 +55,6 @@ main = do
             
             oneStructure = One.oneStructure determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
             result8 = oneStructure (One.prettyprint) inp
+            
+            zeroStructureTT = ZeroTT.zeroStructureTwoBackbones determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
+            result9 = zeroStructureTT (ZeroTT.enum) (inp,inp)
