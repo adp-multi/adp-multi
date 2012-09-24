@@ -14,15 +14,13 @@ It is unclear yet if generically determining the yield size for higher parser
 dimensions also needs a constraint solver.  
 -}
 
-
+-- for dim1 we don't need the rewriting function to determine the yield size
+-- it's kept as argument anyway to make it more consistent
 doDetermineYieldSize1 ::  YieldAnalysisAlgorithm Dim1
-doDetermineYieldSize1 f infos =
+doDetermineYieldSize1 _ infos =
         let elemInfo = buildInfoMap infos
-            rewritten = f (Map.keys elemInfo)
-            yields = map (\(i,j) -> elemInfo Map.! (i,j)) rewritten
-            (yieldMin,yieldMax) = combineYields yields 
+            (yieldMin,yieldMax) = combineYields (Map.elems elemInfo) 
         in trace (show elemInfo) $
-           trace (show yields) $
            ParserInfo1 { 
                 minYield = yieldMin,
                 maxYield = yieldMax
