@@ -199,7 +199,7 @@ combinedInfoRightOf infoMap (desc@(_,_,r),axIdx)
 calcSubwords2 :: InfoMap -> ((RangeDesc,Int),(RangeDesc,Int)) -> [Subword2]
 calcSubwords2 a b | trace ("calcSubwords2 " ++ show a ++ " " ++ show b) False = undefined
 calcSubwords2 infoMap (left@((i,j,r),a1Idx),right@((m,n,r'),a2Idx))
-  | i == m && j == n = calcSubwords2Dependent infoMap (i,j,r) a1Idx a2Idx
+  | r == r' = calcSubwords2Dependent infoMap (i,j,r) a1Idx a2Idx
   | length r == 1 && length r' == 1 = [(i,j,m,n)]
   | length r == 1  = [ (i',j',k',l') |
                         let (i',j') = (i,j)
