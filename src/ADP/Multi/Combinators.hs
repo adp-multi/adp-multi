@@ -58,9 +58,30 @@ infix 8 <<<
                  \ [] z subword -> map f (parser z subword)                                  
             )
 
--- TODO parsers of different dim's should be mixable
--- this isn't really a problem for now as lower dimensions can be
--- simulated with higher dimensions by leaving some tuple elements of the rewriting rules empty
+-- special version of <<< which ignores the first parser for determining the yield sizes
+-- for dim1 parsers            
+infix 8 <<<|
+(<<<|) :: Parseable p a b => (b -> c) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
+(<<<|) f parseable =
+            let (_,parser) = toParser parseable
+                info = ParserInfo1 { minYield = 0, maxYield = Nothing }
+            in (
+                 [info],
+                 \ [] z subword -> map f (parser z subword)                                  
+            )
+
+-- special version of <<< which ignores the first parser for determining the yield sizes
+-- for dim2 parsers                
+infix 8 <<<||
+(<<<||) :: Parseable p a b => (b -> c) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
+(<<<||) f parseable =
+            let (_,parser) = toParser parseable
+                info = ParserInfo2 { minYield2 = (0,0), maxYield2 = (Nothing,Nothing) }
+            in (
+                 [info],
+                 \ [] z subword -> map f (parser z subword)                                  
+            )
+
 infixl 7 ~~~
 (~~~) :: Parseable p a b => ([ParserInfo], [Ranges] -> Parser a (b -> c)) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
 (~~~) (infos,leftParser) parseable =
@@ -78,10 +99,7 @@ infixl 7 ~~~
      
 -- special version of ~~~ which ignores the right parser for determining the yield sizes
 -- this must be used for self-recursion, mutual recursion etc. There must be no cycles! 
--- To make it complete, there should also be a special version of <<< but this isn't strictly
--- necessary as this can also be solved by not using left-recursion.
 -- I guess this only works because of laziness (ignoring the info value of toParser).
-
 -- for 1-dim parsers 
 infixl 7 ~~~|
 (~~~|) :: Parseable p a b => ([ParserInfo], [Ranges] -> Parser a (b -> c)) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
@@ -114,7 +132,6 @@ infixl 7 ~~~||
                         ]
            )
            
--- TODO the dimension of the resulting parser should result from c
 infix 6 >>>|
 (>>>|) :: (?yieldAlg1 :: YieldAnalysisAlgorithm Dim1, ?rangeAlg1 :: RangeConstructionAlgorithm Dim1)
       => ([ParserInfo], [Ranges] -> Parser a b) -> Dim1 -> RichParser a b

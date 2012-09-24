@@ -175,19 +175,19 @@ prettyprint = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
              [concat $ bl ++ sl],
              [concat $ br ++ sr]
         )
-   pair (p1l:p2l:[],p1r:p2r:[]) (s1l,s1r) (s2l,s2r) = 
+   pair ([p1l,p2l],[p1r,p2r]) (s1l,s1r) (s2l,s2r) = 
         (
              [concat $ [p1l] ++ s1l ++ [p2l] ++ s2l],
              [concat $ [p1r] ++ s1r ++ [p2r] ++ s2r]
         )
-   knot (k11l:k12l:[],k11r:k12r:[]) (k21l:k22l:[],k21r:k22r:[]) (s1l,s1r) (s2l,s2r) (s3l,s3r) (s4l,s4r) =
+   knot ([k11l,k12l],[k11r,k12r]) ([k21l,k22l],[k21r,k22r]) (s1l,s1r) (s2l,s2r) (s3l,s3r) (s4l,s4r) =
         let (k11l',k12l') = square k11l k12l
         in
         (
              [concat $ [k11l'] ++ s1l ++ [k21l] ++ s2l ++ [k12l'] ++ s3l ++ [k22l] ++ s4l],
              [concat $ [k11r] ++ s1r ++ [k21r] ++ s2r ++ [k12r] ++ s3r ++ [k22r] ++ s4r]
         )
-   knot1 (p1l:p2l:[],p1r:p2r:[]) (k1l:k2l:[],k1r:k2r:[]) =
+   knot1 ([p1l,p2l],[p1r,p2r]) ([k1l,k2l],[k1r,k2r]) =
         (  
              [concat $ [k1l] ++ [p1l], concat $ [p2l] ++ [k2l]],
              [concat $ [k1r] ++ [p1r], concat $ [p2r] ++ [k2r]]
@@ -218,16 +218,16 @@ rgknot yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
     
   -- all s are 1-dim simulated as 2-dim
   s1 [c1,c2] = ([],[c1,c2])
-  s2 [b1,b2,s1,s2] = ([],[b1,b2,s1,s2])  
+  s2 [b1,b2,s1,s2] = ([],[b1,b2,s1,s2])
   s3 [p1,p2,s11,s12,s21,s22] = ([],[p1,s11,s12,p2,s21,s22])
   s4 [k11,k12,k21,k22,s11,s12,s21,s22,s31,s32,s41,s42] = 
         ([],[k11,s11,s12,k21,s21,s22,k12,s31,s32,k22,s41,s42])
   
   s = tabulated2 $
       nil <<< (EPS,EPS) >>>|| s1 |||
-      left <<< b ~~~| s >>>|| s2 |||
-      pair <<< p ~~~| s ~~~| s >>>|| s3 |||
-      knot <<< k ~~~ k ~~~| s ~~~| s ~~~| s ~~~| s >>>|| s4 
+      left <<< b ~~~|| s >>>|| s2 |||
+      pair <<< p ~~~|| s ~~~|| s >>>|| s3 |||
+      knot <<< k ~~~ k ~~~|| s ~~~|| s ~~~|| s ~~~|| s >>>|| s4 
       ... h
       
   b = tabulated2 $

@@ -91,7 +91,7 @@ executable adp-multi-benchmarks
                    ADP.Tests.RIGExample,
                    ADP.Tests.OneStructureExample,
                    ADP.Tests.ZeroStructureTwoBackbonesExample
-  main-is:         ConstraintSolverBenchmark.hs
+  main-is:         Benchmarks.hs
 
 executable adp-test
   if !flag(buildTests)

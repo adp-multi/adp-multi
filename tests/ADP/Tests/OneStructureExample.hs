@@ -63,19 +63,19 @@ prettyprint = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
               ,aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) where
    nil _ = [""]
    left b s = [concat $ b ++ s]
-   pair (p1:p2:[]) s1 s2 = [concat $ [p1] ++ s1 ++ [p2] ++ s2]
+   pair [p1,p2] s1 s2 = [concat $ [p1] ++ s1 ++ [p2] ++ s2]
    basepair _ = ["(",")"]
    base _ = ["."]
    i1 s = s
    i2 t = t
-   tstart (p1:p2:[]) i t s = [concat $ i ++ [p1] ++ t ++ [p2] ++ s]
-   knotH s i1 i2 i3 i4 (a1:a2:[]) (b1:b2:[]) =
+   tstart [p1,p2] i t s = [concat $ i ++ [p1] ++ t ++ [p2] ++ s]
+   knotH s i1 i2 i3 i4 [a1,a2] [b1,b2] =
       [concat $ i1 ++ [a1] ++ i2 ++ [b1] ++ i3 ++ [a2] ++ i4 ++ [b2] ++ s]
-   knotK s i1 i2 i3 i4 i5 i6 (a1:a2:[]) (b1:b2:[]) (c1:c2:[]) =
+   knotK s i1 i2 i3 i4 i5 i6 [a1,a2] [b1,b2] [c1,c2] =
       [concat $ i1 ++ [a1] ++ i2 ++ [b1] ++ i3 ++ [a2] ++ i4 ++ [c1] ++ i5 ++ [b2] ++ i6 ++ [c2] ++ s]
-   knotL s i1 i2 i3 i4 i5 i6 (a1:a2:[]) (b1:b2:[]) (c1:c2:[]) =
+   knotL s i1 i2 i3 i4 i5 i6 [a1,a2] [b1,b2] [c1,c2] =
       [concat $ i1 ++ [a1] ++ i2 ++ [b1] ++ i3 ++ [c1] ++ i4 ++ [a2] ++ i5 ++ [b2] ++ i6 ++ [c2] ++ s]
-   knotM s i1 i2 i3 i4 i5 i6 i7 i8 (a1:a2:[]) (b1:b2:[]) (c1:c2:[]) (d1:d2:[]) =
+   knotM s i1 i2 i3 i4 i5 i6 i7 i8 [a1,a2] [b1,b2] [c1,c2] [d1,d2] =
       [concat $ i1 ++ [a1] ++ i2 ++ [b1] ++ i3 ++ [c1] ++ i4 ++ [a2] ++ i5 ++ [d1] ++ i6 ++ [b2] ++ i7 ++ [c2] ++ i8 ++ [d2] ++ s]
    aknot1 _ = xknot1 "(" ")"
    aknot2 _ = [ "(" , ")" ]
@@ -86,8 +86,42 @@ prettyprint = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
    dknot1 _ = xknot1 "<" ">"
    dknot2 _ = [ "<" , ">" ]
    
-   xknot1 parenL parenR i1 i2 (x1:x2:[]) = [concat $ [parenL] ++ i1 ++ [x1], concat $ [x2] ++ i2 ++ [parenR]]
+   xknot1 parenL parenR i1 i2 [x1,x2] = [concat $ [parenL] ++ i1 ++ [x1], concat $ [x2] ++ i2 ++ [parenR]]
       
+   h = id
+   
+-- reconstructed input
+prettyprint2 :: OneStructure_Algebra Char [String]
+prettyprint2 = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
+              ,aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) where
+   nil _ = [""]
+   left b s = [concat $ b ++ s]
+   pair [p1,p2] s1 s2 = [concat $ [p1] ++ s1 ++ [p2] ++ s2]
+   basepair (b1,b2) = [[b1],[b2]]
+   base b = [[b]]
+   i1 s = s
+   i2 t = t
+   tstart [p1,p2] i t s = [concat $ i ++ [p1] ++ t ++ [p2] ++ s]
+   knotH s i1 i2 i3 i4 [a1,a2] [b1,b2] =
+      [concat $ i1 ++ [a1] ++ i2 ++ [b1] ++ i3 ++ [a2] ++ i4 ++ [b2] ++ s]
+   knotK s i1 i2 i3 i4 i5 i6 [a1,a2] [b1,b2] [c1,c2] =
+      [concat $ i1 ++ [a1] ++ i2 ++ [b1] ++ i3 ++ [a2] ++ i4 ++ [c1] ++ i5 ++ [b2] ++ i6 ++ [c2] ++ s]
+   knotL s i1 i2 i3 i4 i5 i6 [a1,a2] [b1,b2] [c1,c2] =
+      [concat $ i1 ++ [a1] ++ i2 ++ [b1] ++ i3 ++ [c1] ++ i4 ++ [a2] ++ i5 ++ [b2] ++ i6 ++ [c2] ++ s]
+   knotM s i1 i2 i3 i4 i5 i6 i7 i8 [a1,a2] [b1,b2] [c1,c2] [d1,d2] =
+      [concat $ i1 ++ [a1] ++ i2 ++ [b1] ++ i3 ++ [c1] ++ i4 ++ [a2] ++ i5 ++ [d1] ++ i6 ++ [b2] ++ i7 ++ [c2] ++ i8 ++ [d2] ++ s]
+   aknot1 = xknot1
+   aknot2 = xknot2
+   bknot1 = xknot1
+   bknot2 = xknot2
+   cknot1 = xknot1
+   cknot2 = xknot2
+   dknot1 = xknot1
+   dknot2 = xknot2
+   
+   xknot1 [p1,p2] i1 i2 [x1,x2] = [concat $ [p1] ++ i1 ++ [x1], concat $ [x2] ++ i2 ++ [p2]]
+   xknot2 [p1,p2] = [p1,p2]
+   
    h = id
 
 {- To make the grammar reusable, its definition has been split up into the
