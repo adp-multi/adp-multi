@@ -26,6 +26,12 @@ enum = (nil,copy,copy') where
    nil _ = Nil
    copy  = Copy
    copy' = Copy'
+   
+prettyprint :: Copy_Algebra Char [String]
+prettyprint = (nil,copy,copy') where
+   copy [l,r] = [l ++ r]
+   nil _ = ["",""]   
+   copy' c1 c2 [l,r] = [c1:l,c2:r]
 
 -- (count of a's, count of b's)
 countABs :: Copy_Algebra Char (Int,Int)

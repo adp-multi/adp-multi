@@ -173,19 +173,19 @@ prettyprint = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
              [concat $ bl ++ sl],
              [concat $ br ++ sr]
         )
-   pair (p1l:p2l:[],p1r:p2r:[]) (s1l,s1r) (s2l,s2r) = 
+   pair ([p1l,p2l],[p1r,p2r]) (s1l,s1r) (s2l,s2r) = 
         (
              [concat $ [p1l] ++ s1l ++ [p2l] ++ s2l],
              [concat $ [p1r] ++ s1r ++ [p2r] ++ s2r]
         )
-   knot (k11l:k12l:[],k11r:k12r:[]) (k21l:k22l:[],k21r:k22r:[]) (s1l,s1r) (s2l,s2r) (s3l,s3r) (s4l,s4r) =
+   knot ([k11l,k12l],[k11r,k12r]) ([k21l,k22l],[k21r,k22r]) (s1l,s1r) (s2l,s2r) (s3l,s3r) (s4l,s4r) =
         let (k11l',k12l') = square k11l k12l
         in
         (
              [concat $ [k11l'] ++ s1l ++ [k21l] ++ s2l ++ [k12l'] ++ s3l ++ [k22l] ++ s4l],
              [concat $ [k11r] ++ s1r ++ [k21r] ++ s2r ++ [k12r] ++ s3r ++ [k22r] ++ s4r]
         )
-   knot1 (p1l:p2l:[],p1r:p2r:[]) (k1l:k2l:[],k1r:k2r:[]) =
+   knot1 ([p1l,p2l],[p1r,p2r]) ([k1l,k2l],[k1r,k2r]) =
         (  
              [concat $ [k1l] ++ [p1l], concat $ [p2l] ++ [k2l]],
              [concat $ [k1r] ++ [p1r], concat $ [p2r] ++ [k2r]]

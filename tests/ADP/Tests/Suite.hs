@@ -7,12 +7,16 @@ import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Data.Monoid (mempty)
 
 import Test.HUnit
+import Test.QuickCheck
 
 import Data.Char (toLower)
 import Data.List
 
-import ADP.Multi.Rewriting.Explicit
+--import ADP.Multi.Rewriting.Explicit
+import ADP.Multi.Rewriting.ConstraintSolver
 import qualified ADP.Tests.RGExample as RG
+import qualified ADP.Tests.CopyExample as Copy
+import qualified ADP.Tests.CopyTwoTrackExample as CopyTT
 
 import ADP.Multi.Rewriting.Tests.YieldSize
 
@@ -29,12 +33,14 @@ main = defaultMainWithOpts
                 testGroup "System tests" [
                         testCase "finds all reference structures" testRgSimpleCompleteness,
                       --testCase "finds pseudoknot reference structure" testRgRealPseudoknot,
-                        testCase "tests associative function with max basepairs" testRgSimpleBasepairs
+                        testCase "tests associative function with max basepairs" testRgSimpleBasepairs,
+                        testProperty "produces copy language" prop_copyLanguage,
+                        testProperty "produces copy language (two track)" prop_copyLanguageTT
                     ]
             ]
        mempty {
             ropt_test_options = Just mempty {
-                topt_maximum_generated_tests = Just 1000
+                topt_maximum_generated_tests = Just 100
             }
        }
                 
@@ -77,3 +83,21 @@ testRgRealPseudoknot =
    in any (\ ([structure],_) -> structure == referenceStructure || structure == referenceStructure2) result
         @? "reference structure not found"
 
+prop_copyLanguage =
+    sized $ \n -> resize (round (sqrt (fromIntegral n))) $
+    forAll arbitrary $ \ (CopyLangString w) ->
+    let result = Copy.copyGr determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
+                             Copy.prettyprint (w ++ w)
+    in result == [[w ++ w]]
+
+prop_copyLanguageTT =
+    sized $ \n -> resize (round (sqrt (fromIntegral n))) $
+    forAll arbitrary $ \ (CopyLangString w) ->
+    let result = CopyTT.copyTTGr determineYieldSize2 constructRanges2 CopyTT.prettyprint (w,w)
+    in result == [(w,w)]
+                 
+newtype CopyLangString = CopyLangString String deriving (Show)
+instance Arbitrary CopyLangString where
+    arbitrary = sized $ \n ->
+                do s <- mapM (\_ -> elements "ab") [0..n]
+                   return $ CopyLangString s

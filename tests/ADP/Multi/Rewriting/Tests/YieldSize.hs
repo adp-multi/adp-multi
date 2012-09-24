@@ -80,9 +80,9 @@ instance Arbitrary ParserInfo where
                       ]
 
 genMinMaxYield :: Gen (Int,Maybe Int)
-genMinMaxYield = do NonNegative x <- arbitrary
-                    NonNegative y <- arbitrary
-                    let (x',y') = if x <= y then (x,y) else (y,x)
-                    oneof [ return (x',Just y'),
-                            return (x',Nothing) ]
+genMinMaxYield = sized $ \n -> 
+                  do NonNegative minY <- arbitrary
+                     maxY <- choose (minY,n)
+                     oneof [ return (minY,Just maxY),
+                             return (minY,Nothing) ]
                       
