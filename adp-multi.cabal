@@ -52,7 +52,7 @@ test-suite MainTestSuite
                    random-shuffle
   hs-source-dirs:  src,
                    tests
-  ghc-options:     -Wall -rtsopts -prof -auto-all
+  ghc-options:     -Wall -rtsopts -- -prof -auto-all
   other-modules:   
                    ADP.Multi.Combinators,
                    ADP.Multi.Helpers,
