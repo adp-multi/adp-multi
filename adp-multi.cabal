@@ -100,7 +100,7 @@ executable adp-test
   hs-source-dirs:  
                    src, 
                    tests
-  ghc-options:     -Wall -rtsopts
+  ghc-options:     -Wall -rtsopts -O0
   main-is:         ADP/Tests/Main.hs
   other-modules:   
                    ADP.Multi.Rewriting.ConstraintSolver,

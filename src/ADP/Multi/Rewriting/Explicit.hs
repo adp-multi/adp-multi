@@ -32,7 +32,8 @@ constructRanges1 f infos [i,j] =
             remainingSymbols = [parserCount,parserCount-1..1] `zip` infos
             rangeDesc = [(i,j,rewritten)]
             rangeDescFiltered = filterEmptyRanges rangeDesc
-        in trace (show remainingSymbols) $
+        in trace ("f " ++ show (Map.keys elemInfo) ++ " = " ++ show rewritten) $
+           assert (length rewritten == Map.size elemInfo && all (`elem` rewritten) (Map.keys elemInfo)) $
            if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
            else constructRangesRec elemInfo remainingSymbols rangeDescFiltered
 
@@ -46,7 +47,9 @@ constructRanges2 f infos [i,j,k,l] =
             remainingSymbols = [parserCount,parserCount-1..1] `zip` infos
             rangeDesc = [(i,j,left),(k,l,right)]
             rangeDescFiltered = filterEmptyRanges rangeDesc
-        in if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
+        in trace ("f " ++ show (Map.keys elemInfo) ++ " = (" ++ show left ++ "," ++ show right ++ ")") $
+           assert (length left + length right == Map.size elemInfo && all (`elem` (left ++ right)) (Map.keys elemInfo)) $
+           if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
            else constructRangesRec elemInfo remainingSymbols rangeDescFiltered
 
 determineYieldSize1 :: YieldAnalysisAlgorithm Dim1
