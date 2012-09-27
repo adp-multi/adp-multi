@@ -43,8 +43,8 @@ main = defaultMainWithOpts
                         testProperty "produces nested rna" prop_nestedRna,
                         testProperty "produces 1-structure rna" prop_oneStructureRna,
                         testProperty "produces RG rna" prop_rgRna,
-                        testProperty "produces RG (dim2) rna" prop_rgDim2Rna
---                        testProperty "produces 0-structure over two backbones rna" prop_zeroStructureTwoBackbonesRna
+                        testProperty "produces RG (dim2) rna" prop_rgDim2Rna,
+                        testProperty "produces 0-structure over two backbones rna" prop_zeroStructureTwoBackbonesRna
                     ]
             ]
        mempty {
@@ -123,7 +123,9 @@ prop_rgDim2Rna (RNAString w) =
     let results = rgDim2 RGDim2.prettyprint w
         resultsDim1 = rg RG.prettyprint w
     in results == resultsDim1
-    
+
+-- This test is a bit useless, it just shows that "something" happens.
+-- TODO: as in the other tests, we would need a pretty-printing algebra 
 prop_zeroStructureTwoBackbonesRna (RNAString w) =
     let results = ZeroTT.zeroStructureTwoBackbones 
                         determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
