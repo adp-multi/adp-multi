@@ -35,10 +35,14 @@ type ZeroStructureTwoBackbones_Algebra alphabet answerOne answer = (
   answerOne -> answerOne -> answerOne -> answerOne -> answer -> answer -> answer -> answer, -- t6
   answerOne -> answerOne -> answerOne -> answerOne -> answer -> answer -> answer -> answer, -- t7
   answerOne -> answerOne -> answer -> answer -> answer, -- hs2
-  answer -> answer -> answer -> answer,       -- h1
-  (EPS,EPS) -> answer,                 -- h2
-  answerOne -> answerOne -> answer,       -- g1
+  answer -> answer -> answer -> answer -> answer,       -- h1
+  answer -> answer,                 -- h2
+  answer -> answerOne -> answerOne -> answer -> answer,       -- g1
+  answer -> answer,                         -- g2
+  answer -> answer -> answer,               -- ub1
+  EPS -> answer,                            -- ub2
   alphabet -> answer,                         -- base
+  (alphabet, alphabet) -> answer,             -- basepair
   [answer] -> [answer]                        -- h
   )
 
@@ -55,14 +59,18 @@ data T = OneStructure One.T
        | T6 One.T One.T One.T One.T T T T
        | T7 One.T One.T One.T One.T T T T
        | Hs2 One.T One.T T T
-       | H1 T T T
-       | H2
-       | G1 One.T One.T
+       | H1 T T T T
+       | H2 T
+       | G1 T One.T One.T T
+       | G2 T 
+       | Ub1 T T
+       | Ub2
        | Base Char
+       | BasePair (Char, Char)
        deriving (Eq, Show)
 
 enum :: ZeroStructureTwoBackbones_Algebra Char One.T T
-enum = (One.enum,I1,I2,PT1,PT2,T1,T2,T3,T4,T5,T6,T7,Hs2,H1,\_->H2,G1,Base,id)
+enum = (One.enum,I1,I2,PT1,PT2,T1,T2,T3,T4,T5,T6,T7,Hs2,H1,H2,G1,G2,Ub1,\_->Ub2,Base,BasePair,id)
 
 {- To make the grammar reusable, its definition has been split up into the
    actual grammar which exposes the start symbol as a parser (oneStructureGrammar)
@@ -89,7 +97,7 @@ zeroStructureTwoBackbonesGrammar yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra
       ?rangeAlg2 = rangeAlg2
   in let
   
-  (oneStructureAlgebra,i1,i2,pt1,pt2,t1,t2,t3,t4,t5,t6,t7,hs2,h1,h2,g1,base,h') = algebra
+  (oneStructureAlgebra,i1,i2,pt1,pt2,t1,t2,t3,t4,t5,t6,t7,hs2,h1,h2,g1,g2,ub1,ub2,base,basepair,h') = algebra
   
   one = One.oneStructureGrammar yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 oneStructureAlgebra z
   
@@ -106,7 +114,7 @@ zeroStructureTwoBackbonesGrammar yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra
        pt2 <<< h ~~~|| i >>>|| rewritePT2
        
   rewriteT1 [one1,one2,hs11,hs12,hs21,hs22] = ([hs11,one1,hs21],[hs12,one2,hs22])
-  rewriteT2 [one1,one2,g1,g2,hs1,hs2] = ([g1,one1,hs1,one2],[hs2])
+  rewriteT2 [one1,one2,g1,g2,hs1,hs2] = ([g1,one1,hs1,one2,g2],[hs2])
   rewriteT3 [one1,one2,hs1,hs2,g1,g2] = ([hs1],[g1,one1,hs2,one2,g2])
   rewriteT4 [one1,one2,one3,one4,g11,g12,hs1,hs2,g21,g22] = ([g11,one1,hs1,one2,g12],[g21,one3,hs2,one4,g22])
   rewriteT5 [one1,one2,one3,one4,one5,one6,g11,g12,hs11,hs12,hs21,hs22,g21,g22]
@@ -127,20 +135,33 @@ zeroStructureTwoBackbonesGrammar yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra
        h |||
        hs2 <<< one ~~~ one ~~~ h ~~~|| hs >>>|| rewriteHs2
        
-  rewriteH1 [b1,b2,h1,h2] = ([b1,h1],[h2,b2])
+  rewriteH1 [p1,p2,ub1,ub2,h1,h2] = ([p1,ub1,h1],[h2,ub2,p2])
   h = tabulated2 $
-      h1 <<< b ~~~ b ~~~|| h >>>|| rewriteH1 |||
-      h2 <<< (EPS,EPS) >>>|| id2
+      h1 <<< p ~~~ ub ~~~ ub ~~~|| h >>>|| rewriteH1 |||
+      h2 <<< p >>>|| id2
   
-  rewriteG1 [one1,one2] = ([one1],[one2])
+  rewriteG1 [p1,p2,one1,one2,g1,g2] = ([p1,one1,g1],[g2,one2,p2])
   g = tabulated2 $
-      g1 <<< one ~~~ one >>>|| rewriteG1
+      g1 <<< p ~~~ one ~~~ one ~~~|| g >>>|| rewriteG1 |||
+      g2 <<< p >>>|| id2
+  
+  ub = tabulated1 $
+      ub1 <<< b ~~~| ub >>>| id |||
+      ub2 <<< EPS >>>| id
   
   b = tabulated1 $
       base <<< 'a' >>>| id |||
       base <<< 'u' >>>| id |||
       base <<< 'c' >>>| id |||
       base <<< 'g' >>>| id
+      
+  p = tabulated2 $
+      basepair <<< ('a', 'u') >>>|| id2 |||
+      basepair <<< ('u', 'a') >>>|| id2 |||
+      basepair <<< ('c', 'g') >>>|| id2 |||
+      basepair <<< ('g', 'c') >>>|| id2 |||
+      basepair <<< ('g', 'u') >>>|| id2 |||
+      basepair <<< ('u', 'g') >>>|| id2
     
   tabulated1 = table1 z
   tabulated2 = table2 z

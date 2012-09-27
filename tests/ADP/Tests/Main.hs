@@ -27,7 +27,7 @@ main = do
         where
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
             -- struc = ".(((((..[[[))))).]]]."
-            inp = map toLower "CAAUUUUCUGAAAAUUUUCAC"
+            --inp = map toLower "CAAUUUUCUGAAAAUUUUCAC"
             
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00289.HTML
             -- struc = "..((((..[[[[)))).....]]]]..."
@@ -36,7 +36,7 @@ main = do
             -- https://github.com/neothemachine/rna/wiki/Example
             -- inp = "agcgu"
             
-            --inp = map toLower "ACGAUUCAACGU"
+            inp = map toLower "ACGAUUCAACGU"
             
             rg = RG.rgknot determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
             
