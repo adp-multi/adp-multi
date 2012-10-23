@@ -9,10 +9,10 @@ import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting
                                  
-type Copy_Algebra alphabet answer = (
-  (EPS,EPS) -> answer,                      -- nil
-  answer    -> answer,                      -- copy
-  alphabet -> alphabet -> answer -> answer  -- copy'
+type Copy_Algebra alphabet answerDim1 answerDim2 = (
+  (EPS,EPS)  -> answerDim2,                         -- nil
+  answerDim2 -> answerDim1,                         -- copy
+  alphabet -> alphabet -> answerDim2 -> answerDim2  -- copy'
   )
 
 data Start = Nil
@@ -21,20 +21,20 @@ data Start = Nil
            deriving (Eq, Show)
 
 -- without consistency checks
-enum :: Copy_Algebra Char Start
+enum :: Copy_Algebra Char Start Start
 enum = (nil,copy,copy') where
    nil _ = Nil
    copy  = Copy
    copy' = Copy'
    
-prettyprint :: Copy_Algebra Char [String]
+prettyprint :: Copy_Algebra Char String (String,String)
 prettyprint = (nil,copy,copy') where
-   copy [l,r] = [l ++ r]
-   nil _ = ["",""]   
-   copy' c1 c2 [l,r] = [c1:l,c2:r]
+   copy (l,r) = l ++ r
+   nil _ = ("","")   
+   copy' c1 c2 (l,r) = (c1:l,c2:r)
 
 -- (count of a's, count of b's)
-countABs :: Copy_Algebra Char (Int,Int)
+countABs :: Copy_Algebra Char (Int,Int) (Int,Int)
 countABs = (nil,copy,copy') where
    nil _                 = (0,0)
    copy (c1,c2)          = (c1*2,c2*2)
@@ -44,7 +44,7 @@ countABs = (nil,copy,copy') where
    
 copyGr :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
        -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
-       -> Copy_Algebra Char answer -> String -> [answer]
+       -> Copy_Algebra Char answerDim1 answerDim2 -> String -> [answerDim1]
 copyGr yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
   -- These implicit parameters are used by >>>.
   -- They were introduced to allow for exchanging the algorithms and

@@ -100,7 +100,7 @@ smallTestSize prop = sized $ \n -> resize (round (sqrt (fromIntegral n))) prop
 prop_copyLanguage (CopyLangString w) =
     let result = Copy.copyGr determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
                              Copy.prettyprint (w ++ w)
-    in result == [[w ++ w]]
+    in result == [w ++ w]
 
 prop_copyLanguageTT (CopyLangString w) =
     let result = CopyTT.copyTTGr determineYieldSize2 constructRanges2 CopyTT.prettyprint (w,w)
