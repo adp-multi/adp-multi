@@ -2,7 +2,7 @@ adp-multi [![Build Status](https://secure.travis-ci.org/neothemachine/adp-multi.
 ==========
 
 adp-multi is an adaptation of the [Algebraic Dynamic Programming](http://bibiserv.techfak.uni-bielefeld.de/adp/)
-method for [multiple context-free grammars](http://adp-multi.ruhoh.com/mcfg).
+method for [multiple context-free languages](http://adp-multi.ruhoh.com/mcfl).
 
 It is a library based on the original [Haskell-ADP implementation](https://bitbucket.org/gsauthof/adpcombinators)
 and can be considered an unoptimized prototype.
