@@ -59,6 +59,15 @@ char c = (
                           i+1 == j && z!j == c
                         ]
               ) 
+              
+anychar :: RichParser a a
+anychar = (
+                  ParserInfo1 {minYield=1, maxYield=Just 1},
+                  \ z [i,j] -> 
+                        [ (z!j) |
+                          i+1 == j
+                        ]
+              ) 
         
 charLeftOnly :: Eq a => a -> RichParser a (a,EPS)
 charLeftOnly c = (
