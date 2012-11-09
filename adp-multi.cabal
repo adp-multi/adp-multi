@@ -32,7 +32,6 @@ library
                    array == 0.4.*,
                    containers >= 0.4 && <= 0.5,
                    htrace == 0.1.*,
-                   mtl == 2.1.*,
                    monadiccp == 0.7.*
   hs-source-dirs:   src
   ghc-options:      -Wall
