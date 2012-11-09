@@ -1,5 +1,5 @@
 name:           adp-multi
-version:        0.1.0
+version:        0.1.1
 cabal-version:  >= 1.8
 build-type:     Simple
 author:         Maik Riechert
@@ -30,7 +30,7 @@ Flag buildTests
 library 
   build-depends:    base == 4.*,
                    array == 0.4.*,
-                   containers == 0.5.*,
+                   containers >= 0.4 && <= 0.5,
                    htrace == 0.1.*,
                    mtl == 2.1.*,
                    monadiccp == 0.7.*
