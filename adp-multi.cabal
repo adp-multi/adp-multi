@@ -1,5 +1,5 @@
 name:           adp-multi
-version:        0.1.1
+version:        0.1.2
 cabal-version:  >= 1.8
 build-type:     Simple
 author:         Maik Riechert
@@ -86,7 +86,8 @@ test-suite MainTestSuite
 executable adp-multi-benchmarks
   if !flag(buildTests)
     buildable: False
-  build-depends:   
+  else
+    build-depends:   
                    base == 4.*,
                    array == 0.4.*,
                    containers >= 0.4 && <= 0.5,
@@ -107,7 +108,8 @@ executable adp-multi-benchmarks
 executable adp-test
   if !flag(buildTests)
     buildable: False
-  build-depends:   
+  else
+    build-depends:   
                    base == 4.*,
                    array == 0.4.*,
                    containers >= 0.4 && <= 0.5,
