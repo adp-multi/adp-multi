@@ -35,11 +35,14 @@ library
                    monadiccp == 0.7.*
   hs-source-dirs:   src
   ghc-options:      -Wall
-  exposed-modules:  ADP.Multi.Combinators,
+  exposed-modules: ADP.Debug, 
+                   ADP.Multi.Combinators,
                    ADP.Multi.Helpers,
                    ADP.Multi.Parser,
+                   ADP.Multi.Rewriting,
                    ADP.Multi.Rewriting.ConstraintSolver,
                    ADP.Multi.Rewriting.Explicit,
+                   ADP.Multi.Rewriting.YieldSize,
                    ADP.Multi.SimpleParsers,
                    ADP.Multi.Tabulation
 
@@ -50,7 +53,7 @@ test-suite MainTestSuite
                    base == 4.*,
                    array == 0.4.*,
                    containers >= 0.4 && <= 0.5,
-                   htrace == 0.1.*,
+                   adp-multi,
                    monadiccp == 0.7.*,
                    HUnit == 1.2.*,
                    QuickCheck == 2.5.*,
@@ -58,21 +61,9 @@ test-suite MainTestSuite
                    test-framework-quickcheck2 == 0.2.*,
                    test-framework-hunit == 0.2.*,
                    random-shuffle == 0.0.4
-  hs-source-dirs:  src,
-                   tests
+  hs-source-dirs:  tests
   ghc-options:     -Wall -rtsopts
   other-modules:   
-                   ADP.Multi.Combinators,
-                   ADP.Multi.Helpers,
-                   ADP.Multi.Parser,
-                   ADP.Multi.Rewriting,
-                   ADP.Multi.Rewriting.ConstraintSolver,
-                   ADP.Multi.Rewriting.Explicit,
-                   ADP.Multi.Rewriting.MonadicCpHelper,
-                   ADP.Multi.Rewriting.Tests.YieldSize,
-                   ADP.Multi.Rewriting.YieldSize,
-                   ADP.Multi.SimpleParsers,
-                   ADP.Multi.Tabulation,
                    ADP.Tests.Main,
                    ADP.Tests.NestedExample,
                    ADP.Tests.OneStructureExample,
@@ -82,46 +73,42 @@ test-suite MainTestSuite
   main-is:         ADP/Tests/Suite.hs
 
 executable adp-multi-benchmarks
-  if flag(buildTests)
-    build-depends: base == 4.*,
+  if !flag(buildTests)
+    buildable: False
+  build-depends:   
+                   base == 4.*,
                    array == 0.4.*,
                    containers >= 0.4 && <= 0.5,
-                   htrace == 0.1.*,
+                   adp-multi,
                    monadiccp == 0.7.*,
+                   HUnit == 1.2.*,
+                   QuickCheck == 2.5.*,
+                   test-framework == 0.6.*,
+                   test-framework-quickcheck2 == 0.2.*,
+                   test-framework-hunit == 0.2.*,
+                   random-shuffle == 0.0.4,
                    criterion == 0.6.*
-  else
-    buildable: False
   hs-source-dirs:  benchmarks,
-                   src,
                    tests
   ghc-options:     -Wall -rtsopts
-  other-modules:   
-                   ADP.Tests.RGExample,
-                   ADP.Tests.NestedExample,
-                   ADP.Tests.RIGExample,
-                   ADP.Tests.OneStructureExample,
-                   ADP.Tests.ZeroStructureTwoBackbonesExample
   main-is:         Benchmarks.hs
 
 executable adp-test
   if !flag(buildTests)
     buildable: False
-  build-depends:   base == 4.*,
+  build-depends:   
+                   base == 4.*,
                    array == 0.4.*,
                    containers >= 0.4 && <= 0.5,
-                   htrace == 0.1.*,
-                   monadiccp == 0.7.*
-  hs-source-dirs:  
-                   src, 
-                   tests
+                   adp-multi,
+                   monadiccp == 0.7.*,
+                   HUnit == 1.2.*,
+                   QuickCheck == 2.5.*,
+                   test-framework == 0.6.*,
+                   test-framework-quickcheck2 == 0.2.*,
+                   test-framework-hunit == 0.2.*,
+                   random-shuffle == 0.0.4
+  hs-source-dirs:  tests
   ghc-options:     -Wall -rtsopts -O0
   main-is:         ADP/Tests/Main.hs
-  other-modules:   
-                   ADP.Multi.Rewriting.ConstraintSolver,
-                   ADP.Multi.Rewriting.Explicit,
-                   ADP.Tests.RGExample,
-                   ADP.Tests.NestedExample,
-                   ADP.Tests.RIGExample,
-                   ADP.Tests.OneStructureExample,
-                   ADP.Tests.ZeroStructureTwoBackbonesExample
 
