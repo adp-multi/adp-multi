@@ -16,6 +16,16 @@ type Nested_Algebra alphabet answer = (
   alphabet -> answer,                         -- base
   [answer] -> [answer]                        -- h
   )
+
+-- test using record syntax
+data NestedAlgebra alphabet answer = NestedAlgebra {
+  nil :: EPS -> answer,          
+  left :: answer -> answer -> answer,
+  pair :: answer -> answer -> answer,
+  basepair :: alphabet -> answer -> alphabet -> answer,
+  base :: alphabet -> answer,
+  h :: [answer] -> [answer]
+  }
   
 infixl ***
 (***) :: (Eq b, Eq c) => Nested_Algebra a b -> Nested_Algebra a c -> Nested_Algebra a (b,c)
@@ -50,6 +60,16 @@ enum = (nil,left,pair,basepair,base,h) where
    basepair  = BasePair
    base      = Base
    h         = id 
+   
+enum' :: NestedAlgebra Char Start
+enum' = NestedAlgebra {
+   nil       = \ _ -> Nil, -- hmm, this sucks
+   left      = Left',
+   pair      = Pair,
+   basepair  = BasePair,
+   base      = Base,
+   h         = id
+   }
    
 maxBasepairs :: Nested_Algebra Char Int
 maxBasepairs = (nil,left,pair,basepair,base,h) where

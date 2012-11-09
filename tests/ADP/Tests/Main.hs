@@ -18,11 +18,11 @@ main = do
         --forM_ result2 print
         --forM_ result3 print
         --forM_ result4 print
-        --forM_ result5 print
+        forM_ result53 print
         --forM_ result6 putStrLn
         --forM_ result7 print
         --forM_ result8 print
-        forM_ result9 print
+        --forM_ result9 print
         
         where
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
@@ -34,9 +34,9 @@ main = do
             -- inp = map toLower "ACCGUCGUUCCCGACGUAAAAGGGAUGU"
             
             -- https://github.com/neothemachine/rna/wiki/Example
-            -- inp = "agcgu"
+            inp = "agcguu"
             
-            inp = map toLower "ACGAUUCAACGU"
+            --inp = map toLower "ACGAUUCAACGU"
             
             rg = RG.rgknot determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
             
@@ -46,6 +46,9 @@ main = do
             result4 = rg RG.prettyprint inp
             
             result5 = rg (RG.enum RG.*** RG.prettyprint) inp
+            result51 = rg (RG.prettyprint RG.*** RG.pstree) inp
+            result52 = rg (RG.prettyprint RG.*** RG.pstreeYield) inp
+            result53 = rg (RG.prettyprint RG.*** RG.pstreeEval) inp
             
             nested = N.nested determineYieldSize1 constructRanges1
             result6 = nested (N.pstree) inp

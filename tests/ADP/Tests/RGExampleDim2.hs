@@ -166,6 +166,7 @@ maxKnots = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    h []             = []
    h xs             = [maximum xs]
 
+-- TODO don't need [String] here as it's all dim2, use (String,String) instead
 -- The left part is the structure and the right part the reconstructed input.
 prettyprint :: RG_Algebra Char ([String],[String])
 prettyprint = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where

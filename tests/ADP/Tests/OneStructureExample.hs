@@ -13,7 +13,8 @@ import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting
-                                 
+
+-- TODO as in CopyExample, use separate answer type for each dimension                            
 type OneStructure_Algebra alphabet answer = (
   EPS -> answer,                              -- nil
   answer -> answer -> answer,               -- left
