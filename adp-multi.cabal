@@ -45,6 +45,7 @@ library
                    ADP.Multi.Rewriting.YieldSize,
                    ADP.Multi.SimpleParsers,
                    ADP.Multi.Tabulation
+  other-modules:   ADP.Multi.Rewriting.MonadicCpHelper
 
 test-suite MainTestSuite
   type:            exitcode-stdio-1.0
@@ -64,10 +65,20 @@ test-suite MainTestSuite
   hs-source-dirs:  tests
   ghc-options:     -Wall -rtsopts
   other-modules:   
+                   ADP.Combinators,
+                   ADP.Multi.Rewriting.Tests.YieldSize,
+                   ADP.Tests.AlignmentExample,
+                   ADP.Tests.CopyExample,
+                   ADP.Tests.CopyTwoTrackExample,
                    ADP.Tests.Main,
+                   ADP.Tests.MonadicCpRegression,
+                   ADP.Tests.MonadicCpTest,
                    ADP.Tests.NestedExample,
+                   ADP.Tests.Nussinov,
+                   ADP.Tests.NussinovExample,
                    ADP.Tests.OneStructureExample,
                    ADP.Tests.RGExample,
+                   ADP.Tests.RGExampleDim2,
                    ADP.Tests.RIGExample,
                    ADP.Tests.ZeroStructureTwoBackbonesExample
   main-is:         ADP/Tests/Suite.hs
