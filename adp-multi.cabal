@@ -48,6 +48,10 @@ test-suite MainTestSuite
   x-uses-tf:       true
   build-depends:   
                    base == 4.*,
+                   array == 0.4.*,
+                   containers >= 0.4 && <= 0.5,
+                   htrace == 0.1.*,
+                   monadiccp == 0.7.*,
                    HUnit == 1.2.*,
                    QuickCheck == 2.5.*,
                    test-framework == 0.6.*,
@@ -80,7 +84,11 @@ test-suite MainTestSuite
 executable adp-multi-benchmarks
   if flag(buildTests)
     build-depends: base == 4.*,
-                     criterion == 0.6.*
+                   array == 0.4.*,
+                   containers >= 0.4 && <= 0.5,
+                   htrace == 0.1.*,
+                   monadiccp == 0.7.*,
+                   criterion == 0.6.*
   else
     buildable: False
   hs-source-dirs:  benchmarks,
@@ -98,7 +106,11 @@ executable adp-multi-benchmarks
 executable adp-test
   if !flag(buildTests)
     buildable: False
-  build-depends:   base == 4.*
+  build-depends:   base == 4.*,
+                   array == 0.4.*,
+                   containers >= 0.4 && <= 0.5,
+                   htrace == 0.1.*,
+                   monadiccp == 0.7.*
   hs-source-dirs:  
                    src, 
                    tests
