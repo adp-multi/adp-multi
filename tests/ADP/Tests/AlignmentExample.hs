@@ -12,10 +12,10 @@ import ADP.Multi.Rewriting
                                  
 type Alignment_Algebra alphabet answer = (
   (EPS,EPS) -> answer,                      -- nil
-  alphabet -> answer -> answer,  -- del
-  alphabet -> answer -> answer,  -- ins
-  alphabet -> alphabet -> answer -> answer,  -- match
-  [answer] -> [answer] -- h
+  alphabet -> answer -> answer,             -- del
+  alphabet -> answer -> answer,             -- ins
+  alphabet -> alphabet -> answer -> answer, -- match
+  [answer] -> [answer]                      -- h
   )
   
 infixl ***
@@ -42,6 +42,7 @@ data Start = Nil
 enum :: Alignment_Algebra Char Start
 enum = (\_ -> Nil,Del,Ins,Match,id)
 
+count :: Alignment_Algebra Char Int
 count = (nil,del,ins,match,h) where
   nil _ = 1
   del _ s = s

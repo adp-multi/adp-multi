@@ -71,8 +71,6 @@ test-suite MainTestSuite
                    ADP.Multi.SimpleParsers,
                    ADP.Multi.Tabulation,
                    ADP.Tests.Main,
-                   ADP.Tests.MonadicCpRegression,
-                   ADP.Tests.MonadicCpTest,
                    ADP.Tests.NestedExample,
                    ADP.Tests.OneStructureExample,
                    ADP.Tests.RGExample,
