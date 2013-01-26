@@ -76,7 +76,7 @@ maxBasepairs = (nil,left,pair,basepair,base,h) where
    nil _            = 0
    left a b         = a + b
    pair a b         = a + b
-   basepair _ _ _   = 1
+   basepair _ s _   = 1 + s
    base _           = 0
    h []             = []
    h xs             = [maximum xs]
@@ -101,6 +101,15 @@ pstree = (nil,left,pair,basepair,base,h) where
    h = id
    
    nonterm sym tree = "\\pstree{\\nonterminal{" ++ sym ++ "}}{" ++ tree ++ "}"
+   
+term :: Nested_Algebra Char String
+term = (nil,left,pair,basepair,base,h) where
+   nil _ = "\\op{f}_3()"
+   left b s = "\\op{f}_2(" ++ b ++ "," ++ s ++ ")"
+   pair p s = "\\op{f}_2(" ++ p ++ "," ++ s ++ ")"
+   basepair b1 s b2 = "\\op{f}_4(" ++ [b1] ++ "," ++ s ++ "," ++ [b2] ++ ")"
+   base b = "\\op{f}_5(" ++ [b] ++ ")"
+   h = id
    
 nested :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
        -> Nested_Algebra Char answer -> String -> [answer]
