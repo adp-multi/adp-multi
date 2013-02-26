@@ -139,10 +139,10 @@ Bind input:
 >       pair <<< char 'u' -~~ s ~~- char 'g'
 
 >   b = tabulated $
->       undefined <<< char 'a' |||
->       undefined <<< char 'u' |||
->       undefined <<< char 'c' |||
->       undefined <<< char 'g'
+>       char 'a' |||
+>       char 'u' |||
+>       char 'c' |||
+>       char 'g'
 
 Bind input:
 
