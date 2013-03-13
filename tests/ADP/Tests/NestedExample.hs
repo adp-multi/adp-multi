@@ -139,10 +139,10 @@ nested yieldAlg1 rangeAlg1 algebra inp =
       ... h
   
   b = tabulated $
-      base <<< char 'a' >>>| id |||
-      base <<< char 'u' >>>| id |||
-      base <<< char 'c' >>>| id |||
-      base <<< char 'g' >>>| id
+      base <<< 'a' >>>| id |||
+      base <<< 'u' >>>| id |||
+      base <<< 'c' >>>| id |||
+      base <<< 'g' >>>| id
   
   p = tabulated $
       basepair <<< 'a' ~~~| s ~~~ 'u' >>>| id |||

@@ -12,7 +12,7 @@ type Nussinov_Algebra alphabet answer = (
    EPS -> answer,                              -- nil
    alphabet -> answer,                         -- base
    alphabet -> answer   -> answer,             -- left
-   answer   -> alphabet   -> answer,             -- right
+   answer   -> answer   -> answer,             -- right
    alphabet -> answer   -> alphabet -> answer, -- pair
    answer   -> answer   -> answer,             -- split
    [answer] -> [answer]                        -- h
@@ -56,10 +56,10 @@ nussinov78 yieldAlg1 rangeAlg1 algebra inp =
       pair <<< 'u' ~~~| s ~~~ 'g' >>>| id
 
   b = tabulated $
-       char 'a' |||
-       char 'u' |||
-       char 'c' |||
-       char 'g'
+      base <<< 'a' >>>| id |||
+      base <<< 'u' >>>| id |||
+      base <<< 'c' >>>| id |||
+      base <<< 'g' >>>| id
   
   z = mk inp
   tabulated = table1 z
