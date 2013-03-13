@@ -80,6 +80,7 @@ test-suite MainTestSuite
                    ADP.Tests.RGExample,
                    ADP.Tests.RGExampleDim2,
                    ADP.Tests.RIGExample,
+                   ADP.Tests.TermExample,
                    ADP.Tests.ZeroStructureTwoBackbonesExample
   main-is:         ADP/Tests/Suite.hs
 

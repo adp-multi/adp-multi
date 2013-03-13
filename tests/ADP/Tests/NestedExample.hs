@@ -10,7 +10,7 @@ import ADP.Multi.Rewriting
                                  
 type Nested_Algebra alphabet answer = (
   EPS -> answer,                              -- nil
-  alphabet   -> answer -> answer,               -- left
+  answer   -> answer -> answer,               -- left
   answer   -> answer -> answer,               -- pair
   alphabet -> answer -> alphabet -> answer,   -- basepair
   alphabet -> answer,                         -- base
@@ -20,7 +20,7 @@ type Nested_Algebra alphabet answer = (
 -- test using record syntax
 data NestedAlgebra alphabet answer = NestedAlgebra {
   nil :: EPS -> answer,          
-  left :: alphabet -> answer -> answer,
+  left :: answer -> answer -> answer,
   pair :: answer -> answer -> answer,
   basepair :: alphabet -> answer -> alphabet -> answer,
   base :: alphabet -> answer,
@@ -34,7 +34,7 @@ alg1 *** alg2 = (nil,left,pair,basepair,base,h) where
    (nil'',left'',pair'',basepair'',base'',h'') = alg2
    
    nil a = (nil' a, nil'' a)
-   left b (s1,s2) = (left' b s1, left'' b s2)
+   left (b1,b2) (s1,s2) = (left' b1 s1, left'' b2 s2)
    pair (p1,p2) (s1,s2) = (pair' p1 s1, pair'' p2 s2)
    basepair a (s1,s2) b = (basepair' a s1 b,  basepair'' a s2 b)
    base a = (base' a, base'' a)
@@ -45,7 +45,7 @@ alg1 *** alg2 = (nil,left,pair,basepair,base,h) where
 
 
 data Start = Nil
-           | Left' Char Start
+           | Left' Start Start
            | Pair Start Start
            | BasePair Char Start Char
            | Base Char
@@ -85,7 +85,7 @@ maxBasepairs = (nil,left,pair,basepair,base,h) where
 prettyprint :: Nested_Algebra Char (String,String)
 prettyprint = (nil,left,pair,basepair,base,h) where
    nil _ = ("","")
-   left b (sl,sr) = ([b] ++ sl, [b] ++ sr)
+   left (b1,b2) (sl,sr) = (b1 ++ sl, b2 ++ sr)
    pair (pl,pr) (sl,sr) = (pl ++ sl, pr ++ sr)
    basepair b1 (sl,sr) b2 = ("(" ++ sl ++ ")", [b1] ++ sr ++ [b2])
    base b = (".", [b])
@@ -94,7 +94,7 @@ prettyprint = (nil,left,pair,basepair,base,h) where
 pstree :: Nested_Algebra Char String
 pstree = (nil,left,pair,basepair,base,h) where
    nil _ = "\\emptyword"
-   left b s = nonterm "B" [b] ++ nonterm "S" s
+   left b s = nonterm "B" b ++ nonterm "S" s
    pair p s = nonterm "P" p ++ nonterm "S" s
    basepair b1 s b2 = base b1 ++ nonterm "S" s ++ base b2
    base b = "\\terminal{" ++ [b] ++ "}"
@@ -105,10 +105,19 @@ pstree = (nil,left,pair,basepair,base,h) where
 term :: Nested_Algebra Char String
 term = (nil,left,pair,basepair,base,h) where
    nil _ = "\\op{f}_3()"
-   left b s = "\\op{f}_2(" ++ [b] ++ "," ++ s ++ ")"
+   left b s = "\\op{f}_2(" ++ b ++ "," ++ s ++ ")"
    pair p s = "\\op{f}_2(" ++ p ++ "," ++ s ++ ")"
    basepair b1 s b2 = "\\op{f}_4(" ++ [b1] ++ "," ++ s ++ "," ++ [b2] ++ ")"
    base b = "\\op{f}_5(" ++ [b] ++ ")"
+   h = id
+   
+termPlain :: Nested_Algebra Char String
+termPlain = (nil,left,pair,basepair,base,h) where
+   nil _ = "f_3"
+   left b s = "f_2(" ++ b ++ "," ++ s ++ ")"
+   pair p s = "f_2(" ++ p ++ "," ++ s ++ ")"
+   basepair b1 s b2 = "f_4(" ++ [b1] ++ "," ++ s ++ "," ++ [b2] ++ ")"
+   base b = "f_5(" ++ [b] ++ ")"
    h = id
    
 nested :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
@@ -130,10 +139,10 @@ nested yieldAlg1 rangeAlg1 algebra inp =
       ... h
   
   b = tabulated $
-       char 'a' |||
-       char 'u' |||
-       char 'c' |||
-       char 'g'
+      base <<< char 'a' >>>| id |||
+      base <<< char 'u' >>>| id |||
+      base <<< char 'c' >>>| id |||
+      base <<< char 'g' >>>| id
   
   p = tabulated $
       basepair <<< 'a' ~~~| s ~~~ 'u' >>>| id |||

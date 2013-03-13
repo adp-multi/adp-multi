@@ -41,7 +41,7 @@ anychars = (
                           i+1 == j && k+1 == l
                         ]
            )
-
+           
 chars :: Eq a => a -> a -> RichParser a (a,a)
 chars c1 c2 = (
                   ParserInfo2 {minYield2=(1,1), maxYield2=(Just 1,Just 1)},
@@ -66,6 +66,27 @@ anychar = (
                   \ z [i,j] -> 
                         [ (z!j) |
                           i+1 == j
+                        ]
+              )
+              
+anycharExcept :: Eq a => [a] -> RichParser a a
+anycharExcept e = (
+                  ParserInfo1 {minYield=1, maxYield=Just 1},
+                  \ z [i,j] -> 
+                        [ (z!j) |
+                          i+1 == j && z!j `notElem` e
+                        ]
+              )
+
+elemsSub :: Array Int a -> Int -> Int -> [a]
+elemsSub arr i j = [arr!i' | i' <- [i .. j]]
+     
+anystringWithout :: Eq a => [a] -> RichParser a [a]
+anystringWithout e = (
+                  ParserInfo1 {minYield=1, maxYield=Nothing},
+                  \ z [i,j] -> 
+                        [ elemsSub z (i+1) j |
+                          i<j && all (\i' -> z!i' `notElem` e) [i+1..j]
                         ]
               ) 
         

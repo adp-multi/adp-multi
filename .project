@@ -3,6 +3,7 @@
 	<name>adp-multi</name>
 	<comment></comment>
 	<projects>
+		<project>adp-multi</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
