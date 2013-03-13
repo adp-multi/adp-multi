@@ -18,9 +18,12 @@ import qualified ADP.Tests.RGExample as RG
 import qualified ADP.Tests.RGExampleDim2 as RGDim2
 import qualified ADP.Tests.CopyExample as Copy
 import qualified ADP.Tests.CopyTwoTrackExample as CopyTT
+import qualified MCFG.MCFG as MCFG
 import qualified ADP.Tests.NestedExample as Nested
 import qualified ADP.Tests.OneStructureExample as One
 import qualified ADP.Tests.ZeroStructureTwoBackbonesExample as ZeroTT
+
+
 
 import ADP.Multi.Rewriting.Tests.YieldSize
 
@@ -39,6 +42,7 @@ main = defaultMainWithOpts
                       --testCase "finds pseudoknot reference structure" testRgRealPseudoknot,
                         testCase "tests associative function with max basepairs" testRgSimpleBasepairs,
                         testProperty "produces copy language" prop_copyLanguage,
+                        testProperty "produces same derivation trees for copy language grammar" prop_copyLanguageDerivation,
                         testProperty "produces copy language (two track)" prop_copyLanguageTT,
                         testProperty "produces nested rna" prop_nestedRna,
                         testProperty "produces 1-structure rna" prop_oneStructureRna,
@@ -105,6 +109,25 @@ prop_copyLanguage (CopyLangString w) =
 prop_copyLanguageTT (CopyLangString w) =
     let result = CopyTT.copyTTGr determineYieldSize2 constructRanges2 CopyTT.prettyprint (w,w)
     in result == [(w,w)]
+
+-- this basically checks if the yield parser of adp-multi produces the same derivation trees
+-- as the MCFG parser by Johannes Waldmann
+-- Note: the copy language grammar is unambiguous! thus, ambiguous grammars (=multiple trees) are not tested here
+prop_copyLanguageDerivation (CopyLangString w) =
+    let [resultADP] = Copy.copyGr determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
+                             Copy.derivation (w ++ w)
+        [resultMCFG] = MCFG.parse Copy.mcfg (map MCFG.T (w ++ w))
+    in MCFG.consistent resultMCFG && equivalentTrees resultADP resultMCFG
+
+-- checks if two derivation trees are the same (same rules applied)
+equivalentTrees :: MCFG.Derivation -> MCFG.Derivation -> Bool
+equivalentTrees t1 t2 =
+    let MCFG.Derivation _ rule1 children1 = t1
+        MCFG.Derivation _ rule2 children2 = t2
+        children = zip children1 children2
+    in rule1 == rule2 && 
+       length children1 == length children2 &&
+       all (\(c1,c2) -> equivalentTrees c1 c2) children
     
 prop_nestedRna (RNAString w) =
     let results = Nested.nested determineYieldSize1 constructRanges1 Nested.prettyprint w
