@@ -13,7 +13,7 @@ import ADP.Multi.Parser
 data EPS = EPS deriving (Eq, Show, Data, Typeable)
 
 
--- # elementary parsers
+-- # elementary parsers for dimension 1 and 2
 
 empty1 :: RichParser a EPS
 empty1 = (
@@ -77,13 +77,32 @@ anycharExcept e = (
                           i+1 == j && z!j `notElem` e
                         ]
               )
-
+     
 elemsSub :: Array Int a -> Int -> Int -> [a]
 elemsSub arr i j = [arr!i' | i' <- [i .. j]]
-     
+              
+string :: Eq a => [a] -> RichParser a [a]
+string s = (
+                  ParserInfo1 {minYield=length s, maxYield=Just (length s)},
+                  \ z [i,j] -> 
+                        [ s |
+                          j-i == length s && all (\i' -> z!i' == s !! (i'-i-1)) [i+1..j]
+                        ]
+              )
+
+strings :: Eq a => [a] -> [a] -> RichParser a ([a],[a])
+strings s1 s2 = (
+                  ParserInfo2 {minYield2=(length s1,length s2), maxYield2=(Just (length s1),Just (length s2))},
+                  \ z [i,j,k,l] -> 
+                        [ (s1,s2) |
+                          j-i == length s1 && all (\i' -> z!i' == s1 !! (i'-i-1)) [i+1..j] &&
+                          l-k == length s2 && all (\k' -> z!k' == s2 !! (k'-k-1)) [k+1..l]
+                        ]
+              ) 
+
 anystringWithout :: Eq a => [a] -> RichParser a [a]
 anystringWithout e = (
-                  ParserInfo1 {minYield=1, maxYield=Nothing},
+                  ParserInfo1 {minYield=0, maxYield=Nothing},
                   \ z [i,j] -> 
                         [ elemsSub z (i+1) j |
                           i<j && all (\i' -> z!i' `notElem` e) [i+1..j]
@@ -115,6 +134,9 @@ instance Parseable EPS Char EPS where
 
 instance Parseable Char Char Char where
     toParser = char
+    
+instance Parseable String Char String where
+    toParser = string
 
 instance Parseable (EPS,EPS) Char (EPS,EPS) where
     toParser _ = empty2
@@ -122,6 +144,9 @@ instance Parseable (EPS,EPS) Char (EPS,EPS) where
 instance Parseable (Char,Char) Char (Char,Char) where
     toParser (c1,c2) = chars c1 c2
     
+instance Parseable (String,String) Char (String,String) where
+    toParser (s1,s2) = strings s1 s2
+       
 instance Parseable (EPS,Char) Char (EPS,Char) where
     toParser (_,c) = charRightOnly c
     
