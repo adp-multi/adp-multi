@@ -16,6 +16,7 @@ import ADP.Multi.Rewriting.Explicit
 --import ADP.Multi.Rewriting.ConstraintSolver
 import qualified ADP.Tests.RGExample as RG
 import qualified ADP.Tests.RGExampleDim2 as RGDim2
+import qualified ADP.Tests.RGExampleStar as RGStar
 import qualified ADP.Tests.CopyExample as Copy
 import qualified ADP.Tests.CopyTwoTrackExample as CopyTT
 import qualified MCFG.MCFG as MCFG
@@ -48,6 +49,7 @@ main = defaultMainWithOpts
                         testProperty "produces 1-structure rna" prop_oneStructureRna,
                         testProperty "produces RG rna" prop_rgRna,
                         testProperty "produces RG (dim2) rna" prop_rgDim2Rna,
+                        testProperty "produces RG (star version) rna" prop_rgStarRna,
                         testProperty "produces 0-structure over two backbones rna" prop_zeroStructureTwoBackbonesRna
                     ]
             ]
@@ -62,6 +64,9 @@ rg = RG.rgknot determineYieldSize1 constructRanges1 determineYieldSize2 construc
 
 rgDim2 :: RGDim2.RG_Algebra Char answer -> String -> [answer]
 rgDim2 = RGDim2.rgknot determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
+
+rgStar :: RGStar.RG_Algebra Char answer -> String -> [answer]
+rgStar = RGStar.rgknot determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
 
 -- https://github.com/neothemachine/rna/wiki/Example
 testRgSimpleCompleteness =
@@ -146,6 +151,11 @@ prop_rgDim2Rna (RNAString w) =
     let results = rgDim2 RGDim2.prettyprint w
         resultsDim1 = rg RG.prettyprint w
     in results == resultsDim1
+    
+prop_rgStarRna (RNAString w) =
+    let results = rgStar RGStar.prettyprint w
+        resultsRef = rg RG.prettyprint w
+    in results == resultsRef
 
 -- This test is a bit useless, it just shows that "something" happens.
 -- TODO: as in the other tests, we would need a pretty-printing algebra 
