@@ -129,24 +129,28 @@ charRightOnly c = (
     
 -- # some syntax sugar
 
-instance Parseable EPS Char EPS where
+-- generic instances
+instance Parseable EPS a EPS where
     toParser _ = empty1
+    
+instance Parseable (EPS,EPS) a (EPS,EPS) where
+    toParser _ = empty2
+    
+instance Eq a => Parseable [a] a [a] where
+    toParser = string
+    
+instance Eq a => Parseable ([a],[a]) a ([a],[a]) where
+    toParser (s1,s2) = strings s1 s2
 
+-- and some specific ones for chars
+-- these can't be made generic as it would lead to `Parseable a a a` which is 
+-- in conflict to all other instances
 instance Parseable Char Char Char where
     toParser = char
     
-instance Parseable String Char String where
-    toParser = string
-
-instance Parseable (EPS,EPS) Char (EPS,EPS) where
-    toParser _ = empty2
-
 instance Parseable (Char,Char) Char (Char,Char) where
     toParser (c1,c2) = chars c1 c2
-    
-instance Parseable (String,String) Char (String,String) where
-    toParser (s1,s2) = strings s1 s2
-       
+           
 instance Parseable (EPS,Char) Char (EPS,Char) where
     toParser (_,c) = charRightOnly c
     
