@@ -16,8 +16,9 @@ dimensions also needs a constraint solver.
 
 -- for dim1 we don't need the rewriting function to determine the yield size
 -- it's kept as argument anyway to make it more consistent
-doDetermineYieldSize1 ::  YieldAnalysisAlgorithm Dim1
-doDetermineYieldSize1 _ infos =
+determineYieldSize1 ::  YieldAnalysisAlgorithm Dim1
+determineYieldSize1 _ infos | trace ("determineYieldSize1 " ++ show infos) False = undefined
+determineYieldSize1 _ infos =
         let elemInfo = buildInfoMap infos
             (yieldMin,yieldMax) = combineYields (Map.elems elemInfo) 
         in trace (show elemInfo) $
@@ -26,8 +27,9 @@ doDetermineYieldSize1 _ infos =
                 maxYield = yieldMax
            }
 
-doDetermineYieldSize2 ::  YieldAnalysisAlgorithm Dim2
-doDetermineYieldSize2 f infos =
+determineYieldSize2 ::  YieldAnalysisAlgorithm Dim2
+determineYieldSize2 _ infos | trace ("determineYieldSize2 " ++ show infos) False = undefined
+determineYieldSize2 f infos =
         let elemInfo = buildInfoMap infos
             (left,right) = f (Map.keys elemInfo)
             leftYields = map (\(i,j) -> elemInfo Map.! (i,j)) left

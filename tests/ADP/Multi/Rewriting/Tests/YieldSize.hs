@@ -46,9 +46,9 @@ prop_yieldSizeDim2 (infos :: [ParserInfo]) =
         parserInfos = map (\(i,j) -> yieldToInfo $ elemInfo Map.! (i,j))
         leftInfos = parserInfos left
         rightInfos = parserInfos right
-        leftYield = doDetermineYieldSize1 undefined leftInfos
-        rightYield = doDetermineYieldSize1 undefined rightInfos
-    in doDetermineYieldSize2 f infos 
+        leftYield = determineYieldSize1 undefined leftInfos
+        rightYield = determineYieldSize1 undefined rightInfos
+    in determineYieldSize2 f infos 
        ==
        ParserInfo2 {
           minYield2 = (minYield leftYield, minYield rightYield),

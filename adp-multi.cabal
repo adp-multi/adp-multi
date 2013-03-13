@@ -45,7 +45,9 @@ library
                    ADP.Multi.Rewriting.YieldSize,
                    ADP.Multi.SimpleParsers,
                    ADP.Multi.Tabulation
-  other-modules:   ADP.Multi.Rewriting.MonadicCpHelper
+  other-modules:   
+                   ADP.Multi.Rewriting.MonadicCpHelper,
+                   ADP.Multi.Rewriting.RangesHelper
 
 test-suite MainTestSuite
   type:            exitcode-stdio-1.0
@@ -58,9 +60,9 @@ test-suite MainTestSuite
                    monadiccp == 0.7.*,
                    HUnit == 1.2.*,
                    QuickCheck == 2.5.*,
-                   test-framework == 0.6.*,
-                   test-framework-quickcheck2 == 0.2.*,
-                   test-framework-hunit == 0.2.*,
+                   test-framework == 0.8.*,
+                   test-framework-quickcheck2 == 0.3.*,
+                   test-framework-hunit == 0.3.*,
                    random-shuffle == 0.0.4
   hs-source-dirs:  tests
   ghc-options:     -Wall -rtsopts
@@ -96,9 +98,9 @@ executable adp-multi-benchmarks
                    monadiccp == 0.7.*,
                    HUnit == 1.2.*,
                    QuickCheck == 2.5.*,
-                   test-framework == 0.6.*,
-                   test-framework-quickcheck2 == 0.2.*,
-                   test-framework-hunit == 0.2.*,
+                   test-framework == 0.8.*,
+                   test-framework-quickcheck2 == 0.3.*,
+                   test-framework-hunit == 0.3.*,
                    random-shuffle == 0.0.4,
                    criterion == 0.6.*
   hs-source-dirs:  benchmarks,
@@ -118,9 +120,9 @@ executable adp-test
                    monadiccp == 0.7.*,
                    HUnit == 1.2.*,
                    QuickCheck == 2.5.*,
-                   test-framework == 0.6.*,
-                   test-framework-quickcheck2 == 0.2.*,
-                   test-framework-hunit == 0.2.*,
+                   test-framework == 0.8.*,
+                   test-framework-quickcheck2 == 0.3.*,
+                   test-framework-hunit == 0.3.*,
                    random-shuffle == 0.0.4
   hs-source-dirs:  tests
   ghc-options:     -Wall -rtsopts -O0
