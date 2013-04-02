@@ -1,12 +1,10 @@
-{-# LANGUAGE ImplicitParams #-}
-
 module ADP.Tests.NestedExample where
 
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
+import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
-import ADP.Multi.Rewriting
                                  
 type Nested_Algebra alphabet answer = (
   EPS -> answer,                              -- nil
@@ -120,16 +118,9 @@ termPlain = (nil,left,pair,basepair,base,h) where
    base b = "f_5(" ++ [b] ++ ")"
    h = id
    
-nested :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
-       -> Nested_Algebra Char answer -> String -> [answer]
-nested yieldAlg1 rangeAlg1 algebra inp =
-  -- These implicit parameters are used by >>>.
-  -- They were introduced to allow for exchanging the algorithms and
-  -- they were made implicit so that they don't ruin our nice syntax.
-  let ?yieldAlg1 = yieldAlg1
-      ?rangeAlg1 = rangeAlg1
-  in let
-  
+nested :: Nested_Algebra Char answer -> String -> [answer]
+nested algebra inp =
+  let  
   (nil,left,pair,basepair,base,h) = algebra
      
   s = tabulated $

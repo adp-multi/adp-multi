@@ -1,5 +1,3 @@
-{-# LANGUAGE ImplicitParams #-}
-
 {- This example implements the 1-structure grammar from
    "Topology and prediction of RNA pseudoknots" by Reidys et al., 2011
 -}
@@ -10,6 +8,7 @@ import Data.Array
 import ADP.Multi.Parser
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
+import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting
@@ -129,27 +128,15 @@ prettyprint2 = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
    actual grammar which exposes the start symbol as a parser (oneStructureGrammar)
    and a convenience function which actually runs the grammar on a given input (oneStructure).
 -}
-oneStructure :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
-       -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
-       -> OneStructure_Algebra Char answer -> String -> [answer]
-oneStructure yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
+oneStructure :: OneStructure_Algebra Char answer -> String -> [answer]
+oneStructure algebra inp =
     let z = mk inp
-        grammar = oneStructureGrammar yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra z
+        grammar = oneStructureGrammar algebra z
     in axiom z grammar
 
-oneStructureGrammar :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
-       -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
-       -> OneStructure_Algebra Char answer -> Array Int Char -> RichParser Char answer
-oneStructureGrammar yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra z =
-  -- These implicit parameters are used by >>>.
-  -- They were introduced to allow for exchanging the algorithms and
-  -- they were made implicit so that they don't ruin our nice syntax.
-  let ?yieldAlg1 = yieldAlg1
-      ?rangeAlg1 = rangeAlg1
-      ?yieldAlg2 = yieldAlg2
-      ?rangeAlg2 = rangeAlg2
-  in let
-  
+oneStructureGrammar :: OneStructure_Algebra Char answer -> Array Int Char -> RichParser Char answer
+oneStructureGrammar algebra z =
+  let  
   (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM,
    aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) = algebra
    

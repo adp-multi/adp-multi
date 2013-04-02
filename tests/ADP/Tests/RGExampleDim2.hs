@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE ImplicitParams #-}
 
 {-
 Example using the Reeder&Giegerich class of pseudoknots.
@@ -31,6 +30,7 @@ import Data.Array
 import ADP.Multi.Parser
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
+import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting
@@ -200,19 +200,9 @@ prettyprint = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    
    square l r = (map (const '[') l, map (const ']') r)
    
-rgknot :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
-       -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
-       -> RG_Algebra Char answer -> String -> [answer]
-rgknot yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
-  -- These implicit parameters are used by >>>.
-  -- They were introduced to allow for exchanging the algorithms and
-  -- they were made implicit so that they don't ruin our nice syntax.
-  let ?yieldAlg1 = yieldAlg1
-      ?rangeAlg1 = rangeAlg1
-      ?yieldAlg2 = yieldAlg2
-      ?rangeAlg2 = rangeAlg2
-  in let
-  
+rgknot :: RG_Algebra Char answer -> String -> [answer]
+rgknot algebra inp =
+  let  
   (nil,left,pair,knot,knot1,knot2,basepair,base,h) = algebra
   
   s1,s2,s3,s4,p',k1,k2 :: Dim2

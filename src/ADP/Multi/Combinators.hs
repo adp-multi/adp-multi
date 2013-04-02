@@ -9,6 +9,8 @@ import qualified Control.Arrow as A
 import ADP.Debug
 import ADP.Multi.Parser
 import ADP.Multi.Rewriting
+import ADP.Multi.Rewriting.YieldSize
+import ADP.Multi.Rewriting.Explicit
 
 {-
 
@@ -132,31 +134,6 @@ infixl 7 ~~~||
                         ]
            )
            
-infix 6 >>>|
-(>>>|) :: (?yieldAlg1 :: YieldAnalysisAlgorithm Dim1, ?rangeAlg1 :: RangeConstructionAlgorithm Dim1)
-      => ([ParserInfo], [Ranges] -> Parser a b) -> Dim1 -> RichParser a b
-(>>>|) = rewrite ?yieldAlg1 ?rangeAlg1
-
-infix 6 >>>||
-(>>>||) :: (?yieldAlg2 :: YieldAnalysisAlgorithm Dim2, ?rangeAlg2 :: RangeConstructionAlgorithm Dim2)
-      => ([ParserInfo], [Ranges] -> Parser a b) -> Dim2 -> RichParser a b
-(>>>||) = rewrite ?yieldAlg2 ?rangeAlg2
-           
-rewrite yieldAlg rangeAlg (infos,p) f =
-        let yieldSize = yieldAlg f infos
-        in trace (">>> yield size: " ++ show yieldSize) $
-           (
-              yieldSize,
-              \ z subword ->
-                let ranges = rangeAlg f infos subword
-                in trace (">>> " ++ show subword) $
-                trace ("ranges: " ++ show ranges) $ 
-                [ result |
-                  RangeMap sub rest <- ranges
-                , result <- p rest z sub 
-                ]
-           )
-
 infixr 5 ||| 
 (|||) :: RichParser a b -> RichParser a b -> RichParser a b
 (|||) (ParserInfo1 {minYield=minY1, maxYield=maxY1}, r) (ParserInfo1 {minYield=minY2, maxYield=maxY2}, q) = 

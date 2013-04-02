@@ -1,5 +1,3 @@
-{-# LANGUAGE ImplicitParams #-}
-
 {- This example implements the grammar for 0-structures over two backbones from
    "Topology of RNA-RNA interaction structures" by Andersen et al., 2012
    
@@ -14,6 +12,7 @@ import Data.Array
 import ADP.Multi.Parser
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
+import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting
@@ -76,30 +75,18 @@ enum = (One.enum,I1,I2,PT1,PT2,T1,T2,T3,T4,T5,T6,T7,Hs2,H1,H2,G1,G2,Ub1,\_->Ub2,
    actual grammar which exposes the start symbol as a parser (oneStructureGrammar)
    and a convenience function which actually runs the grammar on a given input (oneStructure).
 -}
-zeroStructureTwoBackbones :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
-       -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
-       -> ZeroStructureTwoBackbones_Algebra Char answerOne answer -> (String,String) -> [answer]
-zeroStructureTwoBackbones yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra (inp1,inp2) =
+zeroStructureTwoBackbones :: ZeroStructureTwoBackbones_Algebra Char answerOne answer -> (String,String) -> [answer]
+zeroStructureTwoBackbones algebra (inp1,inp2) =
     let z = mkTwoTrack inp1 inp2
-        grammar = zeroStructureTwoBackbonesGrammar yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra z
+        grammar = zeroStructureTwoBackbonesGrammar algebra z
     in axiomTwoTrack z inp1 inp2 grammar
 
-zeroStructureTwoBackbonesGrammar :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
-       -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
-       -> ZeroStructureTwoBackbones_Algebra Char answerOne answer -> Array Int Char -> RichParser Char answer
-zeroStructureTwoBackbonesGrammar yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra z =
-  -- These implicit parameters are used by >>>.
-  -- They were introduced to allow for exchanging the algorithms and
-  -- they were made implicit so that they don't ruin our nice syntax.
-  let ?yieldAlg1 = yieldAlg1
-      ?rangeAlg1 = rangeAlg1
-      ?yieldAlg2 = yieldAlg2
-      ?rangeAlg2 = rangeAlg2
-  in let
-  
+zeroStructureTwoBackbonesGrammar :: ZeroStructureTwoBackbones_Algebra Char answerOne answer -> Array Int Char -> RichParser Char answer
+zeroStructureTwoBackbonesGrammar algebra z =
+  let  
   (oneStructureAlgebra,i1,i2,pt1,pt2,t1,t2,t3,t4,t5,t6,t7,hs2,h1,h2,g1,g2,ub1,ub2,base,basepair,h') = algebra
   
-  one = One.oneStructureGrammar yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 oneStructureAlgebra z
+  one = One.oneStructureGrammar oneStructureAlgebra z
   
   rewriteI1 [pt1,pt2,one1,one2] = ([pt1,one1],[one2,pt2])
   rewriteI2 [one1,one2] = ([one1],[one2])

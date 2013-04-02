@@ -1,5 +1,3 @@
-{-# LANGUAGE ImplicitParams #-}
-
 {- Models the RNA-RNA interaction grammar (RIG) from
 
 "A grammatical approach to RNA–RNA interaction prediction" by Kato et al., 2009
@@ -11,6 +9,7 @@ module ADP.Tests.RIGExample where
 
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
+import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting
@@ -31,19 +30,9 @@ type RIG_Algebra alphabet answer = (
 
   
    
-rig :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
-       -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
-       -> RIG_Algebra Char answer -> (String,String) -> [answer]
-rig yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra (inp1,inp2) =
-  -- These implicit parameters are used by >>>.
-  -- They were introduced to allow for exchanging the algorithms and
-  -- they were made implicit so that they don't ruin our nice syntax.
-  let ?yieldAlg1 = yieldAlg1
-      ?rangeAlg1 = rangeAlg1
-      ?yieldAlg2 = yieldAlg2
-      ?rangeAlg2 = rangeAlg2
-  in let
-  
+rig :: RIG_Algebra Char answer -> (String,String) -> [answer]
+rig algebra (inp1,inp2) =
+  let  
   (nil,base,basepair,sb1L,sb1R,sb2L,sb2R,ib1,ib2,eb,w) = algebra
       
   rewriteSb1L [b,a1,a2] = ([b,a1],[a2])

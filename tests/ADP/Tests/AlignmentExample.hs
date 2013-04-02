@@ -1,11 +1,10 @@
-{-# LANGUAGE ImplicitParams #-}
-
 -- Needleman/Wunsch global alignment
 module ADP.Tests.AlignmentExample where
 
 import ADP.Debug
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
+import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting
@@ -61,16 +60,13 @@ unit = (nil,del,ins,match,h) where
   h x = [maximum x]
 
       
-alignmentGr :: YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
-         -> Alignment_Algebra Char answer -> (String,String) -> [answer]
-alignmentGr _ _ _ inp | trace ("running alignmentGr on " ++ show inp) False = undefined
-alignmentGr yieldAlg2 rangeAlg2 algebra (inp1,inp2) =
+alignmentGr :: Alignment_Algebra Char answer -> (String,String) -> [answer]
+alignmentGr _ inp | trace ("running alignmentGr on " ++ show inp) False = undefined
+alignmentGr algebra (inp1,inp2) =
   -- These implicit parameters are used by >>>.
   -- They were introduced to allow for exchanging the algorithms and
   -- they were made implicit so that they don't ruin our nice syntax.
-  let ?yieldAlg2 = yieldAlg2
-      ?rangeAlg2 = rangeAlg2
-  in let
+  let
   
   (nil,del,ins,match,h) = algebra
   

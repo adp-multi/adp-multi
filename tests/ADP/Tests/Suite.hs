@@ -10,10 +10,7 @@ import Test.HUnit
 import Test.QuickCheck
 
 import Data.Char (toLower)
-import Data.List
 
-import ADP.Multi.Rewriting.Explicit
---import ADP.Multi.Rewriting.ConstraintSolver
 import qualified ADP.Tests.RGExample as RG
 import qualified ADP.Tests.RGExampleDim2 as RGDim2
 import qualified ADP.Tests.RGExampleStar as RGStar
@@ -23,8 +20,6 @@ import qualified MCFG.MCFG as MCFG
 import qualified ADP.Tests.NestedExample as Nested
 import qualified ADP.Tests.OneStructureExample as One
 import qualified ADP.Tests.ZeroStructureTwoBackbonesExample as ZeroTT
-
-
 
 import ADP.Multi.Rewriting.Tests.YieldSize
 
@@ -60,13 +55,13 @@ main = defaultMainWithOpts
        }
                 
 rg :: RG.RG_Algebra Char answer -> String -> [answer]
-rg = RG.rgknot determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
+rg = RG.rgknot
 
 rgDim2 :: RGDim2.RG_Algebra Char answer -> String -> [answer]
-rgDim2 = RGDim2.rgknot determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
+rgDim2 = RGDim2.rgknot
 
 rgStar :: RGStar.RG_Algebra Char answer -> String -> [answer]
-rgStar = RGStar.rgknot determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
+rgStar = RGStar.rgknot
 
 -- https://github.com/neothemachine/rna/wiki/Example
 testRgSimpleCompleteness =
@@ -107,20 +102,18 @@ testRgRealPseudoknot =
 smallTestSize prop = sized $ \n -> resize (round (sqrt (fromIntegral n))) prop
 
 prop_copyLanguage (CopyLangString w) =
-    let result = Copy.copyGr determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
-                             Copy.prettyprint (w ++ w)
+    let result = Copy.copyGr Copy.prettyprint (w ++ w)
     in result == [w ++ w]
 
 prop_copyLanguageTT (CopyLangString w) =
-    let result = CopyTT.copyTTGr determineYieldSize2 constructRanges2 CopyTT.prettyprint (w,w)
+    let result = CopyTT.copyTTGr CopyTT.prettyprint (w,w)
     in result == [(w,w)]
 
 -- this basically checks if the yield parser of adp-multi produces the same derivation trees
 -- as the MCFG parser by Johannes Waldmann
 -- Note: the copy language grammar is unambiguous! thus, ambiguous grammars (=multiple trees) are not tested here
 prop_copyLanguageDerivation (CopyLangString w) =
-    let [resultADP] = Copy.copyGr determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
-                             Copy.derivation (w ++ w)
+    let [resultADP] = Copy.copyGr Copy.derivation (w ++ w)
         [resultMCFG] = MCFG.parse Copy.mcfg (map MCFG.T (w ++ w))
     in MCFG.consistent resultMCFG && equivalentTrees resultADP resultMCFG
 
@@ -135,12 +128,11 @@ equivalentTrees t1 t2 =
        all (\(c1,c2) -> equivalentTrees c1 c2) children
     
 prop_nestedRna (RNAString w) =
-    let results = Nested.nested determineYieldSize1 constructRanges1 Nested.prettyprint w
+    let results = Nested.nested Nested.prettyprint w
     in not (null results) && all (\(_,result) -> result == w) results
     
 prop_oneStructureRna (RNAString w) =
-    let results = One.oneStructure determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
-                                   One.prettyprint2 w
+    let results = One.oneStructure One.prettyprint2 w
     in not (null results) && all (\[result] -> result == w) results
     
 prop_rgRna (RNAString w) =
@@ -160,9 +152,7 @@ prop_rgStarRna (RNAString w) =
 -- This test is a bit useless, it just shows that "something" happens.
 -- TODO: as in the other tests, we would need a pretty-printing algebra 
 prop_zeroStructureTwoBackbonesRna (RNAString w) =
-    let results = ZeroTT.zeroStructureTwoBackbones 
-                        determineYieldSize1 constructRanges1 determineYieldSize2 constructRanges2
-                        ZeroTT.enum (w,w)
+    let results = ZeroTT.zeroStructureTwoBackbones ZeroTT.enum (w,w)
     in not (null results)
 
                  

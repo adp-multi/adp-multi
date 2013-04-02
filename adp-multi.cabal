@@ -35,7 +35,8 @@ library
                    monadiccp == 0.7.*
   hs-source-dirs:   src
   ghc-options:      -Wall
-  exposed-modules: ADP.Debug, 
+  exposed-modules: 
+                   ADP.Debug,
                    ADP.Multi.Combinators,
                    ADP.Multi.Helpers,
                    ADP.Multi.Parser,
@@ -43,6 +44,8 @@ library
                    ADP.Multi.Rewriting.ConstraintSolver,
                    ADP.Multi.Rewriting.Explicit,
                    ADP.Multi.Rewriting.YieldSize,
+                   ADP.Multi.RewritingCombinators,
+                   ADP.Multi.RewritingCombinatorsConstraint,
                    ADP.Multi.SimpleParsers,
                    ADP.Multi.Tabulation
   other-modules:   
@@ -82,6 +85,7 @@ test-suite MainTestSuite
                    ADP.Tests.OneStructureExample,
                    ADP.Tests.RGExample,
                    ADP.Tests.RGExampleDim2,
+                   ADP.Tests.RGExampleStar,
                    ADP.Tests.RIGExample,
                    ADP.Tests.TermExample,
                    ADP.Tests.ZeroStructureTwoBackbonesExample,

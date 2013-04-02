@@ -4,6 +4,7 @@ module ADP.Tests.TermExample where
 
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
+import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting
@@ -54,13 +55,9 @@ qtree format = (wrap,sym,sym1,sym2,escape,fun,single,split) where
    split s _ a = s ++ " " ++ a
 
    
-term :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
-       -> Term_Algebra Char answer -> String -> [answer]
-term yieldAlg1 rangeAlg1 algebra inp =
-  let ?yieldAlg1 = yieldAlg1
-      ?rangeAlg1 = rangeAlg1
-  in let
-  
+term :: Term_Algebra Char answer -> String -> [answer]
+term algebra inp =
+  let  
   (wrap,sym,sym1,sym2,escape,fun,single,split) = algebra
   
   s'= wrap <<< s >>>| id

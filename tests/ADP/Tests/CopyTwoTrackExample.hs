@@ -1,11 +1,10 @@
-{-# LANGUAGE ImplicitParams #-}
-
 -- Copy language L = { (w,w) | w € {a,b}^* }
 module ADP.Tests.CopyTwoTrackExample where
 
 import ADP.Debug
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
+import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting
@@ -37,17 +36,10 @@ countABs = (nil,copy) where
    copy 'b' 'b' (c1,c2) = (c1,c2+1)
   
    
-copyTTGr :: YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
-         -> CopyTT_Algebra Char answer -> (String,String) -> [answer]
-copyTTGr _ _ _ inp | trace ("running copyTTGr on " ++ show inp) False = undefined
-copyTTGr yieldAlg2 rangeAlg2 algebra (inp1,inp2) =
-  -- These implicit parameters are used by >>>.
-  -- They were introduced to allow for exchanging the algorithms and
-  -- they were made implicit so that they don't ruin our nice syntax.
-  let ?yieldAlg2 = yieldAlg2
-      ?rangeAlg2 = rangeAlg2
-  in let
-  
+copyTTGr ::CopyTT_Algebra Char answer -> (String,String) -> [answer]
+copyTTGr _ inp | trace ("running copyTTGr on " ++ show inp) False = undefined
+copyTTGr algebra (inp1,inp2) =
+  let  
   (nil,copy) = algebra
   
   rewriteCopy [a',a'',c1,c2] = ([a',c1],[a'',c2])

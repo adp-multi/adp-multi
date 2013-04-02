@@ -1,10 +1,9 @@
-{-# LANGUAGE ImplicitParams #-}
-
 -- Copy language L = { ww | w € {a,b}^* }
 module ADP.Tests.CopyExample where
 
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
+import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting
@@ -85,19 +84,9 @@ countABs = (nil,copy,copy') where
    copy' 'b' 'b' (c1,c2) = (c1,c2+1)
   
    
-copyGr :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
-       -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
-       -> Copy_Algebra Char answerDim1 answerDim2 -> String -> [answerDim1]
-copyGr yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
-  -- These implicit parameters are used by >>>.
-  -- They were introduced to allow for exchanging the algorithms and
-  -- they were made implicit so that they don't ruin our nice syntax.
-  let ?yieldAlg1 = yieldAlg1
-      ?rangeAlg1 = rangeAlg1
-      ?yieldAlg2 = yieldAlg2
-      ?rangeAlg2 = rangeAlg2
-  in let
-  
+copyGr :: Copy_Algebra Char answerDim1 answerDim2 -> String -> [answerDim1]
+copyGr algebra inp =
+  let  
   (nil,copy,copy') = algebra
      
   s = tabulated1 $

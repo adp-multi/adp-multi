@@ -17,12 +17,12 @@ S -> € | BS | P_1 S P_2 S | K_1^1 S K_1^2 S K_2^1 S K_2^2 S
 B -> a | u | c | g
 -}
 
-import Data.Array (bounds)
 import qualified Control.Arrow as A
 import Data.Typeable
 import Data.Data
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
+import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting
@@ -179,19 +179,9 @@ pstreeEval = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
     base b = "\\pstree{\\function{\\op{f}_8}}{\\terminal{" ++ b ++ "}}"
     h = id
    
-rgknot :: YieldAnalysisAlgorithm Dim1 -> RangeConstructionAlgorithm Dim1
-       -> YieldAnalysisAlgorithm Dim2 -> RangeConstructionAlgorithm Dim2 
-       -> RG_Algebra Char answer -> String -> [answer]
-rgknot yieldAlg1 rangeAlg1 yieldAlg2 rangeAlg2 algebra inp =
-  -- These implicit parameters are used by >>>.
-  -- They were introduced to allow for exchanging the algorithms and
-  -- they were made implicit so that they don't ruin our nice syntax.
-  let ?yieldAlg1 = yieldAlg1
-      ?rangeAlg1 = rangeAlg1
-      ?yieldAlg2 = yieldAlg2
-      ?rangeAlg2 = rangeAlg2
-  in let
-  
+rgknot :: RG_Algebra Char answer -> String -> [answer]
+rgknot algebra inp =
+  let  
   (nil,left,pair,knot,knot1,knot2,basepair,base,h) = algebra
    
   rewritePair [p1,p2,s1,s2] = [p1,s1,p2,s2]
