@@ -1,6 +1,11 @@
-{-# LANGUAGE ImplicitParams #-}
-
-module ADP.Multi.Combinators where
+module ADP.Multi.Combinators (
+    (<<<),(<<<|),(<<<||),
+    (~~~),(~~~|),(~~~||),
+    (>>>|),(>>>||),
+    (|||),
+    (...),
+    with
+) where
 
 import Data.Maybe
 import Data.Array
@@ -133,6 +138,14 @@ infixl 7 ~~~||
                         , pr <- leftParser rest z sub 
                         ]
            )
+           
+infix 6 >>>|
+(>>>|) :: ([ParserInfo], [Ranges] -> Parser a b) -> Dim1 -> RichParser a b
+(>>>|) = rewrite determineYieldSize1 constructRanges1
+
+infix 6 >>>||
+(>>>||) :: ([ParserInfo], [Ranges] -> Parser a b) -> Dim2 -> RichParser a b
+(>>>||) = rewrite determineYieldSize2 constructRanges2
            
 infixr 5 ||| 
 (|||) :: RichParser a b -> RichParser a b -> RichParser a b

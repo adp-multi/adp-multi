@@ -2,7 +2,6 @@ module ADP.Tests.NestedExample where
 
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
-import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
                                  

@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE ImplicitParams #-}
 
 {-
 This example is a copy of RGExample with the difference that
@@ -22,7 +21,6 @@ import Data.Typeable
 import Data.Data
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
-import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting

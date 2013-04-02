@@ -4,7 +4,6 @@ module ADP.Tests.TermExample where
 
 import ADP.Multi.SimpleParsers
 import ADP.Multi.Combinators
-import ADP.Multi.RewritingCombinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
 import ADP.Multi.Rewriting

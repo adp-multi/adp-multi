@@ -44,10 +44,9 @@ library
                    ADP.Multi.Rewriting.ConstraintSolver,
                    ADP.Multi.Rewriting.Explicit,
                    ADP.Multi.Rewriting.YieldSize,
-                   ADP.Multi.RewritingCombinators,
-                   ADP.Multi.RewritingCombinatorsConstraint,
                    ADP.Multi.SimpleParsers,
-                   ADP.Multi.Tabulation
+                   ADP.Multi.Tabulation,
+                   ADP.Multi.CombinatorsConstraint
   other-modules:   
                    ADP.Multi.Rewriting.MonadicCpHelper,
                    ADP.Multi.Rewriting.RangesHelper

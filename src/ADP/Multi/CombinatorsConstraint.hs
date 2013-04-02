@@ -1,8 +1,21 @@
-module ADP.Multi.RewritingCombinatorsConstraint where
+{-
+Use this set of combinators instead of ADP.Multi.Combinators to
+use a constraint solver for constructing the indices ranges.
+
+Note: This is experimental and slow.
+-} 
+module ADP.Multi.CombinatorsConstraint (
+    (<<<),(<<<|),(<<<||),
+    (~~~),(~~~|),(~~~||),
+    (>>>|),(>>>||),
+    (|||),
+    (...),
+    with
+) where
 
 import ADP.Multi.Parser
 import ADP.Multi.Rewriting
-import ADP.Multi.RewritingCombinators(rewrite)
+import ADP.Multi.Combinators hiding ((>>>|),(>>>||))
 import ADP.Multi.Rewriting.YieldSize
 import ADP.Multi.Rewriting.ConstraintSolver
 
