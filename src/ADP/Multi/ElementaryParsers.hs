@@ -3,7 +3,7 @@
 {-# LANGUAGE UndecidableInstances #-} -- needed for Parseable
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module ADP.Multi.SimpleParsers where
+module ADP.Multi.ElementaryParsers where
 
 import Data.Array
 import Data.Typeable

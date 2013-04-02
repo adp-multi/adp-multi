@@ -28,7 +28,7 @@ import Data.Typeable
 import Data.Data
 import Data.Array
 import ADP.Multi.Parser
-import ADP.Multi.SimpleParsers
+import ADP.Multi.ElementaryParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
