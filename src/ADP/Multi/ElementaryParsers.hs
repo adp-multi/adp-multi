@@ -126,7 +126,7 @@ charRightOnly c = (
                           i == j && k+1 == l && z!l == c
                         ]
                   )
-    
+       
 -- # some syntax sugar
 
 -- generic instances

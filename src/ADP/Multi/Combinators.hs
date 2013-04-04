@@ -1,6 +1,7 @@
 module ADP.Multi.Combinators (
     (<<<),(<<<|),(<<<||),
     (~~~),(~~~|),(~~~||),
+    yield1,yield2,
     (>>>|),(>>>||),
     (|||),
     (...),
@@ -43,16 +44,6 @@ to get full type-safety.
  
 
 -}
-
-
-
--- TODO use static info about min yield sizes for self-recursion
---      This is not easy to solve for indirect recursion like S -> a | aP, P -> aS | a
---      At the moment we would use S -> a | a ~~~| P and P -> a ~~~| S | a to prevent
---      endless recursion at yield size analysis. Therefore, as ~~~| isn't only used
---      for direct self-recursion, we would need to analyse the grammar in its whole to
---      detect cycles which seems impossible without creating a complete AST.
--- TODO define which grammars are not useable without a whole-grammar yield size analysis
 
 
 
@@ -138,6 +129,29 @@ infixl 7 ~~~||
                         , pr <- leftParser rest z sub 
                         ]
            )
+           
+-- wrapper combinators for manually specifiying yield sizes
+{- 
+This is useful for dependency cycles that, when resolved with ~~~| etc., would
+lead to a minimum yield size of 0 for all parsers in a production. This would lead
+to infinite recursion. Therefore the correct minimum yield size has
+to be specified manually to be able to use such productions.
+Another use case is optimization, as ~~~| always uses 0 as minimum yield size, although
+it could have been set higher in certain cases.
+-}
+yield1 :: RichParser a b -> (Int,Maybe Int) -> RichParser a b
+yield1 (_,p) (minY,maxY) =
+    (
+        ParserInfo1 {minYield=minY, maxYield=maxY},
+        p
+    )
+    
+yield2 :: RichParser a b -> (Int,Maybe Int) -> (Int,Maybe Int) -> RichParser a b
+yield2 (_,p) (minY1,maxY1) (minY2,maxY2) =
+    (
+        ParserInfo2 {minYield2=(minY1,minY2), maxYield2=(maxY1,maxY2)},
+        p
+    )
            
 infix 6 >>>|
 (>>>|) :: ([ParserInfo], [Ranges] -> Parser a b) -> Dim1 -> RichParser a b
