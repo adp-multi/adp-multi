@@ -1,12 +1,9 @@
-{-# LANGUAGE ImplicitParams #-}
-
 module ADP.Tests.TermExample where
 
 import ADP.Multi.ElementaryParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
-import ADP.Multi.Rewriting
                                  
 type Term_Algebra alphabet answer = (
   answer -> answer,
@@ -59,32 +56,34 @@ term algebra inp =
   let  
   (wrap,sym,sym1,sym2,escape,fun,single,split) = algebra
   
-  s'= wrap <<< s >>>| id
+  s'= wrap <<< s >>> id1
      
   s = tabulated $
       i |||
-      fun <<< i ~~~ '(' ~~~| a ~~~ ')' >>>| id
+      fun <<< i ~~~ '(' ~~~ a ~~~ ')' >>> id1
     
   i = tabulated $
-      sym <<< i' >>>| id
+      sym <<< i' >>> id1
       
   i' = tabulated $
-      sym1 <<< i1 ~~~| i' >>>| id |||
-      sym1 <<< i2 ~~~| i' >>>| id |||
-      sym2 <<< i1 >>>| id |||
-      sym2 <<< i2 >>>| id
+      yieldSize1 (1,Nothing) $
+      sym1 <<< i1 ~~~ i' >>> id1 |||
+      sym1 <<< i2 ~~~ i' >>> id1 |||
+      sym2 <<< i1        >>> id1 |||
+      sym2 <<< i2        >>> id1
       
   i1= tabulated $
       anycharExcept ['(', ')', ',']
       
   i2= tabulated $
-      escape <<< '\'' ~~~ '(' ~~~ '\'' >>>| id |||
-      escape <<< '\'' ~~~ ')' ~~~ '\'' >>>| id |||
-      escape <<< '\'' ~~~ ',' ~~~ '\'' >>>| id 
+      escape <<< '\'' ~~~ '(' ~~~ '\'' >>> id1 |||
+      escape <<< '\'' ~~~ ')' ~~~ '\'' >>> id1 |||
+      escape <<< '\'' ~~~ ',' ~~~ '\'' >>> id1 
   
   a = tabulated $
-      single <<< s >>>| id |||
-      split <<< s ~~~ ',' ~~~| a >>>| id
+      yieldSize1 (1,Nothing) $
+      single <<< s               >>> id1 |||
+      split  <<< s ~~~ ',' ~~~ a >>> id1
 
   z = mk inp
   tabulated = table1 z

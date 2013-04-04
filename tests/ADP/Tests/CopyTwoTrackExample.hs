@@ -6,7 +6,6 @@ import ADP.Multi.ElementaryParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
-import ADP.Multi.Rewriting
                                  
 type CopyTT_Algebra alphabet answer = (
   (EPS,EPS) -> answer,                      -- nil
@@ -41,11 +40,14 @@ copyTTGr algebra (inp1,inp2) =
   let  
   (nil,copy) = algebra
   
+  rewriteCopy :: Dim2
   rewriteCopy [a',a'',c1,c2] = ([a',c1],[a'',c2])
+  
   c = tabulated2 $
-      copy <<< 'a' ~~~ 'a' ~~~|| c >>>|| rewriteCopy |||
-      copy <<< 'b' ~~~ 'b' ~~~|| c >>>|| rewriteCopy |||
-      nil   <<< (EPS,EPS) >>>|| id2
+      yieldSize2 (0,Nothing) (0,Nothing) $
+      copy <<< 'a' ~~~ 'a' ~~~ c >>> rewriteCopy |||
+      copy <<< 'b' ~~~ 'b' ~~~ c >>> rewriteCopy |||
+      nil  <<< (EPS,EPS)         >>> id2
       
   z = mkTwoTrack inp1 inp2
   tabulated2 = table2 z

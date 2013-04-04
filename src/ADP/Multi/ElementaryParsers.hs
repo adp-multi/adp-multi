@@ -33,8 +33,8 @@ empty2 = (
                 ]
          )
 
-anychars :: RichParser a (a,a)
-anychars = (
+anychar2 :: RichParser a (a,a)
+anychar2 = (
                 ParserInfo2 {minYield2=(1,1), maxYield2=(Just 1,Just 1)},
                 \ z [i,j,k,l] -> 
                         [ (z!j, z!l) |
@@ -42,8 +42,8 @@ anychars = (
                         ]
            )
            
-chars :: Eq a => a -> a -> RichParser a (a,a)
-chars c1 c2 = (
+char2 :: Eq a => a -> a -> RichParser a (a,a)
+char2 c1 c2 = (
                   ParserInfo2 {minYield2=(1,1), maxYield2=(Just 1,Just 1)},
                   \ z [i,j,k,l] -> 
                         [ (z!j, z!l) |
@@ -90,8 +90,8 @@ string s = (
                         ]
               )
 
-strings :: Eq a => [a] -> [a] -> RichParser a ([a],[a])
-strings s1 s2 = (
+string2 :: Eq a => [a] -> [a] -> RichParser a ([a],[a])
+string2 s1 s2 = (
                   ParserInfo2 {minYield2=(length s1,length s2), maxYield2=(Just (length s1),Just (length s2))},
                   \ z [i,j,k,l] -> 
                         [ (s1,s2) |
@@ -140,7 +140,7 @@ instance Eq a => Parseable [a] a [a] where
     toParser = string
     
 instance Eq a => Parseable ([a],[a]) a ([a],[a]) where
-    toParser (s1,s2) = strings s1 s2
+    toParser (s1,s2) = string2 s1 s2
 
 -- and some specific ones for chars
 -- these can't be made generic as it would lead to `Parseable a a a` which is 
@@ -149,7 +149,7 @@ instance Parseable Char Char Char where
     toParser = char
     
 instance Parseable (Char,Char) Char (Char,Char) where
-    toParser (c1,c2) = chars c1 c2
+    toParser (c1,c2) = char2 c1 c2
            
 instance Parseable (EPS,Char) Char (EPS,Char) where
     toParser (_,c) = charRightOnly c

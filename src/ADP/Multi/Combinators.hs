@@ -1,8 +1,11 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
+
 module ADP.Multi.Combinators (
-    (<<<),(<<<|),(<<<||),
-    (~~~),(~~~|),(~~~||),
-    yield1,yield2,
-    (>>>|),(>>>||),
+    (<<<),
+    (~~~),
+    yieldSize1, yieldSize2,
+    (>>>),
     (|||),
     (...),
     with
@@ -10,9 +13,7 @@ module ADP.Multi.Combinators (
 
 import Data.Maybe
 import Data.Array
-import qualified Control.Arrow as A
 
-import ADP.Debug
 import ADP.Multi.Parser
 import ADP.Multi.Rewriting
 import ADP.Multi.Rewriting.YieldSize
@@ -56,30 +57,6 @@ infix 8 <<<
                  \ [] z subword -> map f (parser z subword)                                  
             )
 
--- special version of <<< which ignores the first parser for determining the yield sizes
--- for dim1 parsers            
-infix 8 <<<|
-(<<<|) :: Parseable p a b => (b -> c) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
-(<<<|) f parseable =
-            let (_,parser) = toParser parseable
-                info = ParserInfo1 { minYield = 0, maxYield = Nothing }
-            in (
-                 [info],
-                 \ [] z subword -> map f (parser z subword)                                  
-            )
-
--- special version of <<< which ignores the first parser for determining the yield sizes
--- for dim2 parsers                
-infix 8 <<<||
-(<<<||) :: Parseable p a b => (b -> c) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
-(<<<||) f parseable =
-            let (_,parser) = toParser parseable
-                info = ParserInfo2 { minYield2 = (0,0), maxYield2 = (Nothing,Nothing) }
-            in (
-                 [info],
-                 \ [] z subword -> map f (parser z subword)                                  
-            )
-
 infixl 7 ~~~
 (~~~) :: Parseable p a b => ([ParserInfo], [Ranges] -> Parser a (b -> c)) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
 (~~~) (infos,leftParser) parseable =
@@ -94,72 +71,32 @@ infixl 7 ~~~
                       ]
            )
                              
-     
--- special version of ~~~ which ignores the right parser for determining the yield sizes
--- this must be used for self-recursion, mutual recursion etc. There must be no cycles! 
--- I guess this only works because of laziness (ignoring the info value of toParser).
--- for 1-dim parsers 
-infixl 7 ~~~|
-(~~~|) :: Parseable p a b => ([ParserInfo], [Ranges] -> Parser a (b -> c)) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
-(~~~|) (infos,leftParser) parseable =
-        let (_,rightParser) = toParser parseable
-            info = ParserInfo1 { minYield = 0, maxYield = Nothing }
-        in (
-                info : infos,
-                \ ranges z subword -> 
-                        [ pr qr |
-                          qr <- rightParser z subword
-                        , RangeMap sub rest <- ranges
-                        , pr <- leftParser rest z sub 
-                        ]
-           )
+                
+-- | explicitily specify yield size of a parser
+-- | needed to break dependency cycles between nonterminals
+yieldSize :: ParserInfo -> RichParser a b -> RichParser a b
+yieldSize info (_,p) = (info, p)
 
--- for 2-dim parsers
-infixl 7 ~~~||
-(~~~||) :: Parseable p a b => ([ParserInfo], [Ranges] -> Parser a (b -> c)) -> p -> ([ParserInfo], [Ranges] -> Parser a c)
-(~~~||) (infos,leftParser) parseable =
-        let (_,rightParser) = toParser parseable
-            info = ParserInfo2 { minYield2 = (0,0), maxYield2 = (Nothing,Nothing) }
-        in (
-                info : infos,
-                \ ranges z subword -> 
-                        [ pr qr |
-                          qr <- rightParser z subword
-                        , RangeMap sub rest <- ranges
-                        , pr <- leftParser rest z sub 
-                        ]
-           )
-           
--- wrapper combinators for manually specifiying yield sizes
-{- 
-This is useful for dependency cycles that, when resolved with ~~~| etc., would
-lead to a minimum yield size of 0 for all parsers in a production. This would lead
-to infinite recursion. Therefore the correct minimum yield size has
-to be specified manually to be able to use such productions.
-Another use case is optimization, as ~~~| always uses 0 as minimum yield size, although
-it could have been set higher in certain cases.
--}
-yield1 :: RichParser a b -> (Int,Maybe Int) -> RichParser a b
-yield1 (_,p) (minY,maxY) =
-    (
-        ParserInfo1 {minYield=minY, maxYield=maxY},
-        p
-    )
+-- two convenience functions so that ParserInfo stays hidden
+yieldSize1 :: (Int,Maybe Int) -> RichParser a b -> RichParser a b
+yieldSize1 (minY,maxY) = 
+    yieldSize ParserInfo1 {minYield=minY, maxYield=maxY}
+
+yieldSize2 :: (Int,Maybe Int) -> (Int,Maybe Int) -> RichParser a b -> RichParser a b
+yieldSize2 (minY1,maxY1) (minY2,maxY2) = 
+    yieldSize ParserInfo2 {minYield2=(minY1,minY2), maxYield2=(maxY1,maxY2)}
+
+-- some syntax sugar to prevent having >>>| and >>>|| or similar
+class Rewritable r a b where
+    infix 6 >>>
+    (>>>) :: ([ParserInfo], [Ranges] -> Parser a b) -> r -> RichParser a b
+
+instance Rewritable Dim1 a b where
+    (>>>) = rewrite determineYieldSize1 constructRanges1
     
-yield2 :: RichParser a b -> (Int,Maybe Int) -> (Int,Maybe Int) -> RichParser a b
-yield2 (_,p) (minY1,maxY1) (minY2,maxY2) =
-    (
-        ParserInfo2 {minYield2=(minY1,minY2), maxYield2=(maxY1,maxY2)},
-        p
-    )
-           
-infix 6 >>>|
-(>>>|) :: ([ParserInfo], [Ranges] -> Parser a b) -> Dim1 -> RichParser a b
-(>>>|) = rewrite determineYieldSize1 constructRanges1
-
-infix 6 >>>||
-(>>>||) :: ([ParserInfo], [Ranges] -> Parser a b) -> Dim2 -> RichParser a b
-(>>>||) = rewrite determineYieldSize2 constructRanges2
+instance Rewritable Dim2 a b where
+    (>>>) = rewrite determineYieldSize2 constructRanges2
+          
            
 infixr 5 ||| 
 (|||) :: RichParser a b -> RichParser a b -> RichParser a b
@@ -193,7 +130,6 @@ combineMaxYields (a,b) (c,d) =
 infix  4 ...
 (...) :: RichParser a b -> ([b] -> [b]) -> RichParser a b
 (...) (info,r) h = (info, \ z subword -> h (r z subword) )
---(...) richParser h = A.second (\ r z subword -> h (r z subword) ) richParser
 
 
 type Filter a = Array Int a -> Subword -> Bool

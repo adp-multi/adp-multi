@@ -4,7 +4,6 @@ import ADP.Multi.ElementaryParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
-import ADP.Multi.Rewriting
                                  
 type Nussinov_Algebra alphabet answer = (
    EPS -> answer,                              -- nil
@@ -33,24 +32,25 @@ nussinov78 algebra inp =
   (nil,base,left,right,pair,split,h) = algebra
 
   s = tabulated $
-      nil <<< EPS >>>| id |||
-      right <<<| s ~~~ b >>>| id |||
-      split <<<| s ~~~ t >>>| id
+      yieldSize1 (0, Nothing) $
+      nil <<< EPS >>> id1 |||
+      right <<< s ~~~ b >>> id1 |||
+      split <<< s ~~~ t >>> id1
       ... h
 
   t = tabulated $
-      pair <<< 'a' ~~~| s ~~~ 'u' >>>| id |||
-      pair <<< 'u' ~~~| s ~~~ 'a' >>>| id |||
-      pair <<< 'c' ~~~| s ~~~ 'g' >>>| id |||
-      pair <<< 'g' ~~~| s ~~~ 'c' >>>| id |||
-      pair <<< 'g' ~~~| s ~~~ 'u' >>>| id |||
-      pair <<< 'u' ~~~| s ~~~ 'g' >>>| id
+      pair <<< 'a' ~~~ s ~~~ 'u' >>> id1 |||
+      pair <<< 'u' ~~~ s ~~~ 'a' >>> id1 |||
+      pair <<< 'c' ~~~ s ~~~ 'g' >>> id1 |||
+      pair <<< 'g' ~~~ s ~~~ 'c' >>> id1 |||
+      pair <<< 'g' ~~~ s ~~~ 'u' >>> id1 |||
+      pair <<< 'u' ~~~ s ~~~ 'g' >>> id1
 
   b = tabulated $
-      base <<< 'a' >>>| id |||
-      base <<< 'u' >>>| id |||
-      base <<< 'c' >>>| id |||
-      base <<< 'g' >>>| id
+      base <<< 'a' >>> id1 |||
+      base <<< 'u' >>> id1 |||
+      base <<< 'c' >>> id1 |||
+      base <<< 'g' >>> id1
   
   z = mk inp
   tabulated = table1 z

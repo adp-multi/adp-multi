@@ -14,7 +14,6 @@ import ADP.Multi.ElementaryParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
-import ADP.Multi.Rewriting
 import qualified ADP.Tests.OneStructureExample as One
 
 -- there are two answer types so that the enum algebra can be written (because data types aren't extensible)
@@ -87,17 +86,22 @@ zeroStructureTwoBackbonesGrammar algebra z =
   
   one = One.oneStructureGrammar oneStructureAlgebra z
   
+  rewriteI1, rewriteI2, rewritePT1, rewritePT2 :: Dim2
+  
   rewriteI1 [pt1,pt2,one1,one2] = ([pt1,one1],[one2,pt2])
   rewriteI2 [one1,one2] = ([one1],[one2])
   i = tabulated2 $
-      i1 <<< pt ~~~ one ~~~ one >>>|| rewriteI1 |||
-      i2 <<< one ~~~ one >>>|| rewriteI2
+      i1 <<< pt ~~~ one ~~~ one >>> rewriteI1 |||
+      i2 <<< one ~~~ one >>> rewriteI2
   
   rewritePT1 [t1,t2,i1,i2] = ([i1,t1],[t2,i2])
   rewritePT2 [h1,h2,i1,i2] = ([i1,h1],[h2,i2])
   pt = tabulated2 $
-       pt1 <<< t ~~~|| i >>>|| rewritePT1 |||
-       pt2 <<< h ~~~|| i >>>|| rewritePT2
+       yieldSize2 (1,Nothing) (1,Nothing) $
+       pt1 <<< t ~~~ i >>> rewritePT1 |||
+       pt2 <<< h ~~~ i >>> rewritePT2
+       
+  rewriteT1, rewriteT2, rewriteT3, rewriteT4, rewriteT5, rewriteT6, rewriteT7 :: Dim2
        
   rewriteT1 [one1,one2,hs11,hs12,hs21,hs22] = ([hs11,one1,hs21],[hs12,one2,hs22])
   rewriteT2 [one1,one2,g1,g2,hs1,hs2] = ([g1,one1,hs1,one2,g2],[hs2])
@@ -108,46 +112,52 @@ zeroStructureTwoBackbonesGrammar algebra z =
   rewriteT6 [one1,one2,one3,one4,g1,g2,hs11,hs12,hs21,hs22] = ([g1,one1,hs11,one2,hs21,one3,g2],[hs12,one4,hs22])
   rewriteT7 [one1,one2,one3,one4,hs11,hs12,hs21,hs22,g1,g2] = ([hs11,one1,hs21],[g1,one2,hs12,one3,hs22,one4,g2])
   t = tabulated2 $
-      t1 <<< one ~~~ one ~~~ hs ~~~ hs >>>|| rewriteT1 |||
-      t2 <<< one ~~~ one ~~~ g ~~~ hs >>>|| rewriteT2 |||
-      t3 <<< one ~~~ one ~~~ hs ~~~ g >>>|| rewriteT3 |||
-      t4 <<< one ~~~ one ~~~ one ~~~ one ~~~ g ~~~ hs ~~~ g >>>|| rewriteT4 |||
-      t5 <<< one ~~~ one ~~~ one ~~~ one ~~~ one ~~~ one ~~~ g ~~~ hs ~~~ hs ~~~ g >>>|| rewriteT5 |||
-      t6 <<< one ~~~ one ~~~ one ~~~ one ~~~ g ~~~ hs ~~~ hs >>>|| rewriteT6 |||
-      t7 <<< one ~~~ one ~~~ one ~~~ one ~~~ hs ~~~ hs ~~~ g >>>|| rewriteT7
+      t1 <<< one ~~~ one ~~~ hs ~~~ hs >>> rewriteT1 |||
+      t2 <<< one ~~~ one ~~~ g ~~~ hs >>> rewriteT2 |||
+      t3 <<< one ~~~ one ~~~ hs ~~~ g >>> rewriteT3 |||
+      t4 <<< one ~~~ one ~~~ one ~~~ one ~~~ g ~~~ hs ~~~ g >>> rewriteT4 |||
+      t5 <<< one ~~~ one ~~~ one ~~~ one ~~~ one ~~~ one ~~~ g ~~~ hs ~~~ hs ~~~ g >>> rewriteT5 |||
+      t6 <<< one ~~~ one ~~~ one ~~~ one ~~~ g ~~~ hs ~~~ hs >>> rewriteT6 |||
+      t7 <<< one ~~~ one ~~~ one ~~~ one ~~~ hs ~~~ hs ~~~ g >>> rewriteT7
+  
+  rewriteHs2, rewriteH1, rewriteG1 :: Dim2
   
   rewriteHs2 [one1,one2,h1,h2,hs1,hs2] = ([h1,one1,hs1],[hs2,one2,h2])
   hs = tabulated2 $
+       yieldSize2 (1,Nothing) (1,Nothing) $
        h |||
-       hs2 <<< one ~~~ one ~~~ h ~~~|| hs >>>|| rewriteHs2
+       hs2 <<< one ~~~ one ~~~ h ~~~ hs >>> rewriteHs2
        
   rewriteH1 [p1,p2,ub1,ub2,h1,h2] = ([p1,ub1,h1],[h2,ub2,p2])
   h = tabulated2 $
-      h1 <<< p ~~~ ub ~~~ ub ~~~|| h >>>|| rewriteH1 |||
-      h2 <<< p >>>|| id2
+      yieldSize2 (1,Nothing) (1,Nothing) $
+      h1 <<< p ~~~ ub ~~~ ub ~~~ h >>> rewriteH1 |||
+      h2 <<< p >>> id2
   
   rewriteG1 [p1,p2,one1,one2,g1,g2] = ([p1,one1,g1],[g2,one2,p2])
   g = tabulated2 $
-      g1 <<< p ~~~ one ~~~ one ~~~|| g >>>|| rewriteG1 |||
-      g2 <<< p >>>|| id2
+      yieldSize2 (1,Nothing) (1,Nothing) $
+      g1 <<< p ~~~ one ~~~ one ~~~ g >>> rewriteG1 |||
+      g2 <<< p >>> id2
   
   ub = tabulated1 $
-      ub1 <<< b ~~~| ub >>>| id |||
-      ub2 <<< EPS >>>| id
+      yieldSize1 (0,Nothing) $
+      ub1 <<< b ~~~ ub >>> id1 |||
+      ub2 <<< EPS >>> id1
   
   b = tabulated1 $
-      base <<< 'a' >>>| id |||
-      base <<< 'u' >>>| id |||
-      base <<< 'c' >>>| id |||
-      base <<< 'g' >>>| id
+      base <<< 'a' >>> id1 |||
+      base <<< 'u' >>> id1 |||
+      base <<< 'c' >>> id1 |||
+      base <<< 'g' >>> id1
       
   p = tabulated2 $
-      basepair <<< ('a', 'u') >>>|| id2 |||
-      basepair <<< ('u', 'a') >>>|| id2 |||
-      basepair <<< ('c', 'g') >>>|| id2 |||
-      basepair <<< ('g', 'c') >>>|| id2 |||
-      basepair <<< ('g', 'u') >>>|| id2 |||
-      basepair <<< ('u', 'g') >>>|| id2
+      basepair <<< ('a', 'u') >>> id2 |||
+      basepair <<< ('u', 'a') >>> id2 |||
+      basepair <<< ('c', 'g') >>> id2 |||
+      basepair <<< ('g', 'c') >>> id2 |||
+      basepair <<< ('g', 'u') >>> id2 |||
+      basepair <<< ('u', 'g') >>> id2
     
   tabulated1 = table1 z
   tabulated2 = table2 z

@@ -32,7 +32,6 @@ import ADP.Multi.ElementaryParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
-import ADP.Multi.Rewriting
                                  
 type RG_Algebra alphabet answer = (
   (EPS,EPS) -> answer,                               -- nil
@@ -214,33 +213,35 @@ rgknot algebra inp =
         ([],[k11,s11,s12,k21,s21,s22,k12,s31,s32,k22,s41,s42])
   
   s = tabulated2 $
-      nil <<< (EPS,EPS) >>>|| s1 |||
-      left <<< b ~~~|| s >>>|| s2 |||
-      pair <<< p ~~~|| s ~~~|| s >>>|| s3 |||
-      knot <<< k ~~~ k ~~~|| s ~~~|| s ~~~|| s ~~~|| s >>>|| s4 
+      yieldSize2 (0,Nothing) (0,Nothing) $
+      nil <<< (EPS,EPS) >>> s1 |||
+      left <<< b ~~~ s >>> s2 |||
+      pair <<< p ~~~ s ~~~ s >>> s3 |||
+      knot <<< k ~~~ k ~~~ s ~~~ s ~~~ s ~~~ s >>> s4 
       ... h
       
   b = tabulated2 $
-      base <<< (EPS, 'a') >>>|| s1 |||
-      base <<< (EPS, 'u') >>>|| s1 |||
-      base <<< (EPS, 'c') >>>|| s1 |||
-      base <<< (EPS, 'g') >>>|| s1
+      base <<< (EPS, 'a') >>> s1 |||
+      base <<< (EPS, 'u') >>> s1 |||
+      base <<< (EPS, 'c') >>> s1 |||
+      base <<< (EPS, 'g') >>> s1
   
   p' [c1,c2] = ([c1],[c2])
   p = tabulated2 $
-      basepair <<< ('a', 'u') >>>|| p' |||
-      basepair <<< ('u', 'a') >>>|| p' |||
-      basepair <<< ('c', 'g') >>>|| p' |||
-      basepair <<< ('g', 'c') >>>|| p' |||
-      basepair <<< ('g', 'u') >>>|| p' |||
-      basepair <<< ('u', 'g') >>>|| p'
+      basepair <<< ('a', 'u') >>> p' |||
+      basepair <<< ('u', 'a') >>> p' |||
+      basepair <<< ('c', 'g') >>> p' |||
+      basepair <<< ('g', 'c') >>> p' |||
+      basepair <<< ('g', 'u') >>> p' |||
+      basepair <<< ('u', 'g') >>> p'
   
   k1 [p1,p2,k1,k2] = ([k1,p1],[p2,k2])
   k2 [p1,p2] = ([p1],[p2])
   
   k = tabulated2 $
-      knot1 <<< p ~~~|| k >>>|| k1 |||
-      knot2 <<< p >>>|| k2
+      yieldSize2 (1,Nothing) (1,Nothing) $
+      knot1 <<< p ~~~ k >>> k1 |||
+      knot2 <<< p >>> k2
       
   z = mk inp
   tabulated1 = table1 z

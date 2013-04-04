@@ -123,24 +123,25 @@ nested algebra inp =
   (nil,left,pair,basepair,base,h) = algebra
      
   s = tabulated $
-      nil  <<< EPS >>>| id |||
-      left <<< b ~~~| s >>>| id |||
-      pair <<< p ~~~| s >>>| id
+      yieldSize1 (0,Nothing) $
+      nil  <<< EPS     >>> id1 |||
+      left <<< b ~~~ s >>> id1 |||
+      pair <<< p ~~~ s >>> id1
       ... h
   
   b = tabulated $
-      base <<< 'a' >>>| id |||
-      base <<< 'u' >>>| id |||
-      base <<< 'c' >>>| id |||
-      base <<< 'g' >>>| id
+      base <<< 'a' >>> id1 |||
+      base <<< 'u' >>> id1 |||
+      base <<< 'c' >>> id1 |||
+      base <<< 'g' >>> id1
   
   p = tabulated $
-      basepair <<< 'a' ~~~| s ~~~ 'u' >>>| id |||
-      basepair <<< 'u' ~~~| s ~~~ 'a' >>>| id |||
-      basepair <<< 'c' ~~~| s ~~~ 'g' >>>| id |||
-      basepair <<< 'g' ~~~| s ~~~ 'c' >>>| id |||
-      basepair <<< 'g' ~~~| s ~~~ 'u' >>>| id |||
-      basepair <<< 'u' ~~~| s ~~~ 'g' >>>| id
+      basepair <<< 'a' ~~~ s ~~~ 'u' >>> id1 |||
+      basepair <<< 'u' ~~~ s ~~~ 'a' >>> id1 |||
+      basepair <<< 'c' ~~~ s ~~~ 'g' >>> id1 |||
+      basepair <<< 'g' ~~~ s ~~~ 'c' >>> id1 |||
+      basepair <<< 'g' ~~~ s ~~~ 'u' >>> id1 |||
+      basepair <<< 'u' ~~~ s ~~~ 'g' >>> id1
       
   z = mk inp
   tabulated = table1 z

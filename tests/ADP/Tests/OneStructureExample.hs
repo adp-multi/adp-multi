@@ -10,7 +10,6 @@ import ADP.Multi.ElementaryParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
-import ADP.Multi.Rewriting
 
 -- TODO as in CopyExample, use separate answer type for each dimension                            
 type OneStructure_Algebra alphabet answer = (
@@ -140,15 +139,18 @@ oneStructureGrammar algebra z =
    aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) = algebra
    
   i = tabulated1 $
-      i1 <<< s >>>| id |||
-      i2 <<< t >>>| id
+      i1 <<< s >>> id1 |||
+      i2 <<< t >>> id1
+  
+  rewritePair, rewriteTStart, rewriteKnotH, rewriteKnotK, rewriteKnotL, rewriteKnotM :: Dim1
   
   rewritePair [p1,p2,s1,s2] = [p1,s1,p2,s2]
   
   s = tabulated1 $
-      nil  <<< EPS >>>| id |||
-      left <<< b ~~~| s >>>| id |||
-      pair <<< p ~~~| s ~~~| s >>>| rewritePair
+      yieldSize1 (0, Nothing) $
+      nil  <<< EPS >>> id1 |||
+      left <<< b ~~~ s >>> id1 |||
+      pair <<< p ~~~ s ~~~ s >>> rewritePair
       
   rewriteTStart [p1,p2,i,t,s] = [i,p1,t,p2,s]
   rewriteKnotH [s,i1,i2,i3,i4,x11,x12,x21,x22] = [i1,x11,i2,x21,i3,x12,i4,x22,s]
@@ -157,42 +159,47 @@ oneStructureGrammar algebra z =
   rewriteKnotM [s,i1,i2,i3,i4,i5,i6,i7,i8,x11,x12,x21,x22,x31,x32,x41,x42] =
           [i1,x11,i2,x21,i3,x31,i4,x12,i5,x41,i6,x22,i7,x32,i8,x42,s]
   t = tabulated1 $
-      tstart <<< p ~~~| i ~~~| t ~~~ s >>>| rewriteTStart |||
-      knotH <<< s ~~~| i ~~~| i ~~~| i ~~~| i ~~~ xa ~~~ xb >>>| rewriteKnotH |||
-      knotK <<< s ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~ xa ~~~ xb ~~~ xc >>>| rewriteKnotK |||
-      knotL <<< s ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~ xa ~~~ xb ~~~ xc >>>| rewriteKnotL |||
-      knotM <<< s ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~| i ~~~ xa ~~~ xb ~~~ xc ~~~ xd >>>| rewriteKnotM
+      yieldSize1 (2, Nothing) $
+      tstart <<< p ~~~ i ~~~ t ~~~ s >>> rewriteTStart |||
+      knotH <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb >>> rewriteKnotH |||
+      knotK <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb ~~~ xc >>> rewriteKnotK |||
+      knotL <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb ~~~ xc >>> rewriteKnotL |||
+      knotM <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb ~~~ xc ~~~ xd >>> rewriteKnotM
       
+  rewriteXKnot1 :: Dim2      
   rewriteXKnot1 [p1,p2,i1,i2,x1,x2] = ([p1,i1,x1],[x2,i2,p2])
+  
   xa = tabulated2 $
-      aknot1 <<< p ~~~| i ~~~| i ~~~|| xa >>>|| rewriteXKnot1 |||
-      aknot2 <<< p >>>|| id2
+      yieldSize2 (1, Nothing) (1, Nothing) $
+      aknot1 <<< p ~~~ i ~~~ i ~~~ xa >>> rewriteXKnot1 |||
+      aknot2 <<< p >>> id2
       
   xb = tabulated2 $
-      bknot1 <<< p ~~~| i ~~~| i ~~~|| xb >>>|| rewriteXKnot1 |||
-      bknot2 <<< p >>>|| id2
+      yieldSize2 (1, Nothing) (1, Nothing) $
+      bknot1 <<< p ~~~ i ~~~ i ~~~ xb >>> rewriteXKnot1 |||
+      bknot2 <<< p >>> id2
       
   xc = tabulated2 $
-      cknot1 <<< p ~~~| i ~~~| i ~~~|| xb >>>|| rewriteXKnot1 |||
-      cknot2 <<< p >>>|| id2
+      cknot1 <<< p ~~~ i ~~~ i ~~~ xb >>> rewriteXKnot1 |||
+      cknot2 <<< p >>> id2
       
   xd = tabulated2 $
-      dknot1 <<< p ~~~| i ~~~| i ~~~|| xb >>>|| rewriteXKnot1 |||
-      dknot2 <<< p >>>|| id2
+      dknot1 <<< p ~~~ i ~~~ i ~~~ xb >>> rewriteXKnot1 |||
+      dknot2 <<< p >>> id2
   
   b = tabulated1 $
-      base <<< 'a' >>>| id |||
-      base <<< 'u' >>>| id |||
-      base <<< 'c' >>>| id |||
-      base <<< 'g' >>>| id
+      base <<< 'a' >>> id1 |||
+      base <<< 'u' >>> id1 |||
+      base <<< 'c' >>> id1 |||
+      base <<< 'g' >>> id1
   
   p = tabulated2 $
-      basepair <<< ('a', 'u') >>>|| id2 |||
-      basepair <<< ('u', 'a') >>>|| id2 |||
-      basepair <<< ('c', 'g') >>>|| id2 |||
-      basepair <<< ('g', 'c') >>>|| id2 |||
-      basepair <<< ('g', 'u') >>>|| id2 |||
-      basepair <<< ('u', 'g') >>>|| id2
+      basepair <<< ('a', 'u') >>> id2 |||
+      basepair <<< ('u', 'a') >>> id2 |||
+      basepair <<< ('c', 'g') >>> id2 |||
+      basepair <<< ('g', 'c') >>> id2 |||
+      basepair <<< ('g', 'u') >>> id2 |||
+      basepair <<< ('u', 'g') >>> id2
        
   tabulated1 = table1 z
   tabulated2 = table2 z

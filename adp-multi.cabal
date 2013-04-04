@@ -58,7 +58,7 @@ test-suite MainTestSuite
                    base == 4.*,
                    array == 0.4.*,
                    containers >= 0.4 && <= 0.5,
-                   adp-multi,
+                   htrace == 0.1.*,
                    monadiccp == 0.7.*,
                    HUnit == 1.2.*,
                    QuickCheck == 2.5.*,
@@ -67,7 +67,7 @@ test-suite MainTestSuite
                    test-framework-hunit == 0.3.*,
                    random-shuffle == 0.0.4,
                    mtl >= 2.0 && < 2.2
-  hs-source-dirs:  tests
+  hs-source-dirs:  tests,src
   ghc-options:     -Wall -rtsopts
   other-modules:   
                    ADP.Combinators,
@@ -85,7 +85,6 @@ test-suite MainTestSuite
                    ADP.Tests.RGExample,
                    ADP.Tests.RGExampleDim2,
                    ADP.Tests.RGExampleStar,
-                   ADP.Tests.RIGExample,
                    ADP.Tests.TermExample,
                    ADP.Tests.ZeroStructureTwoBackbonesExample,
                    MCFG.MCFG
@@ -99,7 +98,7 @@ executable adp-multi-benchmarks
                    base == 4.*,
                    array == 0.4.*,
                    containers >= 0.4 && <= 0.5,
-                   adp-multi,
+                   htrace == 0.1.*,  
                    monadiccp == 0.7.*,
                    HUnit == 1.2.*,
                    QuickCheck == 2.5.*,
@@ -110,7 +109,8 @@ executable adp-multi-benchmarks
                    mtl >= 2.0 && < 2.2,
                    criterion == 0.6.*
   hs-source-dirs:  benchmarks,
-                   tests
+                   tests,
+                   src
   ghc-options:     -Wall -rtsopts
   main-is:         Benchmarks.hs
 
@@ -122,7 +122,7 @@ executable adp-test
                    base == 4.*,
                    array == 0.4.*,
                    containers >= 0.4 && <= 0.5,
-                   adp-multi,
+                   htrace == 0.1.*,
                    monadiccp == 0.7.*,
                    HUnit == 1.2.*,
                    QuickCheck == 2.5.*,
@@ -131,7 +131,7 @@ executable adp-test
                    test-framework-hunit == 0.3.*,
                    mtl >= 2.0 && < 2.2,
                    random-shuffle == 0.0.4
-  hs-source-dirs:  tests
+  hs-source-dirs:  tests,src
   ghc-options:     -Wall -rtsopts -O0
   main-is:         ADP/Tests/Main.hs
 

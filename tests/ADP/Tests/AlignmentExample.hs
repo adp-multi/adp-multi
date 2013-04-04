@@ -6,7 +6,6 @@ import ADP.Multi.ElementaryParsers
 import ADP.Multi.Combinators
 import ADP.Multi.Tabulation
 import ADP.Multi.Helpers
-import ADP.Multi.Rewriting
                                  
 type Alignment_Algebra alphabet answer = (
   (EPS,EPS) -> answer,                      -- nil
@@ -62,21 +61,21 @@ unit = (nil,del,ins,match,h) where
 alignmentGr :: Alignment_Algebra Char answer -> (String,String) -> [answer]
 alignmentGr _ inp | trace ("running alignmentGr on " ++ show inp) False = undefined
 alignmentGr algebra (inp1,inp2) =
-  -- These implicit parameters are used by >>>.
-  -- They were introduced to allow for exchanging the algorithms and
-  -- they were made implicit so that they don't ruin our nice syntax.
   let
-  
   (nil,del,ins,match,h) = algebra
+  
+  rewriteDel, rewriteIns, rewriteMatch :: Dim2
   
   rewriteDel [c,a1,a2] = ([c,a1],[a2])
   rewriteIns [c,a1,a2] = ([a1],[c,a2])
   rewriteMatch [c1,c2,a1,a2] = ([c1,a1],[c2,a2])
+  
   a = tabulated2 $
-      nil <<< (EPS,EPS) >>>|| id2 |||
-      del <<< anychar ~~~|| a >>>|| rewriteDel |||
-      ins <<< anychar ~~~|| a >>>|| rewriteIns |||
-      match <<< anychar ~~~ anychar ~~~|| a >>>|| rewriteMatch
+      yieldSize2 (0,Nothing) (0,Nothing) $
+      nil   <<< (EPS,EPS)                 >>> id2 |||
+      del   <<< anychar ~~~ a             >>> rewriteDel |||
+      ins   <<< anychar ~~~ a             >>> rewriteIns |||
+      match <<< anychar ~~~ anychar ~~~ a >>> rewriteMatch
       ... h
       
   z = mkTwoTrack inp1 inp2
