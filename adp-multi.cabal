@@ -107,12 +107,14 @@ executable adp-multi-benchmarks
                    test-framework-hunit == 0.3.*,
                    random-shuffle == 0.0.4,
                    mtl >= 2.0 && < 2.2,
-                   criterion == 0.6.*
+                   criterion == 0.6.*,
+                   deepseq >= 1.1.0.0
   hs-source-dirs:  benchmarks,
                    tests,
                    src
   ghc-options:     -Wall -rtsopts
   main-is:         Benchmarks.hs
+  other-modules:   Criterion.Helpers
 
 executable adp-test
   if !flag(buildTests)
