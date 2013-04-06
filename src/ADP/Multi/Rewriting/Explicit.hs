@@ -1,8 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module ADP.Multi.Rewriting.Explicit (
-        determineYieldSize1,
-        determineYieldSize2,
         constructRanges1,
         constructRanges2
 ) where

@@ -12,8 +12,6 @@ TODO It is slow as hell. Maybe it is possible to "compile" the two inequality
      see http://www.cs.washington.edu/research/constraints/solvers/cp97.html
 -}
 module ADP.Multi.Rewriting.ConstraintSolver (
-        determineYieldSize1,
-        determineYieldSize2,
         constructRanges1,
         constructRanges2
 ) where

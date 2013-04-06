@@ -3,16 +3,11 @@ module ADP.Multi.Rewriting.YieldSize where
 import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Control.Monad (liftM2)
 
 import ADP.Debug
 import ADP.Multi.Parser
 import ADP.Multi.Rewriting
-
-{-
-This module might later be re-integrated into both Rewriting implementations.
-It is unclear yet if generically determining the yield size for higher parser
-dimensions also needs a constraint solver.  
--}
 
 -- for dim1 we don't need the rewriting function to determine the yield size
 -- it's kept as argument anyway to make it more consistent
@@ -47,9 +42,7 @@ determineYieldSize2 f infos =
 combineYields :: [Info] -> Info
 combineYields = foldl (\(minY1,maxY1) (minY2,maxY2) ->
                     ( minY1+minY2
-                    , if isNothing maxY1 || isNothing maxY2 
-                      then Nothing
-                      else Just $ fromJust maxY1 + fromJust maxY2
+                    , liftM2 (+) maxY1 maxY2
                     ) ) (0,Just 0)
 
 type YieldSizes = (Int,Maybe Int) -- min and max yield sizes

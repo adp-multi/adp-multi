@@ -9,16 +9,14 @@ import Data.Array
 type Subword = [Int]
 type Parser a b = Array Int a -> Subword -> [b]
 
-data ParserInfo = ParserInfo1
-                   {
-                     minYield :: Int
-                   , maxYield :: Maybe Int
-                   }
-                | ParserInfo2
-                   {
-                     minYield2 :: (Int,Int)
-                   , maxYield2 :: (Maybe Int,Maybe Int)
-                   }
+data ParserInfo = ParserInfo1 {
+                    minYield :: Int
+                  , maxYield :: Maybe Int
+                  }
+                | ParserInfo2 {
+                    minYield2 :: (Int,Int)
+                  , maxYield2 :: (Maybe Int,Maybe Int)
+                  }
                 deriving (Eq, Show)
                    
 type RichParser a b = (ParserInfo, Parser a b)

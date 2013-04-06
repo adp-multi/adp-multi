@@ -53,7 +53,11 @@ string2' s1 s2  z [i,j,k,l] =
 string2 :: Eq a => [a] -> [a] -> RichParser a ([a],[a])
 string2 s1 s2 = 
     (
-        ParserInfo2 {minYield2=(length s1,length s2), maxYield2=(Just (length s1),Just (length s2))},
+        ParserInfo2 
+            {
+              minYield2=(length s1,length s2),
+              maxYield2=(Just (length s1),Just (length s2))
+            },
         string2' s1 s2
     ) 
 

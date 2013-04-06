@@ -28,7 +28,9 @@ class Rewritable r a b where
     (>>>) :: ([ParserInfo], [Ranges] -> Parser a b) -> r -> RichParser a b
 
 instance Rewritable Dim1 a b where
-    (>>>) = rewrite determineYieldSize1 constructRanges1
+    (>>>) (infos,p) f = 
+      (determineYieldSize1 f infos, rewrite constructRanges1 (infos,p) f)
     
 instance Rewritable Dim2 a b where
-    (>>>) = rewrite determineYieldSize2 constructRanges2
+    (>>>) (infos,p) f = 
+      (determineYieldSize2 f infos, rewrite constructRanges2 (infos,p) f)
