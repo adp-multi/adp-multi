@@ -13,7 +13,7 @@ main = defaultMain
           [
               bgroup "nussinov78 (Haskell-ADP)" (benchArray (Nuss.nussinov78' Nuss.pairmax) inputs),
               bgroup "nussinov78 (adp-multi)" (benchArray (Nuss2.nussinov78 Nuss2.pairmax) inputs),
-              bgroup "nussinov78 (ADPfusion)" (benchArray Nuss3.nussinov78 inputs)
+              bgroup "nussinov78 (ADPfusion)" (benchArray (fst . Nuss3.nussinov78) inputs)
           ]
      where
         longInp = "ggcguaggcgccgugcuuuugcuccccgcgcgcuguuuuucucgcugacuuucagcgggcggaaaagccucggccugccgccuuccaccguucauucuagagcaaacaaaaaaugucagcu"
