@@ -24,7 +24,11 @@ source-repository head
   location:  git://github.com/neothemachine/adp-multi.git
 
 Flag buildTests
-  description: Build test / benchmark executables
+  description: Build test executable
+  default: False
+
+Flag buildBenchmark
+  description: Build benchmark executable
   default: False
 
 library 
@@ -91,7 +95,7 @@ test-suite MainTestSuite
   main-is:         ADP/Tests/Suite.hs
 
 executable adp-multi-benchmarks
-  if !flag(buildTests)
+  if !flag(buildBenchmark)
     buildable: False
   else
     build-depends:   
@@ -107,6 +111,7 @@ executable adp-multi-benchmarks
                    test-framework-hunit == 0.3.*,
                    random-shuffle == 0.0.4,
                    mtl >= 2.0 && < 2.2,
+                   Nussinov78 == 0.1.0.0,
                    criterion == 0.6.*,
                    deepseq >= 1.1.0.0
   hs-source-dirs:  benchmarks,
