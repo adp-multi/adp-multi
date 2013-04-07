@@ -1,3 +1,5 @@
+NOTE: The benchmark can only be compiled with GHC 7.6 (see ADPfusion requirements)
+
 run
-> adp-multi-benchmarks -o report.html
-to get a visual benchmark report
+> adp-multi-benchmarks -o report.html -u report.csv
+to get a visual benchmark report and csv file
