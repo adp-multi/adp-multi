@@ -7,6 +7,7 @@ import qualified ADP.Tests.CopyExample as C
 import qualified ADP.Tests.OneStructureExample as One
 import qualified ADP.Tests.ZeroStructureTwoBackbonesExample as ZeroTT
 import qualified ADP.Tests.AlignmentExample as Alignment
+import qualified ADP.Tests.TreeAlignExample as TreeAlign
 import qualified ADP.Tests.TermExample as Term
 
 
@@ -25,7 +26,8 @@ main = do
         --forM_ result8 print
         --forM_ result9 print
         --forM_ result10 print
-        forM_ resultTerm putStrLn
+        --forM_ resultTerm putStrLn
+        forM_ resultTreeAlign print
         
         where
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
@@ -79,3 +81,8 @@ main = do
                 else if take 2 sym == "f_" || take 2 sym == "g_" then "$\\op{" ++ take 1 sym ++ "}_" ++ drop 2 sym ++ "$"
                 else "$" ++ sym ++ "$")
             resultTerm = term termAlg "Z:r_1(.,Z:r_1(.,Z:r_1(.,Z:r_1(.,Z:r_1(.,Z:r_1(.,\\epsilon))))))"
+            
+            tree1 = "f(f(),g(f()))"
+            tree2 = "f(f(),g())"
+            ta = TreeAlign.treeAlign (TreeAlign.treeSimilarity TreeAlign.*** TreeAlign.term)
+            resultTreeAlign = ta (tree1,tree2)
