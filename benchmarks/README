@@ -1,5 +1,8 @@
 NOTE: The benchmark can only be compiled with GHC 7.6 (see ADPfusion requirements)
 
+Also, the criterion branch from coreyoconnor is used as it uses CPU time instead of wall time.
+(https://github.com/coreyoconnor/criterion)
+
 run
 > adp-multi-benchmarks -o report.html -u report.csv
 to get a visual benchmark report and csv file

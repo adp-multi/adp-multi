@@ -6,6 +6,7 @@ import ADP.Tests.NussinovExample as Nuss2
 
 import BioInf.GAPlike as Nuss3
      
+-- TODO try to adapt ADPfusion test so that the grammar/algebra is the same
 
 -- run with -o report.html -u report.csv  
 main :: IO ()
@@ -16,7 +17,7 @@ main = defaultMain
               bgroup "nussinov78 (ADPfusion)" (benchArray (fst . Nuss3.nussinov78) inputs)
           ]
      where
-        longInp = "ggcguaggcgccgugcuuuugcuccccgcgcgcuguuuuucucgcugacuuucagcgggcggaaaagccucggccugccgccuuccaccguucauucuagagcaaacaaaaaaugucagcu"
-        veryLongInp = longInp ++ longInp
+        longInp = "ggcguaggcgccgugcuuuugcuccccgcgcgcuguuuuucucgcugacuuucagcgggcggaaaagccucggccugccgccuuccaccguucauucuag"
+        infiniteInp = cycle longInp
         
-        inputs = [ (show i, take i veryLongInp) | i <- [10,20..100] ]
+        inputs = [ (show i, take i infiniteInp) | i <- [100,200..1000] ]
