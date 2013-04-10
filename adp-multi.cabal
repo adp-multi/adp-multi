@@ -1,5 +1,5 @@
 name:           adp-multi
-version:        0.1.2
+version:        0.2.0
 cabal-version:  >= 1.8
 build-type:     Simple
 author:         Maik Riechert
