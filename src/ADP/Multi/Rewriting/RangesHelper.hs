@@ -1,3 +1,5 @@
+{-# OPTIONS_HADDOCK hide #-}
+
 -- | Helper methods used for subword construction.
 module ADP.Multi.Rewriting.RangesHelper where
 

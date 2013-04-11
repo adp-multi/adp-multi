@@ -31,6 +31,10 @@ Flag buildBenchmark
   description: Build benchmark executable
   default: False
 
+Flag DEBUG
+  description: Enable/disable debug output
+  default: False
+
 library 
   build-depends:   base == 4.*,
                    array == 0.4.*,
@@ -38,6 +42,8 @@ library
                    htrace == 0.1.*
   hs-source-dirs:   src
   ghc-options:      -Wall
+  if flag(DEBUG)
+    cpp-options: -DADPDEBUG
   exposed-modules: 
                    ADP.Debug,
                    ADP.Multi.All,
@@ -135,4 +141,6 @@ executable adp-test
                    random-shuffle == 0.0.4
   hs-source-dirs:  tests,src
   ghc-options:     -Wall -rtsopts -O0
+  if flag(DEBUG)
+    cpp-options: -DADPDEBUG
   main-is:         ADP/Tests/Main.hs

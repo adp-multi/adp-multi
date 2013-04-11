@@ -1,7 +1,13 @@
+{-# LANGUAGE CPP #-}
+
+-- | Debugging is enabled via the cabal flag /DEBUG/
 module ADP.Debug where
 
 import Debug.HTrace (htrace)
 
-trace :: [Char] -> a -> a
+trace :: String -> a -> a
+#ifdef ADPDEBUG
+trace = htrace
+#else
 trace _ b = b
---trace = htrace
+#endif
