@@ -9,7 +9,9 @@ homepage:       http://adp-multi.ruhoh.com
 copyright:      Maik Riechert, 2012
 license:        BSD3
 license-file:   LICENSE
-tested-with:    GHC==7.4.1
+tested-with:    
+                GHC==7.4.1,
+                GHC==7.6.2
 maintainer:     Maik Riechert
 category:       Algorithms, Data Structures, Bioinformatics
 synopsis:       ADP for multiple context-free languages
