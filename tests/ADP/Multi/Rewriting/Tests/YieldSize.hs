@@ -22,11 +22,11 @@ elemCount ParserInfo2{} = 2
 infoMapSize = foldl (\ count info -> count + elemCount info ) 0
 
 prop_infoMapSize (infos :: [ParserInfo]) = 
-    let infoMap = buildInfoMap infos
+    let infoMap = buildYieldSizeMap infos
     in Map.size infoMap == infoMapSize infos
     
 prop_infoMapElements (infos :: [ParserInfo]) =
-    let infoMap = buildInfoMap infos
+    let infoMap = buildYieldSizeMap infos
         reversed = reverse infos
         withIdx = zip [1..] reversed
         exists (i,ParserInfo1 {minYield=min1,maxYield=max1}) = 
@@ -40,7 +40,7 @@ prop_infoMapElements (infos :: [ParserInfo]) =
 -- calculates the value of doDetermineYieldSize2 in terms of doDetermineYieldSize1
 prop_yieldSizeDim2 (infos :: [ParserInfo]) =
     forAll (genDim2RewritingFunction infos) $ \ f ->
-    let elemInfo = buildInfoMap infos
+    let elemInfo = buildYieldSizeMap infos
         (left,right) = f (Map.keys elemInfo)
         yieldToInfo (minY,maxY) = ParserInfo1 {minYield = minY, maxYield = maxY}
         parserInfos = map (\(i,j) -> yieldToInfo $ elemInfo Map.! (i,j))
