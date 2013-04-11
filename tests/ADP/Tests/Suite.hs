@@ -28,8 +28,8 @@ main = defaultMainWithOpts
             [
                 testGroup "Property tests" [
                     testGroup "Yield size" [
-                        testProperty "map size" prop_infoMapSize,
-                        testProperty "map elements" prop_infoMapElements,
+                        testProperty "map size" prop_yieldSizeMapSize,
+                        testProperty "map elements" prop_yieldSizeMapElements,
                         testProperty "yield size" prop_yieldSizeDim2
                         ]
                     ],
