@@ -1,3 +1,4 @@
+-- | Calculates yield sizes using rewriting functions. 
 module ADP.Multi.Rewriting.YieldSize where
 
 import Data.Map (Map)

@@ -4,7 +4,7 @@ module ADP.Multi.Tabulation where
 import Data.Array
 import ADP.Multi.Parser
 
--- | two-dimensional tabulation for one-dim. parsers
+-- | Two-dimensional tabulation for one-dim. parsers
 table1' :: Array Int a -> Parser a b -> Parser a b
 table1' z q = 
     let (_,n) = bounds z
@@ -13,11 +13,11 @@ table1' z q =
                     | i <- [0..n], j <- [i..n] ]
     in \ _ [i,j] -> arr ! (i,j)
 
--- | two-dimensional tabulation for one-dim. parsers
+-- | Two-dimensional tabulation for one-dim. parsers
 table1 :: Array Int a -> RichParser a b -> RichParser a b
 table1 z (info,q) = (info, table1' z q)
 
--- | four-dimensional tabulation for two-dim. parsers
+-- | Four-dimensional tabulation for two-dim. parsers
 table2' :: Array Int a -> Parser a b -> Parser a b
 table2' z q =
     let (_,n) = bounds z
@@ -27,6 +27,6 @@ table2' z q =
                     , k <- [0..n], l <- [k..n] ]
     in \ _ [i,j,k,l] -> arr ! (i,j,k,l)
 
--- | four-dimensional tabulation for two-dim. parsers
+-- | Four-dimensional tabulation for two-dim. parsers
 table2 :: Array Int a -> RichParser a b -> RichParser a b
 table2 z (info,q) = (info, table2' z q)

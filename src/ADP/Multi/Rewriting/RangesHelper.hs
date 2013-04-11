@@ -1,3 +1,4 @@
+-- | Helper methods used for subword construction.
 module ADP.Multi.Rewriting.RangesHelper where
 
 import Control.Exception

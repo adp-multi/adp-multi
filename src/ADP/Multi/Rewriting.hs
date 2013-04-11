@@ -8,4 +8,8 @@ import ADP.Multi.Parser
 --   in a production. 
 data SubwordTree = SubwordTree Subword [SubwordTree] deriving Show
 
-type SubwordConstructionAlgorithm a = a -> [ParserInfo] -> Subword -> [SubwordTree]
+type SubwordConstructionAlgorithm a 
+    = a             -- ^ rewriting function
+   -> [ParserInfo]  -- ^ yield size info for each parser of a production
+   -> Subword       -- ^ subword for which subwords should be constructed
+   -> [SubwordTree] -- ^ constructed subwords, represented as tree

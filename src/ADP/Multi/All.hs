@@ -1,3 +1,6 @@
+-- | Convenience module to import everything except a specific
+--   rewriting combinator implementation. See "ADP.Multi.Rewriting.All"
+--   for that.
 module ADP.Multi.All (module X) where
 
 import ADP.Multi.Parser as X

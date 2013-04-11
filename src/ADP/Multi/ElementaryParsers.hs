@@ -3,6 +3,7 @@
 {-# LANGUAGE UndecidableInstances #-} -- needed for Parseable
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Elementary parsers for dimensions 1 and 2
 module ADP.Multi.ElementaryParsers (

@@ -1,6 +1,9 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+
+-- | Provides instance implementations for the >>> combinator
+--   using the /explicit/ subword construction algorithm.
 module ADP.Multi.Rewriting.Combinators where
 
 import ADP.Multi.Combinators

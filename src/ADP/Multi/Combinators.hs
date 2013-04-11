@@ -70,7 +70,7 @@ yieldSize2 (minY1,maxY1) (minY2,maxY2) =
 
 rewrite :: SubwordConstructionAlgorithm a
         -> ([ParserInfo], [SubwordTree] -> Parser b c) 
-        -> a            -- | rewriting function
+        -> a            -- ^ rewriting function
         -> Parser b c
 rewrite rangeAlg (infos,p) f z subword =
     let ranges = rangeAlg f infos subword
