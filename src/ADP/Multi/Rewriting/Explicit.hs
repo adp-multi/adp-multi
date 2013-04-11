@@ -12,11 +12,13 @@ import Data.Maybe
 import ADP.Debug
 import ADP.Multi.Parser
 import ADP.Multi.Rewriting
+import ADP.Multi.Rewriting.Model
 import ADP.Multi.Rewriting.YieldSize
 import ADP.Multi.Rewriting.RangesHelper
 
+-- TODO rename ranges to subwords
 
-constructRanges1 :: RangeConstructionAlgorithm Dim1
+constructRanges1 :: SubwordConstructionAlgorithm Dim1
 constructRanges1 _ _ b | trace ("constructRanges1 " ++ show b) False = undefined
 constructRanges1 f infos [i,j] =
         assert (i <= j) $
@@ -31,7 +33,7 @@ constructRanges1 f infos [i,j] =
            if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
            else constructRangesRec elemInfo remainingSymbols rangeDescFiltered
 
-constructRanges2 :: RangeConstructionAlgorithm Dim2
+constructRanges2 :: SubwordConstructionAlgorithm Dim2
 constructRanges2 _ _ b | trace ("constructRanges2 " ++ show b) False = undefined
 constructRanges2 f infos [i,j,k,l] =
         assert (i <= j && j <= k && k <= l) $
@@ -48,7 +50,7 @@ constructRanges2 f infos [i,j,k,l] =
 
 
 
-constructRangesRec :: InfoMap -> [(Int,ParserInfo)] -> [RangeDesc] -> [Ranges]
+constructRangesRec :: InfoMap -> [(Int,ParserInfo)] -> [RangeDesc] -> [SubwordTree]
 constructRangesRec a b c | trace ("constructRangesRec " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
 constructRangesRec _ [] [] = []
 constructRangesRec infoMap ((current,ParserInfo2 {}):rest) rangeDescs =
@@ -56,17 +58,17 @@ constructRangesRec infoMap ((current,ParserInfo2 {}):rest) rangeDescs =
             subwords = calcSubwords2 infoMap symbolLoc
         in trace ("calc subwords for dim2") $
            trace ("subwords: " ++ show subwords) $
-           [ RangeMap [i,j,k,l] restRanges |
+           [ SubwordTree [i,j,k,l] restTrees |
              (i,j,k,l) <- subwords,
              let newDescs = constructNewRangeDescs2 rangeDescs symbolLoc (i,j,k,l),
-             let restRanges = constructRangesRec infoMap rest newDescs
+             let restTrees = constructRangesRec infoMap rest newDescs
            ]
 constructRangesRec infoMap ((current,ParserInfo1 {}):rest) rangeDescs =
         let symbolLoc = findSymbol1 current rangeDescs
             subwords = calcSubwords1 infoMap symbolLoc
         in trace ("calc subwords for dim1") $
            trace ("subwords: " ++ show subwords) $
-           [ RangeMap [i,j] restRanges |
+           [ SubwordTree [i,j] restRanges |
              (i,j) <- subwords,
              let newDescs = constructNewRangeDescs1 rangeDescs symbolLoc (i,j),
              let restRanges = constructRangesRec infoMap rest newDescs

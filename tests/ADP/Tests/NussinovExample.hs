@@ -1,9 +1,7 @@
 module ADP.Tests.NussinovExample where
 
-import ADP.Multi.ElementaryParsers
-import ADP.Multi.Combinators
-import ADP.Multi.Tabulation
-import ADP.Multi.Helpers
+import ADP.Multi.All
+import ADP.Multi.Rewriting.All
                                  
 type Nussinov_Algebra alphabet answer = (
    EPS -> answer,                              -- nil

@@ -14,7 +14,7 @@ import System.Random.Shuffle
 import qualified Data.Map as Map
 
 import ADP.Multi.Parser
-import ADP.Multi.Rewriting
+import ADP.Multi.Rewriting.Model
 import ADP.Multi.Rewriting.YieldSize
 
 elemCount ParserInfo1{} = 1

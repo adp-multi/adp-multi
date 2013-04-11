@@ -20,10 +20,8 @@ In adp-multi, constants from rewriting functions (here parentheses)
 are moved to the productions.
 -}
 
-import ADP.Multi.ElementaryParsers
-import ADP.Multi.Combinators
-import ADP.Multi.Tabulation
-import ADP.Multi.Helpers
+import ADP.Multi.All
+import ADP.Multi.Rewriting.All
                  
            
 type TreeAlign_Algebra alphabet answer = (

@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
+-- | Elementary parsers for dimensions 1 and 2
 module ADP.Multi.ElementaryParsers (
     string,
     string2,
@@ -23,11 +24,6 @@ import Data.Array
 import Data.Typeable
 import Data.Data
 import ADP.Multi.Parser
-
-data EPS = EPS deriving (Eq, Show, Data, Typeable)
-
-
--- # elementary parsers for dimension 1 and 2
 
 string' :: Eq a => [a] -> Parser a [a]
 string' s z [i,j] =
@@ -60,6 +56,8 @@ string2 s1 s2 =
             },
         string2' s1 s2
     ) 
+
+data EPS = EPS deriving (Eq, Show, Data, Typeable)
 
 empty1' :: Parser a EPS
 empty1' _ [i,j] = [ EPS | i == j ]
@@ -147,9 +145,9 @@ charRightOnly c = (
                       charRightOnly' c
                   )
        
--- # some syntax sugar
+-- * some syntax sugar
 
--- generic instances
+-- ** generic instances
 instance Parseable EPS a EPS where
     toParser _ = empty1
     
@@ -162,9 +160,11 @@ instance Eq a => Parseable [a] a [a] where
 instance Eq a => Parseable ([a],[a]) a ([a],[a]) where
     toParser (s1,s2) = string2 s1 s2
 
--- and some specific ones for chars
+-- ** specific instances for chars
+
 -- these can't be made generic as it would lead to `Parseable a a a` which is 
 -- in conflict to all other instances
+
 instance Parseable Char Char Char where
     toParser = char
     

@@ -27,11 +27,8 @@ import qualified Control.Arrow as A
 import Data.Typeable
 import Data.Data
 import Data.Array
-import ADP.Multi.Parser
-import ADP.Multi.ElementaryParsers
-import ADP.Multi.Combinators
-import ADP.Multi.Tabulation
-import ADP.Multi.Helpers
+import ADP.Multi.All
+import ADP.Multi.Rewriting.All
                                  
 type RG_Algebra alphabet answer = (
   (EPS,EPS) -> answer,                               -- nil

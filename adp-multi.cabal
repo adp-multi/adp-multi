@@ -40,12 +40,16 @@ library
   ghc-options:      -Wall
   exposed-modules: 
                    ADP.Debug,
+                   ADP.Multi.All,
                    ADP.Multi.Combinators,
                    ADP.Multi.ElementaryParsers,
                    ADP.Multi.Helpers,
                    ADP.Multi.Parser,
                    ADP.Multi.Rewriting,
+                   ADP.Multi.Rewriting.All,
+                   ADP.Multi.Rewriting.Combinators,
                    ADP.Multi.Rewriting.Explicit,
+                   ADP.Multi.Rewriting.Model,
                    ADP.Multi.Rewriting.RangesHelper,
                    ADP.Multi.Rewriting.YieldSize,
                    ADP.Multi.Tabulation
@@ -68,7 +72,6 @@ test-suite MainTestSuite
   hs-source-dirs:  tests,src
   ghc-options:     -Wall -rtsopts
   other-modules:   
-                   ADP.Combinators,
                    ADP.Multi.Rewriting.Tests.YieldSize,
                    ADP.Tests.AlignmentExample,
                    ADP.Tests.CopyExample,

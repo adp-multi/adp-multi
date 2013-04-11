@@ -1,9 +1,7 @@
 module ADP.Tests.NestedExample where
 
-import ADP.Multi.ElementaryParsers
-import ADP.Multi.Combinators
-import ADP.Multi.Tabulation
-import ADP.Multi.Helpers
+import ADP.Multi.All
+import ADP.Multi.Rewriting.All
                                  
 type Nested_Algebra alphabet answer = (
   EPS -> answer,                              -- nil

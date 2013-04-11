@@ -9,11 +9,8 @@ module ADP.Tests.ZeroStructureTwoBackbonesExample where
 
 import Data.Array
 
-import ADP.Multi.Parser
-import ADP.Multi.ElementaryParsers
-import ADP.Multi.Combinators
-import ADP.Multi.Tabulation
-import ADP.Multi.Helpers
+import ADP.Multi.All
+import ADP.Multi.Rewriting.All
 import qualified ADP.Tests.OneStructureExample as One
 
 -- there are two answer types so that the enum algebra can be written (because data types aren't extensible)

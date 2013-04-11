@@ -1,13 +1,14 @@
 module ADP.Multi.Rewriting.YieldSize where
 
-import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Control.Monad (liftM2)
 
 import ADP.Debug
 import ADP.Multi.Parser
-import ADP.Multi.Rewriting
+import ADP.Multi.Rewriting.Model
+
+type YieldAnalysisAlgorithm a = a -> [ParserInfo] -> ParserInfo
 
 -- for dim1 we don't need the rewriting function to determine the yield size
 -- it's kept as argument anyway to make it more consistent

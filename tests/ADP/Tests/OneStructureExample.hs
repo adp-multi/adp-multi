@@ -5,11 +5,8 @@ module ADP.Tests.OneStructureExample where
 
 import Data.Array
 
-import ADP.Multi.Parser
-import ADP.Multi.ElementaryParsers
-import ADP.Multi.Combinators
-import ADP.Multi.Tabulation
-import ADP.Multi.Helpers
+import ADP.Multi.All
+import ADP.Multi.Rewriting.All
 
 -- TODO as in CopyExample, use separate answer type for each dimension                            
 type OneStructure_Algebra alphabet answer = (

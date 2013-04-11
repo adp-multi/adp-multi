@@ -1,11 +1,11 @@
+-- | Types for the rewriting combinator
 module ADP.Multi.Rewriting where
 
 import ADP.Multi.Parser
 
-data Ranges = RangeMap Subword [Ranges] deriving Show
+-- | Tree of subwords. Every path in a tree represents
+--   a sequence of subwords for a corresponding sequence of parsers
+--   in a production. 
+data SubwordTree = SubwordTree Subword [SubwordTree] deriving Show
 
-type YieldAnalysisAlgorithm a = a -> [ParserInfo] -> ParserInfo
-type RangeConstructionAlgorithm a = a -> [ParserInfo] -> Subword -> [Ranges]
-
-type Dim1 = [(Int, Int)] -> [(Int, Int)] 
-type Dim2 = [(Int, Int)] -> ([(Int, Int)], [(Int, Int)]) 
+type SubwordConstructionAlgorithm a = a -> [ParserInfo] -> Subword -> [SubwordTree]

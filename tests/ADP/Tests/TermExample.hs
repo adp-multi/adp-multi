@@ -1,9 +1,7 @@
 module ADP.Tests.TermExample where
 
-import ADP.Multi.ElementaryParsers
-import ADP.Multi.Combinators
-import ADP.Multi.Tabulation
-import ADP.Multi.Helpers
+import ADP.Multi.All
+import ADP.Multi.Rewriting.All
                                  
 type Term_Algebra alphabet answer = (
   answer -> answer,

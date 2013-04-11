@@ -19,10 +19,8 @@ B -> a | u | c | g
 import qualified Control.Arrow as A
 import Data.Typeable
 import Data.Data
-import ADP.Multi.ElementaryParsers
-import ADP.Multi.Combinators
-import ADP.Multi.Tabulation
-import ADP.Multi.Helpers
+import ADP.Multi.All
+import ADP.Multi.Rewriting.All
                  
               
 type RG_Algebra alphabet answer = (
