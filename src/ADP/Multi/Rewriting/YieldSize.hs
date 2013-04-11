@@ -14,7 +14,7 @@ type YieldAnalysisAlgorithm a = a -> [ParserInfo] -> ParserInfo
 -- it's kept as argument anyway to make it more consistent
 determineYieldSize1 ::  YieldAnalysisAlgorithm Dim1
 determineYieldSize1 _ infos =
-        let elemInfo = buildInfoMap infos
+        let elemInfo = buildYieldSizeMap infos
             (yieldMin,yieldMax) = combineYields (Map.elems elemInfo) 
         in ParserInfo1 { 
                 minYield = yieldMin,
@@ -23,7 +23,7 @@ determineYieldSize1 _ infos =
 
 determineYieldSize2 ::  YieldAnalysisAlgorithm Dim2
 determineYieldSize2 f infos =
-        let elemInfo = buildInfoMap infos
+        let elemInfo = buildYieldSizeMap infos
             (left,right) = f (Map.keys elemInfo)
             leftYields = map (\(i,j) -> elemInfo Map.! (i,j)) left
             rightYields = map (\(i,j) -> elemInfo Map.! (i,j)) right
@@ -34,19 +34,22 @@ determineYieldSize2 f infos =
                 maxYield2 = (leftMax,rightMax)
            }
 
-combineYields :: [Info] -> Info
+combineYields :: [YieldSize] -> YieldSize
 combineYields = foldl (\(minY1,maxY1) (minY2,maxY2) ->
                     ( minY1+minY2
                     , liftM2 (+) maxY1 maxY2
                     ) ) (0,Just 0)
 
-type YieldSizes = (Int,Maybe Int) -- min and max yield sizes
-type Info = YieldSizes -- could later be extended with more static analysis data
-type InfoMap = Map (Int,Int) Info
+-- | min and max yield size
+type YieldSize = (Int,Maybe Int)
+
+-- | Maps each parser symbol to its yield size
+--   (remember: a 2-dim parser has 2 symbols in a rewriting function)
+type YieldSizeMap = Map (Int,Int) YieldSize
 
 -- the input list is in reverse order, i.e. the first in the list is the last applied parser
-buildInfoMap :: [ParserInfo] -> InfoMap
-buildInfoMap infos =
+buildYieldSizeMap :: [ParserInfo] -> YieldSizeMap
+buildYieldSizeMap infos =
         let parserCount = length infos
             list = concatMap (\ (x,info) -> case info of
                        ParserInfo1 { minYield = minY, maxYield = maxY } ->

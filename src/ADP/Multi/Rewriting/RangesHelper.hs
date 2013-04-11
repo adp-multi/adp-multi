@@ -8,25 +8,33 @@ import Data.List (elemIndex, find)
 import qualified Data.Map as Map
 
 import ADP.Debug
+import ADP.Multi.Rewriting.Model
 import ADP.Multi.Rewriting.YieldSize
 
+-- an attempt to regain some type safety
 type Subword1 = (Int,Int)
 type Subword2 = (Int,Int,Int,Int)
 
-type RangeDesc = (Int,Int,[(Int,Int)])
+-- | List of parser symbols and a start and end index over
+--   which subwords shall be constructed.
+--   Note: RangeDesc means Range Description. I don't like
+--         that name very much, but haven't found a good alternative.
+type RangeDesc = (Int,Int,[SymbolID])
 
-findSymbol :: Int -> Int -> [RangeDesc] -> (RangeDesc,Int)
-findSymbol s idx r | trace ("findSymbol " ++ show s ++ "," ++ show idx ++ " " ++ show r) False = undefined
-findSymbol s idx rangeDesc =
-         let Just (i,j,r)  = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == idx) l') rangeDesc
+-- | Searches for the given SymbolID in a list of RangeDesc's
+--   and returns its index in the RangeDesc where it was found.  
+findSymbol :: SymbolID -> [RangeDesc] -> (RangeDesc,Int)
+findSymbol (s,idx) r | trace ("findSymbol " ++ show s ++ "," ++ show idx ++ " " ++ show r) False = undefined
+findSymbol (s,idx) rangeDesc =
+         let Just (i,j,r) = find (\(_,_,l') -> any (\(s',i') -> s' == s && i' == idx) l') rangeDesc
              Just aIdx = elemIndex (s,idx) r
          in ((i,j,r),aIdx)
 
 findSymbol1 :: Int -> [RangeDesc] -> (RangeDesc,Int)
-findSymbol1 s = findSymbol s 1
+findSymbol1 s = findSymbol (s,1)
 
 findSymbol2 :: Int -> [RangeDesc] -> ((RangeDesc,Int),(RangeDesc,Int))
-findSymbol2 s rangeDesc = (findSymbol s 1 rangeDesc, findSymbol s 2 rangeDesc)
+findSymbol2 s rangeDesc = (findSymbol (s,1) rangeDesc, findSymbol (s,2) rangeDesc)
 
 constructNewRangeDescs1 :: [RangeDesc] -> (RangeDesc,Int) -> Subword1 -> [RangeDesc]
 constructNewRangeDescs1 d p s | trace ("constructNewRangeDescs1 " ++ show d ++ " " ++ show p ++ " " ++ show s) False = undefined
@@ -98,23 +106,25 @@ processRangeDescDouble (i,j,r) a1Idx a2Idx (k,l,m,n) =
     where slice from to xs = take (to - from + 1) (drop from xs)
 
 
-infoFromPos :: InfoMap -> (RangeDesc,Int) -> Info
-infoFromPos infoMap ((_,_,r),aIdx) =
+-- | Returns the yield size of the symbol at the given index in
+--   the given RangeDesc. 
+yieldSizeOf :: YieldSizeMap -> (RangeDesc,Int) -> YieldSize
+yieldSizeOf yieldSizeMap ((_,_,r),aIdx) =
         -- TODO !! might be expensive as it's a list
-        infoMap Map.! (r !! aIdx)
+        yieldSizeMap Map.! (r !! aIdx)
 
--- calculates the combined yield size of all symbols left of the given one
-combinedInfoLeftOf :: InfoMap -> (RangeDesc,Int) -> Info
-combinedInfoLeftOf infoMap (desc,axIdx)
+-- | calculates the combined yield size of all symbols left of the given one
+combinedYieldSizeLeftOf :: YieldSizeMap -> (RangeDesc,Int) -> YieldSize
+combinedYieldSizeLeftOf yieldSizeMap (desc,axIdx)
   | axIdx == 0 = (0, Just 0)
   | otherwise =
-        let leftInfos = map (\i -> infoFromPos infoMap (desc,i)) [0..axIdx-1]
-        in combineYields leftInfos
+        let leftYieldSizes = map (\i -> yieldSizeOf yieldSizeMap (desc,i)) [0..axIdx-1]
+        in combineYields leftYieldSizes
 
--- calculates the combined yield size of all symbols right of the given one
-combinedInfoRightOf :: InfoMap -> (RangeDesc,Int) -> Info
-combinedInfoRightOf infoMap (desc@(_,_,r),axIdx)
+-- | calculates the combined yield size of all symbols right of the given one
+combinedYieldSizeRightOf :: YieldSizeMap -> (RangeDesc,Int) -> YieldSize
+combinedYieldSizeRightOf yieldSizeMap (desc@(_,_,r),axIdx)
   | axIdx == length r - 1 = (0, Just 0)
   | otherwise =
-        let rightInfos = map (\i -> infoFromPos infoMap (desc,i)) [axIdx+1..length r - 1]
-        in combineYields rightInfos
+        let rightYieldSizes = map (\i -> yieldSizeOf yieldSizeMap (desc,i)) [axIdx+1..length r - 1]
+        in combineYields rightYieldSizes

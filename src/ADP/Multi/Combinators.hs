@@ -34,10 +34,10 @@ infix 8 <<<
 seqDefer :: ([SubwordTree] -> Parser a (b -> c)) 
          -> Parser a b
          -> ([SubwordTree] -> Parser a c)
-seqDefer leftParser rightParser ranges z subword =
+seqDefer leftParser rightParser subwordTrees z subword =
       [ pr qr |
         qr <- rightParser z subword
-      , SubwordTree sub rest <- ranges
+      , SubwordTree sub rest <- subwordTrees
       , pr <- leftParser rest z sub 
       ]
 
@@ -72,11 +72,11 @@ rewrite :: SubwordConstructionAlgorithm a
         -> ([ParserInfo], [SubwordTree] -> Parser b c) 
         -> a            -- ^ rewriting function
         -> Parser b c
-rewrite rangeAlg (infos,p) f z subword =
-    let ranges = rangeAlg f infos subword
+rewrite subwordAlg (infos,p) r z subword =
+    let subwordTrees = subwordAlg r infos subword
     in [ result |
-         SubwordTree sub rest <- ranges
-       , result <- p rest z sub 
+         SubwordTree sub rest <- subwordTrees
+       , result <- p rest z sub
        ]
        
 class Rewritable r a b where

@@ -13,8 +13,8 @@ import ADP.Multi.Rewriting.Explicit
 
 instance Rewritable Dim1 a b where
     (>>>) (infos,p) f = 
-      (determineYieldSize1 f infos, rewrite constructRanges1 (infos,p) f)
+      (determineYieldSize1 f infos, rewrite constructSubwords1 (infos,p) f)
     
 instance Rewritable Dim2 a b where
     (>>>) (infos,p) f = 
-      (determineYieldSize2 f infos, rewrite constructRanges2 (infos,p) f)
+      (determineYieldSize2 f infos, rewrite constructSubwords2 (infos,p) f)
