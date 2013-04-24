@@ -85,8 +85,6 @@ test-suite MainTestSuite
                    ADP.Tests.CopyExample,
                    ADP.Tests.CopyTwoTrackExample,
                    ADP.Tests.Main,
-                   ADP.Tests.MonadicCpRegression,
-                   ADP.Tests.MonadicCpTest,
                    ADP.Tests.NestedExample,
                    ADP.Tests.Nussinov,
                    ADP.Tests.NussinovExample,
