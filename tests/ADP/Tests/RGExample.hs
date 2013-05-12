@@ -252,6 +252,7 @@ rgknot algebra inp =
       base <<< 'u' >>> id1 |||
       base <<< 'c' >>> id1 |||
       base <<< 'g' >>> id1
+      ... h
   
   p = tabulated2 $
       basepair <<< ('a', 'u') >>> id2 |||
@@ -260,6 +261,7 @@ rgknot algebra inp =
       basepair <<< ('g', 'c') >>> id2 |||
       basepair <<< ('g', 'u') >>> id2 |||
       basepair <<< ('u', 'g') >>> id2
+      ... h
   
   rewriteKnot1 :: Dim2
   rewriteKnot1 [p1,p2,k1,k2] = ([k1,p1],[p2,k2])
@@ -268,6 +270,7 @@ rgknot algebra inp =
       yieldSize2 (1,Nothing) (1,Nothing) $
       knot1 <<< p ~~~ k >>> rewriteKnot1 |||
       knot2 <<< p >>> id2
+      ... h
       
   z = mk inp
   tabulated1 = table1 z

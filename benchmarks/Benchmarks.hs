@@ -19,5 +19,4 @@ main = defaultMain
      where
         longInp = "ggcguaggcgccgugcuuuugcuccccgcgcgcuguuuuucucgcugacuuucagcgggcggaaaagccucggccugccgccuuccaccguucauucuag"
         infiniteInp = cycle longInp
-        
         inputs = [ (show i, take i infiniteInp) | i <- [100,200..1000] ]

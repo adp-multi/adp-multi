@@ -33,6 +33,10 @@ Flag buildBenchmark
   description: Build benchmark executable
   default: False
 
+Flag buildBenchmark2
+  description: Build second benchmark executable
+  default: False
+
 Flag DEBUG
   description: Enable/disable debug output
   default: False
@@ -121,6 +125,31 @@ executable adp-multi-benchmarks
                    src
   ghc-options:     -Wall -rtsopts
   main-is:         Benchmarks.hs
+  other-modules:   Criterion.Helpers
+
+executable adp-multi-benchmarks2
+  if !flag(buildBenchmark2)
+    buildable: False
+  else
+    build-depends:   
+                   base == 4.*,
+                   array == 0.4.*,
+                   containers >= 0.4 && < 0.6,
+                   htrace == 0.1.*,
+                   HUnit == 1.2.*,
+                   QuickCheck == 2.5.*,
+                   test-framework == 0.8.*,
+                   test-framework-quickcheck2 == 0.3.*,
+                   test-framework-hunit == 0.3.*,
+                   random-shuffle == 0.0.4,
+                   mtl >= 2.0 && < 2.2,
+                   criterion == 0.6.*,
+                   deepseq >= 1.1.0.0
+  hs-source-dirs:  benchmarks,
+                   tests,
+                   src
+  ghc-options:     -Wall -rtsopts
+  main-is:         Benchmarks2.hs
   other-modules:   Criterion.Helpers
 
 executable adp-test
