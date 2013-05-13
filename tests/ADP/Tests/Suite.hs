@@ -35,6 +35,7 @@ main = defaultMainWithOpts
                     ],
                 testGroup "System tests" [
                         testCase "finds all reference structures" testRgSimpleCompleteness,
+                      -- the following is commented out as it takes quite long
                       --testCase "finds pseudoknot reference structure" testRgRealPseudoknot,
                         testCase "tests associative function with max basepairs" testRgSimpleBasepairs,
                         testProperty "produces copy language" prop_copyLanguage,
@@ -53,17 +54,8 @@ main = defaultMainWithOpts
                 topt_maximum_generated_tests = Just 100
             }
        }
-                
-rg :: RG.RG_Algebra Char answer -> String -> [answer]
-rg = RG.rgknot
 
-rgDim2 :: RGDim2.RG_Algebra Char answer -> String -> [answer]
-rgDim2 = RGDim2.rgknot
-
-rgStar :: RGStar.RG_Algebra Char answer -> String -> [answer]
-rgStar = RGStar.rgknot
-
--- https://github.com/neothemachine/rna/wiki/Example
+-- checks if RG grammar produces all structures for the given sequence
 testRgSimpleCompleteness =
    let inp = "agcgu"
        referenceStructures = [
@@ -78,15 +70,15 @@ testRgSimpleCompleteness =
                 "(().)",
                 "(.())"
           ]
-       result = rg RG.prettyprint inp
+       result = RG.rgknot RG.prettyprint inp
    in do length result @?= length referenceStructures
          all (\ ([structure],_) -> structure `elem` referenceStructures) result
            @? "reference structure not found"
-           
--- https://github.com/neothemachine/rna/wiki/Example
+       
+-- checks if RG grammar determines the right optimization result  
 testRgSimpleBasepairs =
    let inp = "agcgu"
-       [maxBasepairs] = rg RG.maxBasepairs inp
+       [maxBasepairs] = RG.rgknot RG.maxBasepairs inp
    in maxBasepairs @?= 2
 
 -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
@@ -95,23 +87,24 @@ testRgRealPseudoknot =
    let inp = map toLower     "CAAUUUUCUGAAAAUUUUCAC" 
        referenceStructure  = ".(((((..[[[))))).]]]."
        referenceStructure2 = ".[[[[[..(((]]]]].)))."
-       result = rg RG.prettyprint inp
+       result = RG.rgknot RG.prettyprint inp
    in any (\ ([structure],_) -> structure == referenceStructure || structure == referenceStructure2) result
         @? "reference structure not found"
 
-smallTestSize prop = sized $ \n -> resize (round (sqrt (fromIntegral n))) prop
-
+-- checks if input sequence can be reconstructed   
 prop_copyLanguage (CopyLangString w) =
     let result = Copy.copyGr Copy.prettyprint (w ++ w)
     in result == [w ++ w]
 
+-- checks if input pair can be reconstructed
 prop_copyLanguageTT (CopyLangString w) =
     let result = CopyTT.copyTTGr CopyTT.prettyprint (w,w)
     in result == [(w,w)]
 
 -- this basically checks if the yield parser of adp-multi produces the same derivation trees
 -- as the MCFG parser by Johannes Waldmann
--- Note: the copy language grammar is unambiguous! thus, ambiguous grammars (=multiple trees) are not tested here
+-- Note: the copy language grammar is unambiguous! 
+--       thus, ambiguous grammars (=multiple trees) are not tested here
 prop_copyLanguageDerivation (CopyLangString w) =
     let [resultADP] = Copy.copyGr Copy.derivation (w ++ w)
         [resultMCFG] = MCFG.parse Copy.mcfg (map MCFG.T (w ++ w))
@@ -126,31 +119,37 @@ equivalentTrees t1 t2 =
     in rule1 == rule2 && 
        length children1 == length children2 &&
        all (\(c1,c2) -> equivalentTrees c1 c2) children
-    
+
+-- checks if input sequence can be reconstructed
 prop_nestedRna (RNAString w) =
     let results = Nested.nested Nested.prettyprint w
     in not (null results) && all (\(_,result) -> result == w) results
-    
+
+-- checks if input sequence can be reconstructed    
 prop_oneStructureRna (RNAString w) =
     let results = One.oneStructure One.prettyprint2 w
     in not (null results) && all (\[result] -> result == w) results
     
+-- checks if input sequence can be reconstructed
 prop_rgRna (RNAString w) =
-    let results = rg RG.prettyprint w
+    let results = RG.rgknot RG.prettyprint w
     in not (null results) && all (\(_,[result]) -> result == w) results
     
+-- checks if both RG grammars produce the same results
 prop_rgDim2Rna (RNAString w) =
-    let results = rgDim2 RGDim2.prettyprint w
-        resultsDim1 = rg RG.prettyprint w
+    let results = RGDim2.rgknot RGDim2.prettyprint w
+        resultsDim1 = RG.rgknot RG.prettyprint w
     in results == resultsDim1
     
+-- checks if using the string elementary parsers produces consistent results  
 prop_rgStarRna (RNAString w) =
-    let results = rgStar RGStar.prettyprint w
-        resultsRef = rg RG.prettyprint w
+    let results = RGStar.rgknot RGStar.prettyprint w
+        resultsRef = RG.rgknot RG.prettyprint w
     in results == resultsRef
 
 -- This test is a bit useless, it just shows that "something" happens.
--- TODO: as in the other tests, we would need a pretty-printing algebra 
+-- As in the other tests, we would need a pretty-printing algebra
+-- but so far no dot-bracket equivalent has been defined for RNA-RNA structures.
 prop_zeroStructureTwoBackbonesRna (RNAString w) =
     let results = ZeroTT.zeroStructureTwoBackbones ZeroTT.enum (w,w)
     in not (null results)

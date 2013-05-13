@@ -1,14 +1,12 @@
-{- This example implements the 1-structure grammar from
-   "Topology and prediction of RNA pseudoknots" by Reidys et al., 2011
--}
+-- | This example implements the 1-structure grammar from
+--   "Topology and prediction of RNA pseudoknots" by Reidys et al., 2011
 module ADP.Tests.OneStructureExample where
 
 import Data.Array
 
 import ADP.Multi.All
 import ADP.Multi.Rewriting.All
-
--- TODO as in CopyExample, use separate answer type for each dimension                            
+                          
 type OneStructure_Algebra alphabet answer = (
   EPS -> answer,                              -- nil
   answer -> answer -> answer,               -- left
@@ -53,6 +51,7 @@ enum :: OneStructure_Algebra Char T
 enum = (\_->Nil,Left',Pair,BasePair,Base,I1,I2,TStart,KnotH,KnotK,KnotL,KnotM
        ,XKnot1,XKnot2,XKnot1,XKnot2,XKnot1,XKnot2,XKnot1,XKnot2,id)
    
+-- | dot-bracket
 prettyprint :: OneStructure_Algebra Char [String]
 prettyprint = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
               ,aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) where
@@ -85,7 +84,7 @@ prettyprint = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
       
    h = id
    
--- reconstructed input
+-- | reconstructed input
 prettyprint2 :: OneStructure_Algebra Char [String]
 prettyprint2 = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
               ,aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) where
@@ -122,6 +121,7 @@ prettyprint2 = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
 {- To make the grammar reusable, its definition has been split up into the
    actual grammar which exposes the start symbol as a parser (oneStructureGrammar)
    and a convenience function which actually runs the grammar on a given input (oneStructure).
+   It is reused in ZeroStructureTwoBackbonesExample.hs
 -}
 oneStructure :: OneStructure_Algebra Char answer -> String -> [answer]
 oneStructure algebra inp =

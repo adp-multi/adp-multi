@@ -13,14 +13,14 @@ import ADP.Multi.All
 import ADP.Multi.Rewriting.All
 import qualified ADP.Tests.OneStructureExample as One
 
--- there are two answer types so that the enum algebra can be written (because data types aren't extensible)
+-- there are two answer types so that the enum algebra can be written (because ADTs aren't extensible)
 -- for algebras with numeric answer types it wouldn't matter and we'd only need one type 
 type ZeroStructureTwoBackbones_Algebra alphabet answerOne answer = (
   One.OneStructure_Algebra alphabet answerOne,
-  answer    -> answerOne -> answerOne -> answer,       -- i1
-  answerOne -> answerOne -> answer,                 -- i2
-  answer -> answer -> answer,                 -- pt1
-  answer -> answer -> answer,                 -- pt2
+  answer    -> answerOne -> answerOne -> answer,        -- i1
+  answerOne -> answerOne -> answer,                     -- i2
+  answer -> answer -> answer,                           -- pt1
+  answer -> answer -> answer,                           -- pt2
   answerOne -> answerOne -> answer -> answer -> answer, -- t1
   answerOne -> answerOne -> answer -> answer -> answer, -- t2
   answerOne -> answerOne -> answer -> answer -> answer, -- t3
@@ -30,14 +30,14 @@ type ZeroStructureTwoBackbones_Algebra alphabet answerOne answer = (
   answerOne -> answerOne -> answerOne -> answerOne -> answer -> answer -> answer -> answer, -- t7
   answerOne -> answerOne -> answer -> answer -> answer, -- hs2
   answer -> answer -> answer -> answer -> answer,       -- h1
-  answer -> answer,                 -- h2
-  answer -> answerOne -> answerOne -> answer -> answer,       -- g1
-  answer -> answer,                         -- g2
-  answer -> answer -> answer,               -- ub1
-  EPS -> answer,                            -- ub2
-  alphabet -> answer,                         -- base
-  (alphabet, alphabet) -> answer,             -- basepair
-  [answer] -> [answer]                        -- h
+  answer -> answer,                                     -- h2
+  answer -> answerOne -> answerOne -> answer -> answer, -- g1
+  answer -> answer,                                     -- g2
+  answer -> answer -> answer,                           -- ub1
+  EPS -> answer,                                        -- ub2
+  alphabet -> answer,                                   -- base
+  (alphabet, alphabet) -> answer,                       -- basepair
+  [answer] -> [answer]                                  -- h
   )
 
 data T = OneStructure One.T
@@ -67,8 +67,8 @@ enum :: ZeroStructureTwoBackbones_Algebra Char One.T T
 enum = (One.enum,I1,I2,PT1,PT2,T1,T2,T3,T4,T5,T6,T7,Hs2,H1,H2,G1,G2,Ub1,\_->Ub2,Base,BasePair,id)
 
 {- To make the grammar reusable, its definition has been split up into the
-   actual grammar which exposes the start symbol as a parser (oneStructureGrammar)
-   and a convenience function which actually runs the grammar on a given input (oneStructure).
+   actual grammar which exposes the start symbol as a parser (zeroStructureTwoBackbonesGrammar)
+   and a convenience function which actually runs the grammar on a given input (zeroStructureTwoBackbones).
 -}
 zeroStructureTwoBackbones :: ZeroStructureTwoBackbones_Algebra Char answerOne answer -> (String,String) -> [answer]
 zeroStructureTwoBackbones algebra (inp1,inp2) =
@@ -109,9 +109,9 @@ zeroStructureTwoBackbonesGrammar algebra z =
   rewriteT6 [one1,one2,one3,one4,g1,g2,hs11,hs12,hs21,hs22] = ([g1,one1,hs11,one2,hs21,one3,g2],[hs12,one4,hs22])
   rewriteT7 [one1,one2,one3,one4,hs11,hs12,hs21,hs22,g1,g2] = ([hs11,one1,hs21],[g1,one2,hs12,one3,hs22,one4,g2])
   t = tabulated2 $
-      t1 <<< one ~~~ one ~~~ hs ~~~ hs >>> rewriteT1 |||
-      t2 <<< one ~~~ one ~~~ g ~~~ hs >>> rewriteT2 |||
-      t3 <<< one ~~~ one ~~~ hs ~~~ g >>> rewriteT3 |||
+      t1 <<< one ~~~ one ~~~ hs  ~~~ hs >>> rewriteT1 |||
+      t2 <<< one ~~~ one ~~~ g   ~~~ hs >>> rewriteT2 |||
+      t3 <<< one ~~~ one ~~~ hs  ~~~ g  >>> rewriteT3 |||
       t4 <<< one ~~~ one ~~~ one ~~~ one ~~~ g ~~~ hs ~~~ g >>> rewriteT4 |||
       t5 <<< one ~~~ one ~~~ one ~~~ one ~~~ one ~~~ one ~~~ g ~~~ hs ~~~ hs ~~~ g >>> rewriteT5 |||
       t6 <<< one ~~~ one ~~~ one ~~~ one ~~~ g ~~~ hs ~~~ hs >>> rewriteT6 |||

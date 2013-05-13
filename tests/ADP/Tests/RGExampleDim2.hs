@@ -1,29 +1,11 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
 {-
-Example using the Reeder&Giegerich class of pseudoknots.
-
-The grammar was taken from:
-
-Markus E. Nebel and Frank Weinberg. Algebraic and Combinatorial Properties of Common
-RNA Pseudoknot Classes with Applications. (submitted), 2012.
-
-The original algorithm (not in grammar form) can be found in:
-
-Jens Reeder and Robert Giegerich. Design, implementation and evaluation of a practical
-pseudoknot folding algorithm based on thermodynamics. BMC Bioinformatics, 5:104, 2004.
+The same as RGExample.hs but all 1-dim nonterminals are encoded
+as 2-dim nonterminals.
 -}
 module ADP.Tests.RGExampleDim2 where
 
-{-
-S -> € | BS | P_1 S P_2 S | K_1^1 S K_1^2 S K_2^1 S K_2^2 S
-[K_1,K_2] -> [K_1 P_1, P_2 K_2] | [P_1, P_2]
-[P_1,P_2] -> [a,u] | [u,a] | [g,c] | [c,g] | [g,u] | [u,g]
-B -> a | u | c | g
--}
-
-import Data.Array (bounds)
-import qualified Control.Arrow as A
 import Data.Typeable
 import Data.Data
 import Data.Array
@@ -47,23 +29,7 @@ infixl ***
 alg1 *** alg2 = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    (nil',left',pair',knot',knot1',knot2',basepair',base',h') = alg1
    (nil'',left'',pair'',knot'',knot1'',knot2'',basepair'',base'',h'') = alg2
-   
-   nil = nil' A.&&& nil''
-   left b s = (left', left'') **** b **** s
-   pair p s1 s2 = (pair', pair'') **** p **** s1 **** s2
-   knot k1 k2 s1 s2 s3 s4 = (knot', knot'') **** k1 **** k2 **** s1 **** s2 **** s3 **** s4
-   knot1 p k = (knot1', knot1'') **** p **** k
-   knot2 p = (knot2', knot2'') **** p
-   basepair = basepair' A.&&& basepair''
-   base = base' A.&&& base''
-   h xs = [ (x1,x2) |
-            x1 <- h'  [ y1 | (y1,_)  <- xs]
-          , x2 <- h'' [ y2 | (y1,y2) <- xs, y1 == x1]
-          ]
 
-   (****) = uncurry (A.***)
-
-{-
    nil a = (nil' a, nil'' a)
    left (b1,b2) (s1,s2) = (left' b1 s1, left'' b2 s2)
    pair (p1,p2) (s11,s21) (s12,s22) = (pair' p1 s11 s12, pair'' p2 s21 s22)
@@ -77,7 +43,7 @@ alg1 *** alg2 = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
             x1 <- h'  [ y1 | (y1,_)  <- xs]
           , x2 <- h'' [ y2 | (y1,y2) <- xs, y1 == x1]
           ]
--}
+
 
 -- This data type is used only for the enum algebra.
 -- The type allows invalid trees which would be impossible to build
@@ -241,7 +207,6 @@ rgknot algebra inp =
       knot2 <<< p >>> k2
       
   z = mk inp
-  tabulated1 = table1 z
   tabulated2 = table2 z
   
   axiom' :: Array Int a -> RichParser a b -> [b]

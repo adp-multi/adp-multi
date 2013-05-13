@@ -15,9 +15,7 @@ data Start = Nil
            deriving (Eq, Show)
 
 enum :: CopyTT_Algebra Char Start
-enum = (nil,copy) where
-   nil _ = Nil
-   copy  = Copy
+enum = (\_-> Nil,Copy)
    
 prettyprint :: CopyTT_Algebra Char (String,String)
 prettyprint = (nil,copy) where

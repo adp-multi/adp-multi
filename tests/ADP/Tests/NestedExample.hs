@@ -1,3 +1,4 @@
+-- | Grammar for all pseudoknot-free RNA secondary structures 
 module ADP.Tests.NestedExample where
 
 import ADP.Multi.All
@@ -11,16 +12,6 @@ type Nested_Algebra alphabet answer = (
   alphabet -> answer,                         -- base
   [answer] -> [answer]                        -- h
   )
-
--- test using record syntax
-data NestedAlgebra alphabet answer = NestedAlgebra {
-  nil :: EPS -> answer,          
-  left :: answer -> answer -> answer,
-  pair :: answer -> answer -> answer,
-  basepair :: alphabet -> answer -> alphabet -> answer,
-  base :: alphabet -> answer,
-  h :: [answer] -> [answer]
-  }
   
 infixl ***
 (***) :: (Eq b, Eq c) => Nested_Algebra a b -> Nested_Algebra a c -> Nested_Algebra a (b,c)
@@ -38,7 +29,6 @@ alg1 *** alg2 = (nil,left,pair,basepair,base,h) where
           , x2 <- h'' [ y2 | (y1,y2) <- xs, y1 == x1]
           ]
 
-
 data Start = Nil
            | Left' Start Start
            | Pair Start Start
@@ -46,25 +36,8 @@ data Start = Nil
            | Base Char
            deriving (Eq, Show)
 
--- without consistency checks
 enum :: Nested_Algebra Char Start
-enum = (nil,left,pair,basepair,base,h) where
-   nil _     = Nil
-   left      = Left'
-   pair      = Pair 
-   basepair  = BasePair
-   base      = Base
-   h         = id 
-   
-enum' :: NestedAlgebra Char Start
-enum' = NestedAlgebra {
-   nil       = \ _ -> Nil, -- hmm, this sucks
-   left      = Left',
-   pair      = Pair,
-   basepair  = BasePair,
-   base      = Base,
-   h         = id
-   }
+enum = (\_-> Nil,Left',Pair,BasePair,Base,id)
    
 maxBasepairs :: Nested_Algebra Char Int
 maxBasepairs = (nil,left,pair,basepair,base,h) where
@@ -76,7 +49,7 @@ maxBasepairs = (nil,left,pair,basepair,base,h) where
    h []             = []
    h xs             = [maximum xs]
 
--- The left part is the structure and the right part the reconstructed input.
+-- | left part = dot-bracket; right part = reconstructed input
 prettyprint :: Nested_Algebra Char (String,String)
 prettyprint = (nil,left,pair,basepair,base,h) where
    nil _ = ("","")
@@ -85,7 +58,8 @@ prettyprint = (nil,left,pair,basepair,base,h) where
    basepair b1 (sl,sr) b2 = ("(" ++ sl ++ ")", [b1] ++ sr ++ [b2])
    base b = (".", [b])
    h = id
-   
+
+-- | PSTricks trees using some custom macros 
 pstree :: Nested_Algebra Char String
 pstree = (nil,left,pair,basepair,base,h) where
    nil _ = "\\emptyword"
@@ -96,7 +70,8 @@ pstree = (nil,left,pair,basepair,base,h) where
    h = id
    
    nonterm sym tree = "\\pstree{\\nonterminal{" ++ sym ++ "}}{" ++ tree ++ "}"
-   
+
+-- | terms in tex math 
 term :: Nested_Algebra Char String
 term = (nil,left,pair,basepair,base,h) where
    nil _ = "\\op{f}_3()"
@@ -105,7 +80,8 @@ term = (nil,left,pair,basepair,base,h) where
    basepair b1 s b2 = "\\op{f}_4(" ++ [b1] ++ "," ++ s ++ "," ++ [b2] ++ ")"
    base b = "\\op{f}_5(" ++ [b] ++ ")"
    h = id
-   
+
+-- | plain terms without markup 
 termPlain :: Nested_Algebra Char String
 termPlain = (nil,left,pair,basepair,base,h) where
    nil _ = "f_3"

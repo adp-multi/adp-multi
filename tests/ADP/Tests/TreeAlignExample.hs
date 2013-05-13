@@ -1,3 +1,4 @@
+-- | Alignment of trees / terms
 module ADP.Tests.TreeAlignExample where
 
 {-
@@ -16,7 +17,7 @@ r2(l,(x1,x2))       = (x1,l(x2))
 r3()                = (,)
 r4((x1,x2),(x3,x4)) = ( x1,x3 , x2,x4 )
 
-In adp-multi, constants from rewriting functions (here parentheses)
+In adp-multi, terminals in rewriting functions (here parentheses)
 are moved to the productions.
 -}
 

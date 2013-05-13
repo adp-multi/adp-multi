@@ -1,3 +1,5 @@
+-- | A little thesis helper which parses plain terms and
+--   returns them in various tex formats. 
 module ADP.Tests.TermExample where
 
 import ADP.Multi.All
@@ -36,7 +38,7 @@ tikztree = (wrap,sym,sym1,sym2,escape,fun,single,split) where
    single s = "child{" ++ s ++ "}" 
    split s _ a = "child{" ++ s ++ "}" ++ a
    
-qtree :: (String -> String) -- custom symbol formatting 
+qtree :: (String -> String) -- custom symbol formatting, see Main.hs 
          -> Term_Algebra Char String
 qtree format = (wrap,sym,sym1,sym2,escape,fun,single,split) where
    wrap s = "\\Tree " ++ s 

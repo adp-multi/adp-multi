@@ -1,12 +1,14 @@
-// the following code is used in out_main.cc for measuring CPU time of gapc programs
+// the following code must be merged into the generated out_main.cc file
+// for measuring CPU time of gapc programs
+
 // the function getCPUTime() is defined here: 
 // http://nadeausoftware.com/articles/2012/03/c_c_tip_how_measure_cpu_time_benchmarking
 
-// the program is run with:
+// the program can be run with:
 // ./out "ggcguaggcgccgugcuuuugcuccccgcgcgcuguuuuucucgcugacuuucagcgggcggaaaagccucggccugccgccuuccaccguucauucuag"   for 100 input length
 // ./out `printf "ggcguaggcgccgugcuuuugcuccccgcgcgcuguuuuucucgcugacuuucagcgggcggaaaagccucggccugccgccuuccaccguucauucuag"%.0s {1..2}`   for 200 input length
 // ./out `printf "ggcguaggcgccgugcuuuugcuccccgcgcgcuguuuuucucgcugacuuucagcgggcggaaaagccucggccugccgccuuccaccguucauucuag"%.0s {1..3}`   for 300 input length etc.
-// the inputs are equal to those in Benchmark.hs
+// the inputs are equal to those in Benchmarks.hs
 
 ...
 #include "getCPUTime.c"

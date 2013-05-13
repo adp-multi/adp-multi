@@ -1,4 +1,4 @@
-NOTE: The benchmark can only be compiled with GHC 7.6 (see ADPfusion requirements)
+NOTE: The main benchmark (Benchmarks.hs) can only be compiled with GHC 7.6 (see ADPfusion requirements)
 
 Also, the criterion branch from coreyoconnor is used as it uses CPU time instead of wall time.
 (https://github.com/coreyoconnor/criterion)
@@ -6,3 +6,11 @@ Also, the criterion branch from coreyoconnor is used as it uses CPU time instead
 run
 > adp-multi-benchmarks -o report.html -u report.csv
 to get a visual benchmark report and csv file
+
+For the GAPC benchmarks the nussinov.gap file was used as input and the generated
+C++ code was then slightly modified to allow for benchmarking. See gapc_main.cc.
+Note that the GAP grammar for Nussinov looks slightly different than the Haskell-ADP and
+adp-multi grammars. This is because GAPC only allows some fixed terminal parsers, in this
+case CHAR, instead of char 'a' etc. Due to this, the filtering mechanism has to be used
+to parse matching base pairs. The same applies to the Nussinov grammar for
+ADPfusion, see http://hackage.haskell.org/package/Nussinov78.

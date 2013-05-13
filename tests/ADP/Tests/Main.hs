@@ -10,6 +10,8 @@ import qualified ADP.Tests.AlignmentExample as Alignment
 import qualified ADP.Tests.TreeAlignExample as TreeAlign
 import qualified ADP.Tests.TermExample as Term
 
+-- this file shows the usage of all the test grammars and can be
+-- used for quick tests
 
 main::IO()
 main = do

@@ -1,9 +1,10 @@
-This file uses original ADP combinators and functions from:
+This file uses original Haskell-ADP combinators and functions from:
 
 R. Giegerich, C. Meyer and P. Steffen. Towards a discipline of dynamic
 programming.
 
-It is here to serve as comparison to adp-multi (atm for benchmarking purposes)
+It is here to serve as comparison to adp-multi (for benchmarking purposes)
+See NestedExample.hs for the equivalent adp-multi grammar.
 
 > module ADP.Tests.Nussinov where
 
@@ -18,7 +19,7 @@ The signature:
 >                Right' Pairing Char    |
 >                Pair Char Pairing Char |
 >                Split Pairing Pairing
->                                      deriving (Eq, Show)
+>                deriving (Eq, Show)
 
 Algebra type:
 
@@ -91,6 +92,42 @@ Algebra product operation:
 >                     x2 <-       h2 [ y2 | (y1,y2) <- xs, y1 == x1]]
 
 
+Variant used for benchmarking (see /benchmarks/Benchmarks.hs):
+
+> nussinov78' :: Nussinov_Algebra Char answer -> String -> [answer]
+> nussinov78' alg inp = axiom s where
+>   (nil,left,right,pair,split,h) = alg
+
+>   s = tabulated (
+>         nil <<< empty |||
+>         left <<< b -~~ s |||
+>         split <<< p +~~ s  ... h
+>       )
+
+>   p = tabulated $
+>       pair <<< char 'a' -~~ s ~~- char 'u' |||
+>       pair <<< char 'u' -~~ s ~~- char 'a' |||
+>       pair <<< char 'c' -~~ s ~~- char 'g' |||
+>       pair <<< char 'g' -~~ s ~~- char 'c' |||
+>       pair <<< char 'g' -~~ s ~~- char 'u' |||
+>       pair <<< char 'u' -~~ s ~~- char 'g'
+
+>   b = tabulated $
+>       char 'a' |||
+>       char 'u' |||
+>       char 'c' |||
+>       char 'g'
+
+Bind input:
+
+>   z         = mk inp
+>   (_,n)     = bounds z
+
+>   char      = char' z
+>   tabulated = table n
+>   axiom     = axiom' n
+
+
 Nussinov's original grammar:
 
 > nussinov78 :: Nussinov_Algebra Char answer -> String -> [answer]
@@ -119,40 +156,6 @@ Bind input:
 >   basepairing :: Filter
 >   basepairing  = match inp
 >   match  inp (i,j) = i+1<j && basepair (z!(i+1), z!(j))
-
-> nussinov78' :: Nussinov_Algebra Char answer -> String -> [answer]
-> nussinov78' alg inp = axiom s where
->   (nil,left,right,pair,split,h) = alg
-
->   s = tabulated (
->         nil <<< empty |||
->         right <<< s ~~- b |||
->         split <<< s ~~+ t  ... h
->       )
-
->   t = tabulated $
->       pair <<< char 'a' -~~ s ~~- char 'u' |||
->       pair <<< char 'u' -~~ s ~~- char 'a' |||
->       pair <<< char 'c' -~~ s ~~- char 'g' |||
->       pair <<< char 'g' -~~ s ~~- char 'c' |||
->       pair <<< char 'g' -~~ s ~~- char 'u' |||
->       pair <<< char 'u' -~~ s ~~- char 'g'
-
->   b = tabulated $
->       char 'a' |||
->       char 'u' |||
->       char 'c' |||
->       char 'g'
-
-Bind input:
-
->   z         = mk inp
->   (_,n)     = bounds z
-
->   char      = char' z
->   tabulated = table n
->   axiom     = axiom' n
-
 
 Durbin's variant of nussinov78
 

@@ -1,10 +1,9 @@
-
-module MCFG.MCFG where
-
 -- | multiple context free grammar,
 -- with CYK table parser. (Johannes Waldmann, HTWK Leipzig)
 
--- Note (Maik): it is actually an Unger-style parser, or: top-down memoizing dynamic programming algorithm
+-- Note (Maik): it is actually an Unger-style parser,
+--              or: top-down memoizing dynamic programming algorithm
+module MCFG.MCFG where
 
 import qualified Data.Map as M
 import Control.Monad.State.Strict

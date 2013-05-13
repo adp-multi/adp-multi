@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 {-
 This example is a copy of RGExample with the difference that
 (A^*)^i is used in the signature instead of just A or (A,A).
@@ -24,14 +22,14 @@ import ADP.Multi.Rewriting.All
                  
               
 type RG_Algebra alphabet answer = (
-  [alphabet] -> answer,                               -- nil
+  [alphabet] -> answer,                       -- nil
   answer   -> answer -> answer,               -- left
   answer   -> answer -> answer -> answer,     -- pair
   answer   -> answer -> answer -> answer -> answer -> answer -> answer, -- knot
   answer   -> answer -> answer,               -- knot1
   answer   -> answer,                         -- knot2
-  ([alphabet], [alphabet]) -> answer,             -- basepair
-  [alphabet] -> answer,                  -- base
+  ([alphabet], [alphabet]) -> answer,         -- basepair
+  [alphabet] -> answer,                       -- base
   [answer] -> [answer]                        -- h
   )
   
@@ -41,20 +39,19 @@ alg1 *** alg2 = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    (nil',left',pair',knot',knot1',knot2',basepair',base',h') = alg1
    (nil'',left'',pair'',knot'',knot1'',knot2'',basepair'',base'',h'') = alg2
    
-   nil = nil' A.&&& nil''
-   left b s = (left', left'') **** b **** s
-   pair p s1 s2 = (pair', pair'') **** p **** s1 **** s2
-   knot k1 k2 s1 s2 s3 s4 = (knot', knot'') **** k1 **** k2 **** s1 **** s2 **** s3 **** s4
-   knot1 p k = (knot1', knot1'') **** p **** k
-   knot2 p = (knot2', knot2'') **** p
-   basepair = basepair' A.&&& basepair''
-   base = base' A.&&& base''
+   nil a = (nil' a, nil'' a)
+   left (b1,b2) (s1,s2) = (left' b1 s1, left'' b2 s2)
+   pair (p1,p2) (s11,s21) (s12,s22) = (pair' p1 s11 s12, pair'' p2 s21 s22)
+   knot (k11,k21) (k12,k22) (s11,s21) (s12,s22) (s13,s23) (s14,s24) =
+        (knot' k11 k12 s11 s12 s13 s14, knot'' k21 k22 s21 s22 s23 s24)
+   knot1 (p1,p2) (k1,k2) = (knot1' p1 k1, knot1'' p2 k2)
+   knot2 (p1,p2) = (knot2' p1, knot2'' p2)
+   basepair a = (basepair' a,  basepair'' a)
+   base a = (base' a, base'' a)
    h xs = [ (x1,x2) |
             x1 <- h'  [ y1 | (y1,_)  <- xs]
           , x2 <- h'' [ y2 | (y1,y2) <- xs, y1 == x1]
           ]
-
-   (****) = uncurry (A.***)
 
 data Start = Nil
            | Left' Start Start
@@ -64,20 +61,10 @@ data Start = Nil
            | Knot2 Start
            | BasePair (String, String)
            | Base String
-           deriving (Eq, Show, Data, Typeable)
+           deriving (Eq, Show)
 
--- without consistency checks
 enum :: RG_Algebra Char Start
-enum = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
-   nil _     = Nil
-   left      = Left'
-   pair      = Pair 
-   knot      = Knot 
-   knot1     = Knot1 
-   knot2     = Knot2
-   basepair  = BasePair
-   base      = Base
-   h         = id 
+enum = (\_->Nil,Left',Pair,Knot,Knot1,Knot2,BasePair,Base,id)
 
 maxBasepairs :: RG_Algebra Char Int
 maxBasepairs = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
@@ -137,42 +124,7 @@ prettyprint = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    h = id
    
    square l r = (map (const '[') l, map (const ']') r)
-   
-pstree :: RG_Algebra Char String
-pstree = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
-    nil _ = "\\function{(\\op{f}_3,\\op{r}_0)}"
-    left b s = "\\pstree{\\function{(\\op{f}_1,\\op{r}_1)}}{" ++ b ++ s ++ "}"
-    pair p s1 s2 = "\\pstree{\\function{(\\op{f}_2,\\op{r}_2})}{" ++ p ++ s1 ++ s2 ++ "}"
-    knot k1 k2 s1 s2 s3 s4 = "\\pstree{\\function{(\\op{f}_4,\\op{r}_3)}}{" ++ k1 ++ k2 ++ s1 ++ s2 ++ s3 ++ s4 ++ "}"
-    knot1 p k = "\\pstree{\\function{(\\op{f}_5,\\op{r}_4})}{" ++ k ++ p ++ "}"
-    knot2 p = "\\pstree{\\function{(\\op{f}_6,\\op{id})}}{" ++ p ++ "}"
-    basepair (p1,p2) = "\\pstree{\\function{(\\op{f}_7,\\op{id})}}{\\terminalvec{" ++ p1 ++ "}{" ++ p2 ++ "}}"
-    base b = "\\pstree{\\function{(\\op{f}_8,\\op{id})}}{\\terminal{" ++ b ++ "}}"
-    h = id
-    
-pstreeYield :: RG_Algebra Char String
-pstreeYield = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
-    nil _ = "\\function{\\op{r}_0}"
-    left b s = "\\pstree{\\function{\\op{r}_1}}{" ++ b ++ s ++ "}"
-    pair p s1 s2 = "\\pstree{\\function{\\op{r}_2}}{" ++ p ++ s1 ++ s2 ++ "}"
-    knot k1 k2 s1 s2 s3 s4 = "\\pstree{\\function{\\op{r}_3}}{" ++ k1 ++ k2 ++ s1 ++ s2 ++ s3 ++ s4 ++ "}"
-    knot1 p k = "\\pstree{\\function{\\op{r}_4}}{" ++ k ++ p ++ "}"
-    knot2 p = "\\pstree{\\function{\\op{id}}}{" ++ p ++ "}"
-    basepair (p1,p2) = "\\pstree{\\function{\\op{id}}}{\\terminalvec{" ++ p1 ++ "}{" ++ p2 ++ "}}"
-    base b = "\\pstree{\\function{\\op{id}}}{\\terminal{" ++ b ++ "}}"
-    h = id
-    
-pstreeEval :: RG_Algebra Char String
-pstreeEval = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
-    nil _ = "\\function{\\op{f}_3}"
-    left b s = "\\pstree{\\function{\\op{f}_1}}{" ++ b ++ s ++ "}"
-    pair p s1 s2 = "\\pstree{\\function{\\op{f}_2})}{" ++ p ++ s1 ++ s2 ++ "}"
-    knot k1 k2 s1 s2 s3 s4 = "\\pstree{\\function{\\op{f}_4}}{" ++ k1 ++ k2 ++ s1 ++ s2 ++ s3 ++ s4 ++ "}"
-    knot1 p k = "\\pstree{\\function{\\op{f}_5}}{" ++ k ++ p ++ "}"
-    knot2 p = "\\pstree{\\function{\\op{f}_6}}{" ++ p ++ "}"
-    basepair (p1,p2) = "\\pstree{\\function{\\op{f}_7}}{\\terminalvec{" ++ p1 ++ "}{" ++ p2 ++ "}}"
-    base b = "\\pstree{\\function{\\op{f}_8}}{\\terminal{" ++ b ++ "}}"
-    h = id
+
    
 rgknot :: RG_Algebra Char answer -> String -> [answer]
 rgknot algebra inp =

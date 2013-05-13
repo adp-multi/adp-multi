@@ -15,7 +15,7 @@ algebra bpmax implements Nuss(alphabet = char, answer = int)
     return 0;
   }
 
-  int right(int a, char c)
+  int left(char c, int a)
   {
     return a;
   }
@@ -42,8 +42,8 @@ grammar nussinov uses Nuss (axiom=start) {
   tabulated { start, bp }
 
   start = nil(EMPTY) |
-          right(start, CHAR) |
-          split(start, bp) # h ;
+          left(CHAR, start) |
+          split(bp, start) # h ;
 
   bp = pair(CHAR, start, CHAR) with char_basepairing ;
 
