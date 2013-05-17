@@ -71,16 +71,7 @@ data Start = Nil
 
 -- without consistency checks
 enum :: RG_Algebra Char Start
-enum = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
-   nil _     = Nil
-   left      = Left'
-   pair      = Pair 
-   knot      = Knot 
-   knot1     = Knot1 
-   knot2     = Knot2
-   basepair  = BasePair
-   base      = Base
-   h         = id 
+enum = (\_->Nil,Left',Pair,Knot,Knot1,Knot2,BasePair,Base,id)
 
 -- with consistency checks
 enumDebug :: RG_Algebra Char Start

@@ -1,4 +1,4 @@
--- | Alignment of trees / terms
+-- | Alignment of trees / terms (Jiang et al., 1995)
 module ADP.Tests.TreeAlignExample where
 
 {-

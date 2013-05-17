@@ -1,4 +1,4 @@
-adp-multi [![Build Status](https://secure.travis-ci.org/neothemachine/adp-multi.png?branch=master)](http://travis-ci.org/neothemachine/adp-multi)
+adp-multi [![Build Status](https://secure.travis-ci.org/adp-multi/adp-multi.png?branch=master)](http://travis-ci.org/adp-multi/adp-multi)
 ==========
 
 adp-multi is an adaptation of the [Algebraic Dynamic Programming](http://bibiserv.techfak.uni-bielefeld.de/adp/)
@@ -15,12 +15,17 @@ Quick start
 1. Check out the git repository
 2. Run `cabal install --flags="buildTests"` inside the checked out folder
 3. Run `adp-test` to see if there's some output (then it works)
-4. Explore the code (start at `tests/ADP/Tests/Main.hs`)
+4. Explore the examples (start at `tests/ADP/Tests/Main.hs`)
 
-How to debug errors
--------------------
+The library is also published on [Hackage](http://hackage.haskell.org/package/adp-multi).
 
-If you can, write unit and/or property tests.
+How to debug and report errors
+------------------------------
+
+1. Write a unit and/or property test which reproduces the error 
+(see [tests/ADP/Tests/](https://github.com/adp-multi/adp-multi/tree/master/tests/ADP/Tests))
+2. Try to fix the error
+3. Submit a pull request which includes the failing test (and possibly the fix)
 
 If you get Haskell exceptions, then it is useful to enable stack traces:
 
