@@ -4,7 +4,7 @@ cabal-version:  >= 1.8
 build-type:     Simple
 author:         Maik Riechert
 stability:      experimental
-bug-reports:    https://github.com/neothemachine/adp-multi/issues
+bug-reports:    https://github.com/adp-multi/adp-multi/issues
 homepage:       http://adp-multi.ruhoh.com
 copyright:      Maik Riechert, 2012
 license:        BSD3
@@ -23,7 +23,7 @@ description:    adp-multi is an implementation of Algebraic Dynamic Programming
 
 source-repository head
   type:      git
-  location:  git://github.com/neothemachine/adp-multi.git
+  location:  git://github.com/adp-multi/adp-multi.git
 
 Flag buildTests
   description: Build test executable
