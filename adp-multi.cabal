@@ -1,5 +1,5 @@
 name:           adp-multi
-version:        0.2.1
+version:        0.2.2
 cabal-version:  >= 1.8
 build-type:     Simple
 author:         Maik Riechert
@@ -147,7 +147,7 @@ executable adp-multi-benchmarks2
   hs-source-dirs:  benchmarks,
                    tests,
                    src
-  ghc-options:     -Wall -rtsopts -prof -fprof-auto -O2
+  ghc-options:     -Wall -rtsopts
   main-is:         Benchmarks2.hs
   other-modules:   Criterion.Helpers
 
