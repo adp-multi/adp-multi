@@ -6,14 +6,14 @@ import ADP.Multi.All
 import ADP.Multi.Rewriting.All
                                  
 type Term_Algebra alphabet answer = (
-  answer -> answer,
-  answer -> answer,                              -- sym
-  alphabet -> answer -> answer, -- sym1
-  alphabet -> answer, -- sym2
-  alphabet -> alphabet -> alphabet -> alphabet, -- escape
-  answer   -> alphabet -> answer -> alphabet -> answer,               -- fun
-  answer   -> answer,               -- single
-  answer   -> alphabet -> answer -> answer               -- split
+  answer -> answer,                                     -- wrap
+  answer -> answer,                                     -- sym
+  alphabet -> answer -> answer,                         -- sym1
+  alphabet -> answer,                                   -- sym2
+  alphabet -> alphabet -> alphabet -> alphabet,         -- escape
+  answer   -> alphabet -> answer -> alphabet -> answer, -- fun
+  answer   -> answer,                                   -- single
+  answer   -> alphabet -> answer -> answer              -- split
   )
    
 prettyprint :: Term_Algebra Char String

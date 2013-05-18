@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-{-
+{- |
 Example using the Reeder&Giegerich class of pseudoknots.
 (with only the first canonization rule applied)
 

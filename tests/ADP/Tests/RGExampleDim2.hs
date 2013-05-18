@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-{-
+{- |
 The same as RGExample.hs but all 1-dim nonterminals are encoded
 as 2-dim nonterminals.
 -}

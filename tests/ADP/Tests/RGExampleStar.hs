@@ -1,22 +1,12 @@
-{-
+{- |
 This example is a copy of RGExample with the difference that
-(A^*)^i is used in the signature instead of just A or (A,A).
+(A^*)^i is used in the signature instead of just A^i.
 Also, the empty string is used instead of EPS.
 
 The purpose is to have a better relation to the examples in the thesis.
 -}
 module ADP.Tests.RGExampleStar where
 
-{-
-S -> € | BS | P_1 S P_2 S | K_1^1 S K_1^2 S K_2^1 S K_2^2 S
-[K_1,K_2] -> [K_1 P_1, P_2 K_2] | [P_1, P_2]
-[P_1,P_2] -> [a,u] | [u,a] | [g,c] | [c,g] | [g,u] | [u,g]
-B -> a | u | c | g
--}
-
-import qualified Control.Arrow as A
-import Data.Typeable
-import Data.Data
 import ADP.Multi.All
 import ADP.Multi.Rewriting.All
                  

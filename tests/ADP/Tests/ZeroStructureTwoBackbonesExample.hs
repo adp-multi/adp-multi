@@ -1,4 +1,5 @@
-{- This example implements the grammar for 0-structures over two backbones from
+{- |
+   This example implements the grammar for 0-structures over two backbones from
    "Topology of RNA-RNA interaction structures" by Andersen et al., 2012
    
    It uses the 1-structure grammar from

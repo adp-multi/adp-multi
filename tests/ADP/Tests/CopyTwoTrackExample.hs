@@ -1,4 +1,4 @@
--- Copy language L = { (w,w) | w € {a,b}^* }
+-- | Copy language L = { (w,w) | w in {a,b}^* }
 module ADP.Tests.CopyTwoTrackExample where
 
 import ADP.Debug

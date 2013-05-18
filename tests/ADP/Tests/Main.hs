@@ -40,7 +40,6 @@ main = do
             -- struc = "..((((..[[[[)))).....]]]]..."
             -- inp = map toLower "ACCGUCGUUCCCGACGUAAAAGGGAUGU"
             
-            -- https://github.com/neothemachine/rna/wiki/Example
             inp = "agcgu"
 
             --inp = map toLower "ACGAUUCAACGU"

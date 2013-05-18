@@ -1,4 +1,4 @@
--- Copy language L = { ww | w € {a,b}^* }
+-- | Copy language L = { ww | w in {a,b}^* }
 module ADP.Tests.CopyExample where
 
 import ADP.Multi.All

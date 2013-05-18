@@ -1,4 +1,4 @@
--- Needleman/Wunsch global alignment
+-- | Needleman/Wunsch global alignment of two sequences
 module ADP.Tests.AlignmentExample where
 
 import ADP.Debug
