@@ -8,7 +8,7 @@ The purpose is to have a better relation to the examples in the thesis.
 module ADP.Tests.RGExampleStar where
 
 import ADP.Multi.All
-import ADP.Multi.Rewriting.All
+import ADP.Multi.Rewriting.All 
                  
               
 type RG_Algebra alphabet answer = (

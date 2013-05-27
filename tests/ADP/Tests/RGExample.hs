@@ -22,14 +22,14 @@ import ADP.Multi.All
 import ADP.Multi.Rewriting.All
                                 
 type RG_Algebra alphabet answer = (
-  EPS -> answer,                               -- nil
+  EPS -> answer,                              -- nil
   answer   -> answer -> answer,               -- left
   answer   -> answer -> answer -> answer,     -- pair
   answer   -> answer -> answer -> answer -> answer -> answer -> answer, -- knot
   answer   -> answer -> answer,               -- knot1
   answer   -> answer,                         -- knot2
   (alphabet, alphabet) -> answer,             -- basepair
-  alphabet -> answer,                  -- base
+  alphabet -> answer,                         -- base
   [answer] -> [answer]                        -- h
   )
   

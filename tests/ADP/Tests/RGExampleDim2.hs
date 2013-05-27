@@ -13,7 +13,7 @@ import ADP.Multi.All
 import ADP.Multi.Rewriting.All
                                  
 type RG_Algebra alphabet answer = (
-  (EPS,EPS) -> answer,                               -- nil
+  (EPS,EPS) -> answer,                        -- nil
   answer   -> answer -> answer,               -- left
   answer   -> answer -> answer -> answer,     -- pair
   answer   -> answer -> answer -> answer -> answer -> answer -> answer, -- knot
@@ -118,7 +118,6 @@ maxKnots = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    h []             = []
    h xs             = [maximum xs]
 
--- TODO don't need [String] here as it's all dim2, use (String,String) instead
 -- The left part is the structure and the right part the reconstructed input.
 prettyprint :: RG_Algebra Char ([String],[String])
 prettyprint = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where

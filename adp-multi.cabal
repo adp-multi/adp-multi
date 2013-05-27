@@ -96,6 +96,8 @@ test-suite MainTestSuite
                    ADP.Tests.RGExampleDim2,
                    ADP.Tests.RGExampleStar,
                    ADP.Tests.TermExample,
+                   ADP.Tests.ThesisExample,
+                   ADP.Tests.TreeAlignExample,
                    ADP.Tests.ZeroStructureTwoBackbonesExample,
                    MCFG.MCFG
   main-is:         ADP/Tests/Suite.hs
