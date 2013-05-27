@@ -8,13 +8,13 @@ import ADP.Multi.All
 import ADP.Multi.Rewriting.All
                           
 type OneStructure_Algebra alphabet answer = (
-  EPS -> answer,                              -- nil
-  answer -> answer -> answer,               -- left
-  answer -> answer -> answer -> answer,     -- pair
-  (alphabet, alphabet) -> answer,             -- basepair
-  alphabet -> answer,                         -- base
-  answer -> answer,                           -- i1
-  answer -> answer,                           -- i2
+  EPS -> answer,                                  -- nil
+  answer -> answer -> answer,                     -- left
+  answer -> answer -> answer -> answer,           -- pair
+  (alphabet, alphabet) -> answer,                 -- basepair
+  alphabet -> answer,                             -- base
+  answer -> answer,                               -- i1
+  answer -> answer,                               -- i2
   answer -> answer -> answer -> answer -> answer, -- tstart
   answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knotH
   answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knotK
@@ -28,7 +28,7 @@ type OneStructure_Algebra alphabet answer = (
   answer -> answer,                               -- cknot2
   answer -> answer -> answer -> answer -> answer, -- dknot1
   answer -> answer,                               -- dknot2
-  [answer] -> [answer]                        -- h
+  [answer] -> [answer]                            -- h
   )
   
 data T = Nil

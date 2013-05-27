@@ -10,6 +10,7 @@ import Test.HUnit
 import Test.QuickCheck
 
 import Data.Char (toLower)
+import Data.List (sort)
 
 import qualified ADP.Tests.RGExample as RG
 import qualified ADP.Tests.RGExampleDim2 as RGDim2
@@ -18,6 +19,7 @@ import qualified ADP.Tests.CopyExample as Copy
 import qualified ADP.Tests.CopyTwoTrackExample as CopyTT
 import qualified MCFG.MCFG as MCFG
 import qualified ADP.Tests.NestedExample as Nested
+import qualified ADP.Tests.Nussinov as Nussinov
 import qualified ADP.Tests.OneStructureExample as One
 import qualified ADP.Tests.ZeroStructureTwoBackbonesExample as ZeroTT
 
@@ -26,7 +28,7 @@ import ADP.Multi.Rewriting.Tests.YieldSize
 main :: IO ()
 main = defaultMainWithOpts
             [
-                testGroup "Property tests" [
+                testGroup "Internal tests" [
                     testGroup "Yield size" [
                         testProperty "map size" prop_yieldSizeMapSize,
                         testProperty "map elements" prop_yieldSizeMapElements,
@@ -42,6 +44,7 @@ main = defaultMainWithOpts
                         testProperty "produces same derivation trees for copy language grammar" prop_copyLanguageDerivation,
                         testProperty "produces copy language (two track)" prop_copyLanguageTT,
                         testProperty "produces nested rna" prop_nestedRna,
+                        testProperty "algebra product consistency" prop_nestedRna2,
                         testProperty "produces 1-structure rna" prop_oneStructureRna,
                         testProperty "produces RG rna" prop_rgRna,
                         testProperty "produces RG (dim2) rna" prop_rgDim2Rna,
@@ -124,6 +127,16 @@ equivalentTrees t1 t2 =
 prop_nestedRna (RNAString w) =
     let results = Nested.nested Nested.prettyprint w
     in not (null results) && all (\(_,result) -> result == w) results
+
+-- checks if NestedExample.hs and Nussinov.hs produce the same results
+-- this also tests the user-defined *** product operation
+prop_nestedRna2 (RNAString w) =
+    let results1 = Nested.nested (Nested.prettyprint Nested.*** Nested.maxBasepairs) w
+        results2 = Nussinov.nussinov78' (Nussinov.prettyprint Nussinov.*** Nussinov.pairmax) w
+        results3 = Nested.nested (Nested.maxBasepairs Nested.*** Nested.prettyprint) w
+        results4 = Nussinov.nussinov78' (Nussinov.pairmax Nussinov.*** Nussinov.prettyprint) w
+    in sort results1 == sort results2 &&
+       sort results3 == sort results4
 
 -- checks if input sequence can be reconstructed    
 prop_oneStructureRna (RNAString w) =
