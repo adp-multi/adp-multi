@@ -43,8 +43,8 @@ constructNewRangeDescs1 descs symbolPosition subword =
                          desc <- descs
                        , newDesc <- processRangeDesc1 desc symbolPosition subword
                        ]
-            count = foldr (\(_,_,l) r -> r + length l) 0
-        in assert (count descs > count newDescs) $
+            countSymbols = foldr (\(_,_,l) r -> r + length l) 0
+        in assert (countSymbols descs > countSymbols newDescs) $
            trace (show newDescs) $
            newDescs
 
@@ -55,8 +55,8 @@ constructNewRangeDescs2 descs symbolPositions subword =
                          desc <- descs
                        , newDesc <- processRangeDesc2 desc symbolPositions subword
                        ]
-            count = foldr (\(_,_,l) r -> r + length l) 0
-        in assert (count descs > count newDescs) $
+            countSymbols = foldr (\(_,_,l) r -> r + length l) 0
+        in assert (countSymbols descs > countSymbols newDescs) $
            trace (show newDescs) $
            newDescs
 
