@@ -26,11 +26,9 @@ constructSubwords1 f infos [i,j] =
             parserCount = length infos
             remainingParsers = [parserCount,parserCount-1..1] `zip` infos
             rangeDesc = [(i,j,rewritten)]
-            rangeDescFiltered = filterEmptyRanges rangeDesc
         in trace ("f " ++ show symbolIDs ++ " = " ++ show rewritten) $
            assert (length rewritten == Map.size yieldSizeMap && all (`elem` rewritten) symbolIDs) $
-           if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
-           else constructSubwordsRec yieldSizeMap remainingParsers rangeDescFiltered
+           constructSubwordsRec yieldSizeMap remainingParsers rangeDesc
 
 constructSubwords2 :: SubwordConstructionAlgorithm Dim2
 constructSubwords2 _ _ b | trace ("constructSubwords2 " ++ show b) False = undefined
