@@ -14,31 +14,34 @@ import ADP.Multi.All
 import ADP.Multi.Rewriting.All
 import qualified ADP.Tests.OneStructureExample as One
 
--- there are two answer types so that the enum algebra can be written (because ADTs aren't extensible)
--- for algebras with numeric answer types it wouldn't matter and we'd only need one type 
-type ZeroStructureTwoBackbones_Algebra alphabet answerOne answer = (
-  One.OneStructure_Algebra alphabet answerOne,
-  answer    -> answerOne -> answerOne -> answer,        -- i1
-  answerOne -> answerOne -> answer,                     -- i2
-  answer -> answer -> answer,                           -- pt1
-  answer -> answer -> answer,                           -- pt2
-  answerOne -> answerOne -> answer -> answer -> answer, -- t1
-  answerOne -> answerOne -> answer -> answer -> answer, -- t2
-  answerOne -> answerOne -> answer -> answer -> answer, -- t3
-  answerOne -> answerOne -> answerOne -> answerOne -> answer -> answer -> answer -> answer, -- t4
-  answerOne -> answerOne -> answerOne -> answerOne -> answerOne -> answerOne -> answer -> answer -> answer -> answer -> answer, -- t5
-  answerOne -> answerOne -> answerOne -> answerOne -> answer -> answer -> answer -> answer, -- t6
-  answerOne -> answerOne -> answerOne -> answerOne -> answer -> answer -> answer -> answer, -- t7
-  answerOne -> answerOne -> answer -> answer -> answer, -- hs2
-  answer -> answer -> answer -> answer -> answer,       -- h1
-  answer -> answer,                                     -- h2
-  answer -> answerOne -> answerOne -> answer -> answer, -- g1
-  answer -> answer,                                     -- g2
-  answer -> answer -> answer,                           -- ub1
-  EPS -> answer,                                        -- ub2
-  alphabet -> answer,                                   -- base
-  (alphabet, alphabet) -> answer,                       -- basepair
-  [answer] -> [answer]                                  -- h
+{- There are two ans types so that the enum
+   algebra can be written (because ADTs aren't extensible).
+   For algebras with numeric ans types it wouldn't matter
+   and we'd only need one type.
+-} 
+type ZeroStructureTwoBackbones_Algebra alphabet ansOne ans = (
+  One.OneStructure_Algebra alphabet ansOne,
+  ans    -> ansOne -> ansOne -> ans,     -- i1
+  ansOne -> ansOne -> ans,               -- i2
+  ans    -> ans    -> ans,               -- pt1
+  ans    -> ans    -> ans,               -- pt2
+  ansOne -> ansOne -> ans -> ans -> ans, -- t1
+  ansOne -> ansOne -> ans -> ans -> ans, -- t2
+  ansOne -> ansOne -> ans -> ans -> ans, -- t3
+  ansOne -> ansOne -> ansOne -> ansOne -> ans -> ans -> ans -> ans,   -- t4
+  ansOne -> ansOne -> ansOne -> ansOne -> ansOne -> ansOne -> ans -> ans -> ans -> ans -> ans, -- t5
+  ansOne -> ansOne -> ansOne -> ansOne -> ans -> ans -> ans -> ans,   -- t6
+  ansOne -> ansOne -> ansOne -> ansOne -> ans -> ans -> ans -> ans,   -- t7
+  ansOne -> ansOne -> ans -> ans -> ans, -- hs2
+  ans -> ans -> ans -> ans -> ans,       -- h1
+  ans -> ans,                            -- h2
+  ans -> ansOne -> ansOne -> ans -> ans, -- g1
+  ans -> ans,                            -- g2
+  ans -> ans -> ans,                     -- ub1
+  EPS -> ans,                            -- ub2
+  alphabet -> ans,                       -- base
+  (alphabet, alphabet) -> ans,           -- basepair
+  [ans] -> [ans]                         -- h
   )
 
 data T = OneStructure One.T
@@ -65,22 +68,28 @@ data T = OneStructure One.T
        deriving (Eq, Show)
 
 enum :: ZeroStructureTwoBackbones_Algebra Char One.T T
-enum = (One.enum,I1,I2,PT1,PT2,T1,T2,T3,T4,T5,T6,T7,Hs2,H1,H2,G1,G2,Ub1,\_->Ub2,Base,BasePair,id)
+enum = (One.enum,I1,I2,PT1,PT2,T1,T2,T3,T4,T5,T6,T7
+       ,Hs2,H1,H2,G1,G2,Ub1,\_->Ub2,Base,BasePair,id)
 
-{- To make the grammar reusable, its definition has been split up into the
-   actual grammar which exposes the start symbol as a parser (zeroStructureTwoBackbonesGrammar)
-   and a convenience function which actually runs the grammar on a given input (zeroStructureTwoBackbones).
+{- To make the grammar reusable, its definition has been split
+   up into the actual grammar which exposes the start symbol
+   as a parser (zeroStructureTwoBackbonesGrammar) and a
+   convenience function which actually runs the grammar on
+   a given input (zeroStructureTwoBackbones).
 -}
-zeroStructureTwoBackbones :: ZeroStructureTwoBackbones_Algebra Char answerOne answer -> (String,String) -> [answer]
+zeroStructureTwoBackbones :: ZeroStructureTwoBackbones_Algebra Char ansOne ans 
+                          -> (String,String) -> [ans]
 zeroStructureTwoBackbones algebra (inp1,inp2) =
     let z = mkTwoTrack inp1 inp2
         grammar = zeroStructureTwoBackbonesGrammar algebra z
     in axiomTwoTrack z inp1 inp2 grammar
 
-zeroStructureTwoBackbonesGrammar :: ZeroStructureTwoBackbones_Algebra Char answerOne answer -> Array Int Char -> RichParser Char answer
+zeroStructureTwoBackbonesGrammar :: ZeroStructureTwoBackbones_Algebra Char ansOne ans 
+                                 -> Array Int Char -> RichParser Char ans
 zeroStructureTwoBackbonesGrammar algebra z =
   let  
-  (oneStructureAlgebra,i1,i2,pt1,pt2,t1,t2,t3,t4,t5,t6,t7,hs2,h1,h2,g1,g2,ub1,ub2,base,basepair,h') = algebra
+  (oneStructureAlgebra,i1,i2,pt1,pt2,t1,t2,t3,t4,t5,
+   t6,t7,hs2,h1,h2,g1,g2,ub1,ub2,base,basepair,h') = algebra
   
   one = One.oneStructureGrammar oneStructureAlgebra z
   
@@ -104,11 +113,14 @@ zeroStructureTwoBackbonesGrammar algebra z =
   rewriteT1 [one1,one2,hs11,hs12,hs21,hs22] = ([hs11,one1,hs21],[hs12,one2,hs22])
   rewriteT2 [one1,one2,g1,g2,hs1,hs2] = ([g1,one1,hs1,one2,g2],[hs2])
   rewriteT3 [one1,one2,hs1,hs2,g1,g2] = ([hs1],[g1,one1,hs2,one2,g2])
-  rewriteT4 [one1,one2,one3,one4,g11,g12,hs1,hs2,g21,g22] = ([g11,one1,hs1,one2,g12],[g21,one3,hs2,one4,g22])
+  rewriteT4 [one1,one2,one3,one4,g11,g12,hs1,hs2,g21,g22]
+        = ([g11,one1,hs1,one2,g12],[g21,one3,hs2,one4,g22])
   rewriteT5 [one1,one2,one3,one4,one5,one6,g11,g12,hs11,hs12,hs21,hs22,g21,g22]
         = ([g11,one1,hs11,one2,hs21,one3,g12],[g21,one4,hs12,one5,hs22,one6,g22])
-  rewriteT6 [one1,one2,one3,one4,g1,g2,hs11,hs12,hs21,hs22] = ([g1,one1,hs11,one2,hs21,one3,g2],[hs12,one4,hs22])
-  rewriteT7 [one1,one2,one3,one4,hs11,hs12,hs21,hs22,g1,g2] = ([hs11,one1,hs21],[g1,one2,hs12,one3,hs22,one4,g2])
+  rewriteT6 [one1,one2,one3,one4,g1,g2,hs11,hs12,hs21,hs22] 
+        = ([g1,one1,hs11,one2,hs21,one3,g2],[hs12,one4,hs22])
+  rewriteT7 [one1,one2,one3,one4,hs11,hs12,hs21,hs22,g1,g2] 
+        = ([hs11,one1,hs21],[g1,one2,hs12,one3,hs22,one4,g2])  
   t = tabulated2 $
       t1 <<< one ~~~ one ~~~ hs  ~~~ hs >>> rewriteT1 |||
       t2 <<< one ~~~ one ~~~ g   ~~~ hs >>> rewriteT2 |||

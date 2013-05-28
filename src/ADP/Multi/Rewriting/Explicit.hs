@@ -97,7 +97,6 @@ calcSubwords2 yieldSizeMap (left@((i,j,r),a1Idx),right@((m,n,r'),a2Idx))
                 , (k',l') <- calcSubwords1 yieldSizeMap right
                 ]
 
--- assumes that other component is in a different part
 calcSubwords1 :: YieldSizeMap -> (RangeDesc,Int) -> [Subword1]
 calcSubwords1 _ b | trace ("calcSubwords1 " ++ show b) False = undefined
 calcSubwords1 yieldSizeMap pos@((i,j,r),axIdx)
@@ -134,7 +133,7 @@ adjustMinYield (i,j) (minl,maxl) (minr,maxr) =
            minrRes <- maybe (Just minrAdj) (\m -> if minrAdj > m then Nothing else Just minrAdj) maxr
            Just (minlRes,minrRes)
 
--- assumes that other component is in the same part
+-- assumes that other nonterminal component is in the same part
 calcSubwords2Dependent :: YieldSizeMap -> RangeDesc -> Int -> Int -> [Subword2]
 calcSubwords2Dependent _ b c d | trace ("calcSubwords2Dependent " ++ show b ++ " " ++ show c ++ " " ++ show d) False = undefined
 calcSubwords2Dependent yieldSizeMap (i,j,r) a1Idx a2Idx =

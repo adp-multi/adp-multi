@@ -36,10 +36,10 @@ main = defaultMainWithOpts
                         ]
                     ],
                 testGroup "System tests" [
-                        testCase "finds all reference structures" testRgSimpleCompleteness,
+                        testCase "find all reference structures for 'agcgu'" testRgSimpleCompleteness,
                       -- the following is commented out as it takes quite long
                       --testCase "finds pseudoknot reference structure" testRgRealPseudoknot,
-                        testCase "tests associative function with max basepairs" testRgSimpleBasepairs,
+                        testCase "test if max base pairs of 'agcgu' is 2" testRgSimpleBasepairs,
                         testProperty "produces copy language" prop_copyLanguage,
                         testProperty "produces same derivation trees for copy language grammar" prop_copyLanguageDerivation,
                         testProperty "produces copy language (two track)" prop_copyLanguageTT,

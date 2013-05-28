@@ -7,28 +7,28 @@ import Data.Array
 import ADP.Multi.All
 import ADP.Multi.Rewriting.All
                           
-type OneStructure_Algebra alphabet answer = (
-  EPS -> answer,                                  -- nil
-  answer -> answer -> answer,                     -- left
-  answer -> answer -> answer -> answer,           -- pair
-  (alphabet, alphabet) -> answer,                 -- basepair
-  alphabet -> answer,                             -- base
-  answer -> answer,                               -- i1
-  answer -> answer,                               -- i2
-  answer -> answer -> answer -> answer -> answer, -- tstart
-  answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knotH
-  answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knotK
-  answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knotL
-  answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer -> answer, -- knotM
-  answer -> answer -> answer -> answer -> answer, -- aknot1
-  answer -> answer,                               -- aknot2
-  answer -> answer -> answer -> answer -> answer, -- bknot1
-  answer -> answer,                               -- bknot2
-  answer -> answer -> answer -> answer -> answer, -- cknot1
-  answer -> answer,                               -- cknot2
-  answer -> answer -> answer -> answer -> answer, -- dknot1
-  answer -> answer,                               -- dknot2
-  [answer] -> [answer]                            -- h
+type OneStructure_Algebra alphabet ans = (
+  EPS -> ans,                        -- nil
+  ans -> ans -> ans,                 -- left
+  ans -> ans -> ans -> ans,          -- pair
+  (alphabet, alphabet) -> ans,       -- basepair
+  alphabet -> ans,                   -- base
+  ans -> ans,                        -- i1
+  ans -> ans,                        -- i2
+  ans -> ans -> ans -> ans -> ans,   -- tstart
+  ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans, -- knotH
+  ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans, -- knotK
+  ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans, -- knotL
+  ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans -> ans, -- knotM
+  ans -> ans -> ans -> ans -> ans,   -- aknot1
+  ans -> ans,                        -- aknot2
+  ans -> ans -> ans -> ans -> ans,   -- bknot1
+  ans -> ans,                        -- bknot2
+  ans -> ans -> ans -> ans -> ans,   -- cknot1
+  ans -> ans,                        -- cknot2
+  ans -> ans -> ans -> ans -> ans,   -- dknot1
+  ans -> ans,                        -- dknot2
+  [ans] -> [ans]                     -- h
   )
   
 data T = Nil
@@ -80,7 +80,8 @@ prettyprint = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
    dknot1 _ = xknot1 "<" ">"
    dknot2 _ = [ "<" , ">" ]
    
-   xknot1 parenL parenR i1 i2 [x1,x2] = [concat $ [parenL] ++ i1 ++ [x1], concat $ [x2] ++ i2 ++ [parenR]]
+   xknot1 parenL parenR i1 i2 [x1,x2] = 
+        [concat $ [parenL] ++ i1 ++ [x1], concat $ [x2] ++ i2 ++ [parenR]]
       
    h = id
    
@@ -123,13 +124,13 @@ prettyprint2 = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
    and a convenience function which actually runs the grammar on a given input (oneStructure).
    It is reused in ZeroStructureTwoBackbonesExample.hs
 -}
-oneStructure :: OneStructure_Algebra Char answer -> String -> [answer]
+oneStructure :: OneStructure_Algebra Char ans -> String -> [ans]
 oneStructure algebra inp =
     let z = mk inp
         grammar = oneStructureGrammar algebra z
     in axiom z grammar
 
-oneStructureGrammar :: OneStructure_Algebra Char answer -> Array Int Char -> RichParser Char answer
+oneStructureGrammar :: OneStructure_Algebra Char ans -> Array Int Char -> RichParser Char ans
 oneStructureGrammar algebra z =
   let  
   (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM,
@@ -150,18 +151,21 @@ oneStructureGrammar algebra z =
       pair <<< p ~~~ s ~~~ s >>> rewritePair
       
   rewriteTStart [p1,p2,i,t,s] = [i,p1,t,p2,s]
-  rewriteKnotH [s,i1,i2,i3,i4,x11,x12,x21,x22] = [i1,x11,i2,x21,i3,x12,i4,x22,s]
-  rewriteKnotK [s,i1,i2,i3,i4,i5,i6,x11,x12,x21,x22,x31,x32] = [i1,x11,i2,x21,i3,x12,i4,x31,i5,x22,i6,x32,s]
-  rewriteKnotL [s,i1,i2,i3,i4,i5,i6,x11,x12,x21,x22,x31,x32] = [i1,x11,i2,x21,i3,x31,i4,x12,i5,x22,i6,x32,s]
+  rewriteKnotH [s,i1,i2,i3,i4,x11,x12,x21,x22] =
+        [i1,x11,i2,x21,i3,x12,i4,x22,s]
+  rewriteKnotK [s,i1,i2,i3,i4,i5,i6,x11,x12,x21,x22,x31,x32] = 
+        [i1,x11,i2,x21,i3,x12,i4,x31,i5,x22,i6,x32,s]
+  rewriteKnotL [s,i1,i2,i3,i4,i5,i6,x11,x12,x21,x22,x31,x32] = 
+        [i1,x11,i2,x21,i3,x31,i4,x12,i5,x22,i6,x32,s]
   rewriteKnotM [s,i1,i2,i3,i4,i5,i6,i7,i8,x11,x12,x21,x22,x31,x32,x41,x42] =
-          [i1,x11,i2,x21,i3,x31,i4,x12,i5,x41,i6,x22,i7,x32,i8,x42,s]
+        [i1,x11,i2,x21,i3,x31,i4,x12,i5,x41,i6,x22,i7,x32,i8,x42,s]
   t = tabulated1 $
       yieldSize1 (2, Nothing) $
       tstart <<< p ~~~ i ~~~ t ~~~ s >>> rewriteTStart |||
-      knotH <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb >>> rewriteKnotH |||
-      knotK <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb ~~~ xc >>> rewriteKnotK |||
-      knotL <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb ~~~ xc >>> rewriteKnotL |||
-      knotM <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb ~~~ xc ~~~ xd >>> rewriteKnotM
+      knotH  <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb >>> rewriteKnotH |||
+      knotK  <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb ~~~ xc >>> rewriteKnotK |||
+      knotL  <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb ~~~ xc >>> rewriteKnotL |||
+      knotM  <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb ~~~ xc ~~~ xd >>> rewriteKnotM
       
   rewriteXKnot1 :: Dim2      
   rewriteXKnot1 [p1,p2,i1,i2,x1,x2] = ([p1,i1,x1],[x2,i2,p2])

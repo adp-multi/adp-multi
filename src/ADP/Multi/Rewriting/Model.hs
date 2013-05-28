@@ -35,4 +35,4 @@ id1 = id
 -- | Convenience rewriting function for one dim2 symbol
 id2 :: Dim2
 id2 [c1,c2] = ([c1],[c2])
-id2 _ = error "Only use id2 for single symbols! Write your own rewrite function instead."
+id2 _ = error "Only use id2 for single symbols! Write your own rewriting function instead."

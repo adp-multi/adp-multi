@@ -18,7 +18,6 @@ import ADP.Multi.Parser
 import ADP.Multi.Rewriting
 
 
-
 eval :: (b -> c) -> Parser a b -> ([SubwordTree] -> Parser a c)
 eval f parser [] z subword = map f (parser z subword) 
 
