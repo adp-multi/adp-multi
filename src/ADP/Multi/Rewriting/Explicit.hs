@@ -74,20 +74,22 @@ constructSubwordsRec yieldSizeMap ((current,ParserInfo2 {}):rest) rangeDescs =
 
 
 
--- Subword construction doesn't yet take the maximum yield sizes into account.
--- This will further decrease the number of generated subwords and thus increase performance.
+-- The maximum yield sizes are only used in some cases at the moment.
+-- They are not used in: 
+--  1. last case of 'calcSubwords1'
+--  2. 'calcSubwords2Dependent'
+-- Considering maximum yield sizes in all cases will further decrease
+-- the number of generated subwords and thus increase performance.
 calcSubwords2 :: YieldSizeMap -> (SymbolPos,SymbolPos) -> [Subword2]
 calcSubwords2 a b | trace ("calcSubwords2 " ++ show a ++ " " ++ show b) False = undefined
 calcSubwords2 yieldSizeMap (left@((i,j,r),sym1Idx),right@((m,n,r'),sym2Idx))
   | r == r' = calcSubwords2Dependent yieldSizeMap (i,j,r) sym1Idx sym2Idx
   | length r == 1 && length r' == 1 = [(i,j,m,n)]
-  | length r == 1  = [ (i',j',k',l') |
-                        let (i',j') = (i,j)
-                     , (k',l') <- calcSubwords1 yieldSizeMap right
+  | length r == 1  = [ (i,j,k',l') |
+                       (k',l') <- calcSubwords1 yieldSizeMap right
                      ]
-  | length r' == 1 = [ (i',j',k',l') |
-                       let (k',l') = (m,n)
-                     , (i',j') <- calcSubwords1 yieldSizeMap left
+  | length r' == 1 = [ (i',j',m,n) |
+                       (i',j') <- calcSubwords1 yieldSizeMap left
                      ]
   | otherwise = [ (i',j',k',l') |
                   (i',j') <- calcSubwords1 yieldSizeMap left
@@ -98,20 +100,18 @@ calcSubwords1 :: YieldSizeMap -> SymbolPos -> [Subword1]
 calcSubwords1 _ b | trace ("calcSubwords1 " ++ show b) False = undefined
 calcSubwords1 yieldSizeMap pos@((i,j,r),symIdx)
   | symIdx == 0 =
-         [ (k,l) |
+         [ (i,l) |
            Just (minY',minYRight') <- [adjustMinYield (i,j) (minY,maxY) (minYRight,maxYRight)]
-         , let k = i
          , l <- [i+minY'..j-minYRight']
          ]
   | symIdx == length r - 1 =
-         [ (k,l) |
+         [ (k,j) |
            Just (minYLeft',minY') <- [adjustMinYield (i,j) (minYLeft,maxYLeft) (minY,maxY)]
-         , let l = j
          , k <- [i+minYLeft'..j-minY']
          ]
   | otherwise =
         [ (k,l) |
-          k <- [i+minYLeft..j-minY]
+          k <- [i+minYLeft..j-minY-minYRight]
         , l <- [k+minY..j-minYRight]
         ]
   where (minY,maxY) = yieldSizeOf yieldSizeMap pos
@@ -122,7 +122,7 @@ adjustMinYield :: Subword1 -> YieldSize -> YieldSize -> Maybe (Int,Int)
 adjustMinYield (i,j) (minl,maxl) (minr,maxr) =
         let len = j-i
             adjust oldMinY maxY = let x = maybe oldMinY (\m -> len - m) maxY
-                                  in if x > oldMinY then x else oldMinY
+                                  in max x oldMinY
             minrAdj = adjust minr maxl
             minlAdj = adjust minl maxr
         in do
@@ -163,44 +163,38 @@ doCalcSubwords2Dependent yieldSizeMap desc@(i,j,r) sym1Idx sym2Idx =
    neighbors = sym1Idx + 1 == sym2Idx
 
    result | sym1Idx == 0 && sym2Idx == length r - 1 && neighbors =
-                [ (k,l,l,n) |
-                  let (k,n) = (i,j)
-                , l <- [i+minY1..j-minY2]
+                [ (i,l,l,j) |
+                  l <- [i+minY1..j-minY2]
                 ]
 
           | sym1Idx == 0 && sym2Idx == length r - 1 =
-                [ (k,l,m,n) |
-                  let (k,n) = (i,j)
-                , l <- [i+minY1..j-minYRight1]
+                [ (i,l,m,j) |
+                  l <- [i+minY1..j-minYRight1]
                 , m <- [l+minYBetween..j-minY2]
                 ]
 
           | sym1Idx == 0 && neighbors =
-                [ (k,l,l,n) |
-                  let k = i
-                , l <- [i+minY1..j-minYRight1]
+                [ (i,l,l,n) |
+                  l <- [i+minY1..j-minYRight1]
                 , n <- [l+minY2..j-minYRight2]
                 ]
 
           | sym1Idx == 0 =
-                [ (k,l,m,n) |
-                  let k = i
-                , l <- [i+minY1..j-minYRight1]
+                [ (i,l,m,n) |
+                  l <- [i+minY1..j-minYRight1]
                 , m <- [l+minYBetween..j-minY2-minYRight2]
                 , n <- [m+minY2..j-minYRight2]
                 ]
 
           | sym2Idx == length r - 1 && neighbors =
-                [ (k,m,m,n) |
-                  let n = j
-                , m <- [i+minYLeft2..j-minY2]
+                [ (k,m,m,j) |
+                  m <- [i+minYLeft2..j-minY2]
                 , k <- [i+minYLeft1..m-minY1]
                 ]
 
           | sym2Idx == length r - 1 =
-                [ (k,l,m,n) |
-                  let n = j
-                , m <- [i+minYLeft2..j-minY2]
+                [ (k,l,m,j) |
+                  m <- [i+minYLeft2..j-minY2]
                 , l <- [i+minY1+minYLeft1..m-minYBetween]
                 , k <- [i+minYLeft1..l-minY1]
                 ]
