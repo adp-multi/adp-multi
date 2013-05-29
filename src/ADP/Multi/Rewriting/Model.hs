@@ -26,13 +26,14 @@ type SymbolID = (Int, Int)
 type Dim1 = [SymbolID] -> [SymbolID] 
 
 -- | 2-dimensional rewriting function
+--   Note: every dimension must contain at least one element
 type Dim2 = [SymbolID] -> ([SymbolID], [SymbolID])
 
--- | Convenience rewriting function for one or more dim1 symbols
+-- | Convenience rewriting function for one or more dim1 parsers
 id1 :: Dim1
 id1 = id
 
--- | Convenience rewriting function for one dim2 symbol
+-- | Convenience rewriting function for one dim2 parser
 id2 :: Dim2
 id2 [c1,c2] = ([c1],[c2])
-id2 _ = error "Only use id2 for single symbols! Write your own rewriting function instead."
+id2 _ = error "Only use id2 for single parsers! Write your own rewriting function instead."

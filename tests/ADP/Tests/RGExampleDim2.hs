@@ -14,9 +14,9 @@ import ADP.Multi.Rewriting.All
                                  
 type RG_Algebra alphabet answer = (
   (EPS,EPS) -> answer,                        -- nil
-  answer   -> answer -> answer,               -- left
-  answer   -> answer -> answer -> answer,     -- pair
-  answer   -> answer -> answer -> answer -> answer -> answer -> answer, -- knot
+  EPS -> answer   -> answer -> answer,               -- left
+  EPS -> answer   -> answer -> answer -> answer,     -- pair
+  EPS -> answer   -> answer -> answer -> answer -> answer -> answer -> answer, -- knot
   answer   -> answer -> answer,               -- knot1
   answer   -> answer,                         -- knot2
   (alphabet, alphabet) -> answer,             -- basepair
@@ -31,10 +31,10 @@ alg1 *** alg2 = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    (nil'',left'',pair'',knot'',knot1'',knot2'',basepair'',base'',h'') = alg2
 
    nil a = (nil' a, nil'' a)
-   left (b1,b2) (s1,s2) = (left' b1 s1, left'' b2 s2)
-   pair (p1,p2) (s11,s21) (s12,s22) = (pair' p1 s11 s12, pair'' p2 s21 s22)
-   knot (k11,k21) (k12,k22) (s11,s21) (s12,s22) (s13,s23) (s14,s24) =
-        (knot' k11 k12 s11 s12 s13 s14, knot'' k21 k22 s21 s22 s23 s24)
+   left e (b1,b2) (s1,s2) = (left' e b1 s1, left'' e b2 s2)
+   pair e (p1,p2) (s11,s21) (s12,s22) = (pair' e p1 s11 s12, pair'' e p2 s21 s22)
+   knot e (k11,k21) (k12,k22) (s11,s21) (s12,s22) (s13,s23) (s14,s24) =
+        (knot' e k11 k12 s11 s12 s13 s14, knot'' e k21 k22 s21 s22 s23 s24)
    knot1 (p1,p2) (k1,k2) = (knot1' p1 k1, knot1'' p2 k2)
    knot2 (p1,p2) = (knot2' p1, knot2'' p2)
    basepair a = (basepair' a,  basepair'' a)
@@ -51,9 +51,9 @@ alg1 *** alg2 = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
 -- As an additional (programming) error check, a second debug enum algebra checks
 -- the types via pattern-matching.
 data Start = Nil
-           | Left' Start Start
-           | Pair Start Start Start
-           | Knot Start Start Start Start Start Start
+           | Left' EPS Start Start
+           | Pair EPS Start Start Start
+           | Knot EPS Start Start Start Start Start Start
            | Knot1 Start Start
            | Knot2 Start
            | BasePair (Char, Char)
@@ -72,14 +72,14 @@ enumDebug = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    k' = [Knot1 {}, Knot2 {}]
 
    nil _ = Nil
-   left  b@(Base _) s 
-        | s `isOf` s' = Left' b s
+   left e b@(Base _) s 
+        | s `isOf` s' = Left' e b s
         
-   pair  p@(BasePair _) s1 s2 
-        | [s1,s2] `areOf` s' = Pair p s1 s2
+   pair e p@(BasePair _) s1 s2 
+        | [s1,s2] `areOf` s' = Pair e p s1 s2
         
-   knot k1 k2 s1 s2 s3 s4 
-        | [k1,k2] `areOf` k' && [s1,s2,s3,s4] `areOf` s' = Knot k1 k2 s1 s2 s3 s4
+   knot e k1 k2 s1 s2 s3 s4 
+        | [k1,k2] `areOf` k' && [s1,s2,s3,s4] `areOf` s' = Knot e k1 k2 s1 s2 s3 s4
         
    knot1 p@(BasePair _) k 
         | k `isOf` k' = Knot1 p k
@@ -95,9 +95,9 @@ enumDebug = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
 maxBasepairs :: RG_Algebra Char Int
 maxBasepairs = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    nil _            = 0
-   left a b         = a + b
-   pair a b c       = a + b + c
-   knot a b c d e f = a + b + c + d + e + f
+   left _ a b         = a + b
+   pair _ a b c       = a + b + c
+   knot _ a b c d e f = a + b + c + d + e + f
    knot1 a b        = a + b
    knot2 a          = a
    basepair _       = 1
@@ -108,9 +108,9 @@ maxBasepairs = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
 maxKnots :: RG_Algebra Char Int
 maxKnots = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    nil _            = 0
-   left _ b         = b
-   pair _ b c       = b + c
-   knot _ _ c d e f = 1 + c + d + e + f
+   left _ _ b         = b
+   pair _ _ b c       = b + c
+   knot _ _ _ c d e f = 1 + c + d + e + f
    knot1 _ _        = 0
    knot2 _          = 0
    basepair _       = 0
@@ -122,17 +122,17 @@ maxKnots = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
 prettyprint :: RG_Algebra Char ([String],[String])
 prettyprint = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
    nil _ = ([""],[""])
-   left (bl,br) (sl,sr) = 
+   left _ (bl,br) (sl,sr) = 
         (
              [concat $ bl ++ sl],
              [concat $ br ++ sr]
         )
-   pair ([p1l,p2l],[p1r,p2r]) (s1l,s1r) (s2l,s2r) = 
+   pair _ ([p1l,p2l],[p1r,p2r]) (s1l,s1r) (s2l,s2r) = 
         (
              [concat $ [p1l] ++ s1l ++ [p2l] ++ s2l],
              [concat $ [p1r] ++ s1r ++ [p2r] ++ s2r]
         )
-   knot ([k11l,k12l],[k11r,k12r]) ([k21l,k22l],[k21r,k22r]) (s1l,s1r) (s2l,s2r) (s3l,s3r) (s4l,s4r) =
+   knot _ ([k11l,k12l],[k11r,k12r]) ([k21l,k22l],[k21r,k22r]) (s1l,s1r) (s2l,s2r) (s3l,s3r) (s4l,s4r) =
         let (k11l',k12l') = square k11l k12l
         in
         (
@@ -156,28 +156,27 @@ rgknot algebra inp =
   let  
   (nil,left,pair,knot,knot1,knot2,basepair,base,h) = algebra
   
-  s1,s2,s3,s4,p',k1,k2 :: Dim2
+  s2,s3,s4,p',k1,k2 :: Dim2
     
   -- all s are 1-dim simulated as 2-dim
-  s1 [c1,c2] = ([],[c1,c2])
-  s2 [b1,b2,s1,s2] = ([],[b1,b2,s1,s2])
-  s3 [p1,p2,s11,s12,s21,s22] = ([],[p1,s11,s12,p2,s21,s22])
-  s4 [k11,k12,k21,k22,s11,s12,s21,s22,s31,s32,s41,s42] = 
-        ([],[k11,s11,s12,k21,s21,s22,k12,s31,s32,k22,s41,s42])
+  s2 [e,b1,b2,s1,s2] = ([e],[b1,b2,s1,s2])
+  s3 [e,p1,p2,s11,s12,s21,s22] = ([e],[p1,s11,s12,p2,s21,s22])
+  s4 [e,k11,k12,k21,k22,s11,s12,s21,s22,s31,s32,s41,s42] = 
+        ([e],[k11,s11,s12,k21,s21,s22,k12,s31,s32,k22,s41,s42])
   
   s = tabulated2 $
       yieldSize2 (0,Nothing) (0,Nothing) $
-      nil <<< (EPS,EPS) >>> s1 |||
-      left <<< b ~~~ s >>> s2 |||
-      pair <<< p ~~~ s ~~~ s >>> s3 |||
-      knot <<< k ~~~ k ~~~ s ~~~ s ~~~ s ~~~ s >>> s4 
+      nil <<< (EPS,EPS) >>> id2 |||
+      left <<< EPS ~~~ b ~~~ s >>> s2 |||
+      pair <<< EPS ~~~ p ~~~ s ~~~ s >>> s3 |||
+      knot <<< EPS ~~~ k ~~~ k ~~~ s ~~~ s ~~~ s ~~~ s >>> s4 
       ... h
       
   b = tabulated2 $
-      base <<< (EPS, 'a') >>> s1 |||
-      base <<< (EPS, 'u') >>> s1 |||
-      base <<< (EPS, 'c') >>> s1 |||
-      base <<< (EPS, 'g') >>> s1
+      base <<< (EPS, 'a') >>> id2 |||
+      base <<< (EPS, 'u') >>> id2 |||
+      base <<< (EPS, 'c') >>> id2 |||
+      base <<< (EPS, 'g') >>> id2
   
   p' [c1,c2] = ([c1],[c2])
   p = tabulated2 $
