@@ -64,7 +64,8 @@ library
                    ADP.Multi.Rewriting.Model,
                    ADP.Multi.Rewriting.RangesHelper,
                    ADP.Multi.Rewriting.YieldSize,
-                   ADP.Multi.Tabulation
+                   ADP.Multi.Tabulation,
+                   ADP.Multi.TabulationTriangle
 
 test-suite MainTestSuite
   type:            exitcode-stdio-1.0
