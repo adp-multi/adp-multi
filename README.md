@@ -1,4 +1,4 @@
-adp-multi [![Build Status](https://secure.travis-ci.org/adp-multi/adp-multi.png?branch=master)](http://travis-ci.org/adp-multi/adp-multi) [![Coverage Status](https://img.shields.io/coveralls/adp-multi/adp-multi.svg)](https://coveralls.io/r/adp-multi/adp-multi?branch=master)
+adp-multi [![Build Status](https://travis-ci.org/adp-multi/adp-multi.svg?branch=master)](https://travis-ci.org/adp-multi/adp-multi) [![Coverage Status](https://img.shields.io/coveralls/adp-multi/adp-multi.svg)](https://coveralls.io/r/adp-multi/adp-multi?branch=master)
 ==========
 
 adp-multi is an adaptation of the [Algebraic Dynamic Programming](http://bibiserv.techfak.uni-bielefeld.de/adp/)
