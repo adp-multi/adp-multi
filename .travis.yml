@@ -29,7 +29,7 @@ before_install:
   - $CABAL update
   - ghc-pkg list
   - |
-    if [ $GHCVER = "7.8.3" ]; then
+    if [ $GHCVER = "7.6.3" ]; then
       $CABAL install hpc-coveralls
     fi
   
@@ -37,10 +37,16 @@ install:
   - $CABAL install --dependencies-only --enable-tests
   
 script:
-  - $CABAL configure --enable-tests --enable-library-coverage && $CABAL build && $CABAL test
+  - $CABAL configure --enable-tests --enable-library-coverage && $CABAL build
+  - |
+    if [ $GHCVER = "7.6.3" ]; then
+      run-cabal-test --cabal-name=$CABAL
+    else
+      $CABAL test
+    fi
   
 after_script:
   - |
-    if [ $GHCVER = "7.8.3" ]; then
+    if [ $GHCVER = "7.6.3" ]; then
       hpc-coveralls MainTestSuite
     fi
