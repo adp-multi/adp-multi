@@ -37,7 +37,13 @@ install:
   - $CABAL install --dependencies-only --enable-tests
   
 script:
-  - $CABAL configure --enable-tests --enable-library-coverage && $CABAL build
+  - |
+    if [ $GHCVER = "7.6.3" ]; then
+      $CABAL configure --enable-tests --enable-library-coverage
+    else
+      $CABAL configure --enable-tests
+    fi
+  - $CABAL build
   - |
     if [ $GHCVER = "7.6.3" ]; then
       run-cabal-test --cabal-name=$CABAL
