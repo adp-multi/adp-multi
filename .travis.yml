@@ -9,7 +9,6 @@ env:
 
 matrix:
  allow_failures:
- - env: GHCVER=7.4.2
  - env: GHCVER=7.8.3
 
 before_install:
@@ -32,7 +31,7 @@ before_install:
     fi
   - $CABAL update
   - ghc-pkg list
-  - $CABAL install hpc-coveralls
+  - if [ $GHCVER = "7.8.3" ]; then $CABAL install hpc-coveralls fi
   
 install:
   - $CABAL install --dependencies-only --enable-tests
@@ -41,4 +40,4 @@ script:
   - $CABAL configure --enable-tests --enable-library-coverage && $CABAL build && run-cabal-test --cabal-name=$CABAL
   
 after_script:
-  - hpc-coveralls MainTestSuite
+  - if [ $GHCVER = "7.8.3" ]; then hpc-coveralls MainTestSuite fi
