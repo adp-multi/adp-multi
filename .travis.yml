@@ -37,7 +37,7 @@ install:
   - $CABAL install --dependencies-only --enable-tests
   
 script:
-  - $CABAL configure --enable-tests --enable-library-coverage && $CABAL build && run-cabal-test --cabal-name=$CABAL
+  - $CABAL configure --enable-tests --enable-library-coverage && $CABAL build && $CABAL test
   
 after_script:
   - |
