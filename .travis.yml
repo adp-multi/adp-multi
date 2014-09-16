@@ -7,10 +7,6 @@ env:
 - GHCVER=7.6.3
 - GHCVER=7.8.3
 
-matrix:
- allow_failures:
- - env: GHCVER=7.8.3
-
 before_install:
   # If $GHCVER is the one travis has, don't bother reinstalling it.
   # If it isn't, install the GHC we want from hvr's PPA along
@@ -29,7 +25,7 @@ before_install:
   - $CABAL update
   - ghc-pkg list
   - |
-    if [ $GHCVER = "7.6.3" ]; then
+    if [ $GHCVER = "7.8.3" ]; then
       $CABAL install hpc-coveralls
     fi
   
@@ -38,21 +34,15 @@ install:
   
 script:
   - |
-    if [ $GHCVER = "7.6.3" ]; then
+    if [ $GHCVER = "7.8.3" ]; then
       $CABAL configure --enable-tests --enable-library-coverage
     else
       $CABAL configure --enable-tests
     fi
-  - $CABAL build
-  - |
-    if [ $GHCVER = "7.6.3" ]; then
-      run-cabal-test --cabal-name=$CABAL
-    else
-      $CABAL test
-    fi
+  - $CABAL build && $CABAL test
   
 after_script:
   - |
-    if [ $GHCVER = "7.6.3" ]; then
+    if [ $GHCVER = "7.8.3" ]; then
       hpc-coveralls MainTestSuite
     fi
