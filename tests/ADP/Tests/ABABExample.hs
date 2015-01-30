@@ -33,13 +33,19 @@ data Start =
 enum :: ABAB_Algebra MyChar Start Start
 enum = (Fz,Fp,\_ -> Nil,id,id)
 
+-- FIXME count returns wrong values, why?
 count :: ABAB_Algebra MyChar Int Int
 count = (fz,fp,nil,h,h2) where
    fz a b = a
    fp a _ = a
    nil _  = 1
+   --h = id
+   -- FIXME when using [0] instead of [] we get wrong results
+   --  -> Bellman?
    h [] = [0]
-   h m = m --[sum m]
+   h m = m
+   --h [] = [0]
+   --h m = [sum m]
    h2 = h
 
 prettyprint :: ABAB_Algebra MyChar String (String,String)
