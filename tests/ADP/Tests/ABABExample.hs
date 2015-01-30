@@ -68,6 +68,32 @@ wordproblem = (fz,fp,nil,h,h2) where
 
 texforest :: ABAB_Algebra MyChar String String
 texforest = (fz,fp,nil,h,h2) where
+{-
+Embed the output into the following and adapt the word length:
+
+\documentclass[tikz,border=5pt]{standalone}
+\usepackage{forest}
+\usepackage{calc}
+\begin{document}
+\begingroup
+\def\f{1.5em} % scale
+% CHANGE:
+\def\n{4} % number of leaves
+\def\xleaf#1{\f*(#1-\n/2+0.5)} % calculates x of a leaf
+\begin{forest}
+  for tree={
+    parent anchor=south,
+    child anchor=north,
+    where n children=0{
+      s sep=1.5em,
+      inner xsep=0pt
+    }{},
+  }
+  PASTE HERE
+\end{forest}
+\endgroup
+\end{document}
+-}
    term c idx = "[" ++ c ++ ", before drawing tree={x=\\xleaf{" ++ show idx ++ "}}] "
    fz a b = "[Z " ++ a ++ b ++ " ]"
    fp a ([MyChar 'a' i],[MyChar 'a' i2]) = "[A " ++ a ++ term "a" i ++ term "a" i2 ++ "] "
