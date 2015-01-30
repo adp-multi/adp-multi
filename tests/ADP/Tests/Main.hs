@@ -6,9 +6,10 @@ import qualified ADP.Tests.NestedExample as N
 import qualified ADP.Tests.CopyExample as C
 import qualified ADP.Tests.OneStructureExample as One
 import qualified ADP.Tests.ZeroStructureTwoBackbonesExample as ZeroTT
-import qualified ADP.Tests.AlignmentExample as Alignment
+--import qualified ADP.Tests.AlignmentExample as Alignment
 import qualified ADP.Tests.TreeAlignExample as TreeAlign
 import qualified ADP.Tests.TermExample as Term
+import qualified ADP.Tests.ABABExample as ABAB
 
 -- this file shows the usage of all the test grammars and can be
 -- used for quick tests
@@ -29,7 +30,8 @@ main = do
         --forM_ result9 print
         --forM_ result10 print
         --forM_ resultTerm putStrLn
-        forM_ resultTreeAlign print
+        --forM_ resultTreeAlign print
+        forM_ resultABAB print
         
         where
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
@@ -73,8 +75,8 @@ main = do
             zeroStructureTT = ZeroTT.zeroStructureTwoBackbones
             result9 = zeroStructureTT (ZeroTT.enum) (inp,inp)
             
-            alignment = Alignment.alignmentGr
-            result10 = alignment (Alignment.unit Alignment.*** Alignment.count) ("darling","airline")
+            --alignment = Alignment.alignmentGr
+            --result10 = alignment (Alignment.unit Alignment.*** Alignment.count) ("darling","airline")
             
             term = Term.term
             termAlg = Term.qtree (\sym -> 
@@ -87,3 +89,6 @@ main = do
             tree2 = "f(f(),g())"
             ta = TreeAlign.treeAlign (TreeAlign.treeSimilarity TreeAlign.*** TreeAlign.term)
             resultTreeAlign = ta (tree1,tree2)
+            
+            resultABAB = ABAB.grammar ABAB.texforest "abab"
+            

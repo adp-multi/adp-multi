@@ -86,7 +86,8 @@ test-suite MainTestSuite
   ghc-options:     -Wall -rtsopts
   other-modules:   
                    ADP.Multi.Rewriting.Tests.YieldSize,
-                   ADP.Tests.AlignmentExample,
+                   ADP.Tests.ABABExample,
+                   --ADP.Tests.AlignmentExample,
                    ADP.Tests.CopyExample,
                    ADP.Tests.CopyTwoTrackExample,
                    ADP.Tests.Main,
