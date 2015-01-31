@@ -82,7 +82,8 @@ Embed the output into the following and adapt the word length:
     where n children=0{
       tier=word,
       s sep=1.5em,
-      inner xsep=0pt
+      inner xsep=0pt,
+      text height=5pt
     }{},
   }
   PASTE HERE
@@ -128,6 +129,7 @@ Embed the output into the following:
       tier=word,
       s sep=1.5em,
       inner xsep=0pt,
+      text height=5pt,
       delay={TeX={\stepcounter{leafnodes}}},
     }{},
   }
