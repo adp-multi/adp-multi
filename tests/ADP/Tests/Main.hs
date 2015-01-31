@@ -33,7 +33,8 @@ main = do
         --forM_ resultTreeAlign print
         forM_ resultCountABAB print
         forM_ resultEnumABAB print
-        forM_ resultTexABAB print
+        forM_ resultTexABAB putStrLn
+        forM_ resultTexNewABAB putStrLn
         
         where
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
@@ -92,8 +93,9 @@ main = do
             ta = TreeAlign.treeAlign (TreeAlign.treeSimilarity TreeAlign.*** TreeAlign.term)
             resultTreeAlign = ta (tree1,tree2)
             
-            abab = "abab"
+            abab = "aaaaabbaaaaabb"
             resultCountABAB = ABAB.grammar ABAB.count abab
             resultEnumABAB = ABAB.grammar ABAB.enum abab
             resultTexABAB = ABAB.grammar ABAB.texforest abab
+            resultTexNewABAB = ABAB.grammar ABAB.texforestnew abab
             

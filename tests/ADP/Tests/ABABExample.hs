@@ -33,19 +33,13 @@ data Start =
 enum :: ABAB_Algebra MyChar Start Start
 enum = (Fz,Fp,\_ -> Nil,id,id)
 
--- FIXME count returns wrong values, why?
 count :: ABAB_Algebra MyChar Int Int
 count = (fz,fp,nil,h,h2) where
    fz a b = a
    fp a _ = a
    nil _  = 1
-   --h = id
-   -- FIXME when using [0] instead of [] we get wrong results
-   --  -> Bellman?
-   h [] = [0]
-   h m = m
-   --h [] = [0]
-   --h m = [sum m]
+   h [] = []
+   h m = [sum m]
    h2 = h
 
 prettyprint :: ABAB_Algebra MyChar String (String,String)
@@ -62,10 +56,11 @@ wordproblem = (fz,fp,nil,h,h2) where
    fz a b = True
    fp a _ = True
    nil _  = True
-   h [] = [False]
+   h [] = []
    h m = [or m]
    h2 = h
 
+-- works with pgf/tikz >= 2.10 but requires to manually put in the word length 
 texforest :: ABAB_Algebra MyChar String String
 texforest = (fz,fp,nil,h,h2) where
 {-
@@ -85,6 +80,7 @@ Embed the output into the following and adapt the word length:
     parent anchor=south,
     child anchor=north,
     where n children=0{
+      tier=word,
       s sep=1.5em,
       inner xsep=0pt
     }{},
@@ -95,6 +91,52 @@ Embed the output into the following and adapt the word length:
 \end{document}
 -}
    term c idx = "[" ++ c ++ ", before drawing tree={x=\\xleaf{" ++ show idx ++ "}}] "
+   fz a b = "[Z " ++ a ++ b ++ " ]"
+   fp a ([MyChar 'a' i],[MyChar 'a' i2]) = "[A " ++ a ++ term "a" i ++ term "a" i2 ++ "] "
+   fp a ([MyChar 'b' i],[MyChar 'b' i2]) = "[B " ++ a ++ term "b" i ++ term "b" i2 ++ "] "
+   nil _ = ""
+   h = id
+   h2 = h
+   
+-- works with pgf/tikz >= 3
+texforestnew :: ABAB_Algebra MyChar String String
+texforestnew = (fz,fp,nil,h,h2) where
+{-
+Embed the output into the following:
+
+\documentclass[tikz,border=5pt]{standalone}
+\usepackage{forest}
+\begin{document}
+\begingroup
+\def\f{1.5em} % scale
+\newcounter{leafnodes}
+\setcounter{leafnodes}{0}
+\forestset{
+  leaf position/.style={
+    before drawing tree={
+      where n children=0{
+        x/.pgfmath={(#1-(.5*\theleafnodes)+.5)*\f}
+      }{},
+    }
+  },
+}
+\begin{forest}
+  for tree={
+    parent anchor=south,
+    child anchor=north,
+    where n children=0{
+      tier=word,
+      s sep=1.5em,
+      inner xsep=0pt,
+      delay={TeX={\stepcounter{leafnodes}}},
+    }{},
+  }
+  PASTE HERE
+\end{forest}
+\endgroup
+\end{document}
+-}
+   term c idx = "[" ++ c ++ ", leaf position=" ++ show idx ++ "]"
    fz a b = "[Z " ++ a ++ b ++ " ]"
    fp a ([MyChar 'a' i],[MyChar 'a' i2]) = "[A " ++ a ++ term "a" i ++ term "a" i2 ++ "] "
    fp a ([MyChar 'b' i],[MyChar 'b' i2]) = "[B " ++ a ++ term "b" i ++ term "b" i2 ++ "] "
