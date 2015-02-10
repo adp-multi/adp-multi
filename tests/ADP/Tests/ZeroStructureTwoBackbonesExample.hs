@@ -38,7 +38,7 @@ type ZeroStructureTwoBackbones_Algebra alphabet ansOne ans = (
   ans -> ansOne -> ansOne -> ans -> ans, -- g1
   ans -> ans,                            -- g2
   ans -> ans -> ans,                     -- ub1
-  EPS -> ans,                            -- ub2
+  [alphabet] -> ans,                            -- ub2
   alphabet -> ans,                       -- base
   (alphabet, alphabet) -> ans,           -- basepair
   [ans] -> [ans]                         -- h
@@ -153,7 +153,7 @@ zeroStructureTwoBackbonesGrammar algebra z =
   ub = tabulated1 $
       yieldSize1 (0,Nothing) $
       ub1 <<< b ~~~ ub >>> id1 |||
-      ub2 <<< EPS >>> id1
+      ub2 <<< "" >>> id1
   
   b = tabulated1 $
       base <<< 'a' >>> id1 |||

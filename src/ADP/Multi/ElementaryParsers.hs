@@ -60,10 +60,10 @@ string2 s1 s2 =
         string2' s1 s2
     ) 
 
-data EPS = EPS deriving (Eq, Show, Data, Typeable)
+data EPS = EPS Int deriving (Eq, Show, Data, Typeable)
 
 empty1' :: Parser a EPS
-empty1' _ [i,j] = [ EPS | i == j ]
+empty1' _ [i,j] = [ EPS i | i == j ]
 
 empty1 :: RichParser a EPS
 empty1 = (
@@ -72,7 +72,7 @@ empty1 = (
          )
 
 empty2' :: Parser a (EPS,EPS)
-empty2' _ [i,j,k,l] = [ (EPS,EPS) | i == j && k == l ]
+empty2' _ [i,j,k,l] = [ (EPS i,EPS k) | i == j && k == l ]
 
 empty2 :: RichParser a (EPS,EPS)
 empty2 = (
@@ -130,7 +130,7 @@ char2 c1 c2 = (
              
 charLeftOnly' :: Eq a => a -> Parser a (a,EPS)
 charLeftOnly' c z [i,j,k,l] = 
-    [ (z!j, EPS) | i+1 == j && k == l && z!j == c ]
+    [ (z!j, EPS k) | i+1 == j && k == l && z!j == c ]
       
 charLeftOnly :: Eq a => a -> RichParser a (a,EPS)
 charLeftOnly c = (
@@ -140,7 +140,7 @@ charLeftOnly c = (
                  
 charRightOnly' :: Eq a => a -> Parser a (EPS,a)
 charRightOnly' c z [i,j,k,l] =
-    [ (EPS, z!l) | i == j && k+1 == l && z!l == c ]
+    [ (EPS i, z!l) | i == j && k+1 == l && z!l == c ]
 
 charRightOnly :: Eq a => a -> RichParser a (EPS,a)
 charRightOnly c = (

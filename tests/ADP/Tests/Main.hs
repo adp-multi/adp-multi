@@ -37,6 +37,8 @@ main = do
         --forM_ resultTexABAB putStrLn
         --forM_ resultTexNewABAB putStrLn
         forM_ resultDotbracketPaper print
+        forM_ resultTeXPaper putStrLn
+        forM_ resultEnumPaper print
         forM_ resultBPMAXPaper print
         
         where
@@ -104,5 +106,7 @@ main = do
 
             paperinp = "acug"
             resultDotbracketPaper = Paper.grammar Paper.dotbracket paperinp
+            resultTeXPaper = Paper.grammar Paper.texforestnew paperinp
+            resultEnumPaper = Paper.grammar Paper.enum paperinp
             resultBPMAXPaper = Paper.grammar Paper.bpmax paperinp
             

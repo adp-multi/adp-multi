@@ -164,13 +164,13 @@ grammar algebra inp =
   a = tabulated2 $
       yieldSize2 (0,Nothing) (0,Nothing) $
       fp  <<< a ~~~ (myString "a",myString "a") >>> fpRewrite |||
-      nil <<< (EPS,EPS)       >>> id2
+      nil <<< (EPS 0,EPS 0)       >>> id2
       ... h2
   
   b = tabulated2 $
       yieldSize2 (0,Nothing) (0,Nothing) $
       fp  <<< b ~~~ (myString "b",myString "b") >>> fpRewrite |||
-      nil <<< (EPS,EPS)       >>> id2
+      nil <<< (EPS 0,EPS 0)       >>> id2
       ... h2
       
   z = mk (myString inp)

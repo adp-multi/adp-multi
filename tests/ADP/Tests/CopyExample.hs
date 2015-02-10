@@ -7,7 +7,7 @@ import ADP.Multi.Rewriting.All
 import MCFG.MCFG
                                  
 type Copy_Algebra alphabet answerDim1 answerDim2 = (
-  (EPS,EPS)  -> answerDim2,                         -- nil
+  ([alphabet],[alphabet])  -> answerDim2,                         -- nil
   answerDim2 -> answerDim1,                         -- copy
   alphabet -> alphabet -> answerDim2 -> answerDim2  -- copy'
   )
@@ -91,7 +91,7 @@ copyGr algebra inp =
       yieldSize2 (0,Nothing) (0,Nothing) $
       copy' <<< 'a' ~~~ 'a' ~~~ c >>> rewriteCopy |||
       copy' <<< 'b' ~~~ 'b' ~~~ c >>> rewriteCopy |||
-      nil   <<< (EPS,EPS)         >>> id2
+      nil   <<< ("","")         >>> id2
       
   z = mk inp
   tabulated1 = table1 z

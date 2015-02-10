@@ -93,7 +93,7 @@ treeAlign algebra (inp1,inp2) =
       rep    <<< l ~~~ l ~~~ x ~~~ '(' ~~~ ')' ~~~ '(' ~~~ ')' >>> rRep |||
       del    <<< l ~~~ x ~~~ '(' ~~~ ')'                       >>> rDel |||
       ins    <<< l ~~~ x ~~~ '(' ~~~ ')'                       >>> rIns |||
-      mty    <<< (EPS,EPS)                                     >>> id2  |||
+      mty    <<< (EPS 0,EPS 0)                                     >>> id2  |||
       concat <<< x ~~~ x ~~~ ',' ~~~ ','                       >>> rConcat
       ... h
   

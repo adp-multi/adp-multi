@@ -2,13 +2,13 @@ module ADP.Tests.PaperExample where
 
 import ADP.Multi.All
 import ADP.Multi.Rewriting.All 
-                 
+import ADP.Tests.ABABExample(MyChar(..),myString,toString)
               
 type Paper_Algebra alphabet answer = (
   answer   -> answer -> answer -> answer, -- fz1
   answer   -> answer -> answer,           -- fz2
   answer   -> answer -> answer -> answer, -- fz3
-  [alphabet] -> answer,                   -- fe
+  EPS -> answer,                          -- fe
   answer   -> answer -> answer,           -- fk1
   answer   -> answer,                     -- fk2
   answer   -> answer -> answer,           -- fl1
@@ -30,10 +30,13 @@ data Term = FZ1 Term Term Term
           | FB String
           deriving (Eq, Show)
 
-enum :: Paper_Algebra Char Term
-enum = (FZ1,FZ2,FZ3,\_->FE,FK1,FK2,FL1,FL2,FP,FB,id)
+enum :: Paper_Algebra MyChar Term
+enum = (FZ1,FZ2,FZ3,\_->FE,FK1,FK2,FL1,FL2,
+        \(p1,p2) -> FP (toString p1,toString p2),
+        \b -> FB (toString b),
+        id)
 
-bpmax :: Paper_Algebra Char Int
+bpmax :: Paper_Algebra MyChar Int
 bpmax = (fz1,fz2,fz3,fe,fk1,fk2,fl1,fl2,fp,fb,h) where
    fz1 k l z   = k + l + z
    fz2 b z     = z
@@ -48,7 +51,7 @@ bpmax = (fz1,fz2,fz3,fe,fk1,fk2,fl1,fl2,fp,fb,h) where
    h [] = []
    h xs = [maximum xs]
 
-dotbracket :: Paper_Algebra Char [String]
+dotbracket :: Paper_Algebra MyChar [String]
 dotbracket = (fz1,fz2,fz3,fe,fk1,fk2,fl1,fl2,fp,fb,h) where
    fz1 [k1,k2] [l1,l2] [z] = [k1 ++ l1 ++ k2 ++ l2 ++ z]
    fz2 [b] [z]             = [b ++ z]
@@ -61,8 +64,25 @@ dotbracket = (fz1,fz2,fz3,fe,fk1,fk2,fl1,fl2,fp,fb,h) where
    fp _                    = ["(",")"]
    fb _                    = ["."]
    h = id
+
+-- see ABABExample.hs
+texforestnew :: Paper_Algebra MyChar String
+texforestnew = (fz1,fz2,fz3,fe,fk1,fk2,fl1,fl2,fp,fb,h) where
+   term c idx = "[" ++ c ++ ", leaf position=" ++ show idx ++ "] "
+   fz1 k l z = "[Z " ++ k ++ l ++ z ++ " ] "
+   fz2 b z = "[Z " ++ b ++ z ++ "] "
+   fz3 p z1 z2 = "[Z " ++ p ++ z1 ++ z2 ++ "] "
+   -- a small hack
+   fe (EPS i) = "[Z [$\\epsilon$, leaf position=" ++ show ((fromIntegral i)-0.5) ++ " ] ] "
+   fk1 p k = "[K " ++ p ++ k ++ "]"
+   fk2 p = "[K " ++ p ++ "]"
+   fl1 p l = "[L " ++ p ++ l ++ "]"
+   fl2 p = "[L " ++ p ++ "]"
+   fp ([MyChar b1 i1],[MyChar b2 i2]) = "[P " ++ term [b1] i1 ++ term [b2] i2 ++ "] "
+   fb [MyChar b i] = "[B " ++ term [b] i ++ "] "
+   h = id
    
-grammar :: Paper_Algebra Char answer -> String -> [answer]
+grammar :: Paper_Algebra MyChar answer -> String -> [answer]
 grammar algebra inp =
   let  
   (fz1,fz2,fz3,fe,fk1,fk2,fl1,fl2,fp,fb,h) = algebra
@@ -77,7 +97,7 @@ grammar algebra inp =
       fz1 <<< k ~~~ l ~~~ z >>> rz1 |||
       fz2 <<< b ~~~ z >>> id1 |||
       fz3 <<< p ~~~ z ~~~ z >>> rz3 |||
-      fe <<< "" >>> id1     
+      fe <<< EPS 0 >>> id1     
       ... h
   
   rk1 :: Dim2
@@ -94,20 +114,20 @@ grammar algebra inp =
       fl2 <<< p >>> id2
   
   p = tabulated2 $
-      fp <<< ("a", "u") >>> id2 |||
-      fp <<< ("u", "a") >>> id2 |||
-      fp <<< ("c", "g") >>> id2 |||
-      fp <<< ("g", "c") >>> id2 |||
-      fp <<< ("g", "u") >>> id2 |||
-      fp <<< ("u", "g") >>> id2
+      fp <<< (myString "a", myString "u") >>> id2 |||
+      fp <<< (myString "u", myString "a") >>> id2 |||
+      fp <<< (myString "c", myString "g") >>> id2 |||
+      fp <<< (myString "g", myString "c") >>> id2 |||
+      fp <<< (myString "g", myString "u") >>> id2 |||
+      fp <<< (myString "u", myString "g") >>> id2
 
   b = tabulated1 $
-      fb <<< "a" >>> id1 |||
-      fb <<< "u" >>> id1 |||
-      fb <<< "c" >>> id1 |||
-      fb <<< "g" >>> id1
+      fb <<< myString "a" >>> id1 |||
+      fb <<< myString "u" >>> id1 |||
+      fb <<< myString "c" >>> id1 |||
+      fb <<< myString "g" >>> id1
 
-  inpa = mk inp
+  inpa = mk (myString inp)
   tabulated1 = table1 inpa
   tabulated2 = table2 inpa
   

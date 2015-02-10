@@ -146,7 +146,7 @@ oneStructureGrammar algebra z =
   
   s = tabulated1 $
       yieldSize1 (0, Nothing) $
-      nil  <<< EPS >>> id1 |||
+      nil  <<< EPS 0 >>> id1 |||
       left <<< b ~~~ s >>> id1 |||
       pair <<< p ~~~ s ~~~ s >>> rewritePair
       

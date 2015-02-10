@@ -5,7 +5,7 @@ import ADP.Multi.All
 import ADP.Multi.Rewriting.All
                                  
 type Nested_Algebra alphabet answer = (
-  EPS -> answer,                              -- nil
+  [alphabet] -> answer,                              -- nil
   answer   -> answer -> answer,               -- left
   answer   -> answer -> answer,               -- pair
   alphabet -> answer -> alphabet -> answer,   -- basepair
@@ -98,7 +98,7 @@ nested algebra inp =
      
   s = tabulated $
       yieldSize1 (0,Nothing) $
-      nil  <<< EPS     >>> id1 |||
+      nil  <<< ""      >>> id1 |||
       left <<< b ~~~ s >>> id1 |||
       pair <<< p ~~~ s >>> id1
       ... h

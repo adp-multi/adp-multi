@@ -22,7 +22,7 @@ import ADP.Multi.All
 import ADP.Multi.Rewriting.All
                                 
 type RG_Algebra alphabet answer = (
-  EPS -> answer,                              -- nil
+  [alphabet] -> answer,                              -- nil
   answer   -> answer -> answer,               -- left
   answer   -> answer -> answer -> answer,     -- pair
   answer   -> answer -> answer -> answer -> answer -> answer -> answer, -- knot
@@ -208,7 +208,7 @@ rgknot algebra inp =
   
   s = tabulated1 $
       yieldSize1 (0,Nothing) $
-      nil  <<< EPS >>> id1 |||
+      nil  <<< "" >>> id1 |||
       left <<< b ~~~ s >>> id1 |||
       pair <<< p ~~~ s ~~~ s >>> rewritePair |||
       knot <<< k ~~~ k ~~~ s ~~~ s ~~~ s ~~~ s >>> rewriteKnot
