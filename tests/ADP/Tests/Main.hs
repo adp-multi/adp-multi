@@ -10,6 +10,7 @@ import qualified ADP.Tests.ZeroStructureTwoBackbonesExample as ZeroTT
 import qualified ADP.Tests.TreeAlignExample as TreeAlign
 import qualified ADP.Tests.TermExample as Term
 import qualified ADP.Tests.ABABExample as ABAB
+import qualified ADP.Tests.PaperExample as Paper
 
 -- this file shows the usage of all the test grammars and can be
 -- used for quick tests
@@ -31,10 +32,12 @@ main = do
         --forM_ result10 print
         --forM_ resultTerm putStrLn
         --forM_ resultTreeAlign print
-        forM_ resultCountABAB print
-        forM_ resultEnumABAB print
-        forM_ resultTexABAB putStrLn
-        forM_ resultTexNewABAB putStrLn
+        --forM_ resultCountABAB print
+        --forM_ resultEnumABAB print
+        --forM_ resultTexABAB putStrLn
+        --forM_ resultTexNewABAB putStrLn
+        forM_ resultDotbracketPaper print
+        forM_ resultBPMAXPaper print
         
         where
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
@@ -98,4 +101,8 @@ main = do
             resultEnumABAB = ABAB.grammar ABAB.enum abab
             resultTexABAB = ABAB.grammar ABAB.texforest abab
             resultTexNewABAB = ABAB.grammar ABAB.texforestnew abab
+
+            paperinp = "acug"
+            resultDotbracketPaper = Paper.grammar Paper.dotbracket paperinp
+            resultBPMAXPaper = Paper.grammar Paper.bpmax paperinp
             
