@@ -43,7 +43,7 @@ copyTTGr algebra (inp1,inp2) =
       yieldSize2 (0,Nothing) (0,Nothing) $
       copy <<< 'a' ~~~ 'a' ~~~ c >>> rewriteCopy |||
       copy <<< 'b' ~~~ 'b' ~~~ c >>> rewriteCopy |||
-      nil  <<< (EPS,EPS)         >>> id2
+      nil  <<< (EPS 0,EPS 0)         >>> id2
       
   z = mkTwoTrack inp1 inp2
   tabulated2 = table2 z
