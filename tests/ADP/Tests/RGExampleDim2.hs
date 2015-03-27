@@ -146,7 +146,7 @@ prettyprint = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
         )
    knot2 (pl,pr) = (pl, pr)
    basepair (b1,b2) = (["(",")"], [[b1],[b2]])
-   base (EPS,b) = (["."], [[b]])
+   base (_,b) = (["."], [[b]])
    h = id
    
    square l r = (map (const '[') l, map (const ']') r)
@@ -166,17 +166,17 @@ rgknot algebra inp =
   
   s = tabulated2 $
       yieldSize2 (0,Nothing) (0,Nothing) $
-      nil <<< (EPS,EPS) >>> id2 |||
-      left <<< EPS ~~~ b ~~~ s >>> s2 |||
-      pair <<< EPS ~~~ p ~~~ s ~~~ s >>> s3 |||
-      knot <<< EPS ~~~ k ~~~ k ~~~ s ~~~ s ~~~ s ~~~ s >>> s4 
+      nil <<< (EPS 0,EPS 0) >>> id2 |||
+      left <<< EPS 0 ~~~ b ~~~ s >>> s2 |||
+      pair <<< EPS 0 ~~~ p ~~~ s ~~~ s >>> s3 |||
+      knot <<< EPS 0 ~~~ k ~~~ k ~~~ s ~~~ s ~~~ s ~~~ s >>> s4 
       ... h
       
   b = tabulated2 $
-      base <<< (EPS, 'a') >>> id2 |||
-      base <<< (EPS, 'u') >>> id2 |||
-      base <<< (EPS, 'c') >>> id2 |||
-      base <<< (EPS, 'g') >>> id2
+      base <<< (EPS 0, 'a') >>> id2 |||
+      base <<< (EPS 0, 'u') >>> id2 |||
+      base <<< (EPS 0, 'c') >>> id2 |||
+      base <<< (EPS 0, 'g') >>> id2
   
   p' [c1,c2] = ([c1],[c2])
   p = tabulated2 $

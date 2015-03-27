@@ -23,7 +23,7 @@ table1' z q =
         arr = array (0,(n+1)*(n+2) `div` 2)
                     [(adr (i,j), q z [i,j])
                     | i <- [0..n], j <- [i..n] ]
-        adr (i,j) = n*i - (i*(i-1)) `div` 2 + j
+        adr (i,j) = i + (j*(j+1)) `div` 2
     in \ _ [i,j] -> 
         if i <= j
         then arr!adr (i,j)
