@@ -30,7 +30,49 @@ type OneStructure_Algebra alphabet ans = (
   ans -> ans,                        -- dknot2
   [ans] -> [ans]                     -- h
   )
-  
+
+infixl ***
+(***) :: (Eq b, Eq c) => OneStructure_Algebra a b -> OneStructure_Algebra a c -> OneStructure_Algebra a (b,c)
+alg1 *** alg2 = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
+              ,aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) where
+   (nil',left',pair',basepair',base',i1',i2',tstart',knotH',knotK',knotL',knotM'
+              ,aknot1',aknot2',bknot1',bknot2',cknot1',cknot2',dknot1',dknot2',h') = alg1
+   (nil'',left'',pair'',basepair'',base'',i1'',i2'',tstart'',knotH'',knotK'',knotL'',knotM''
+              ,aknot1'',aknot2'',bknot1'',bknot2'',cknot1'',cknot2'',dknot1'',dknot2'',h'') = alg2
+   
+   nil a = (nil' a, nil'' a)
+   left (b1,b2) (s1,s2) = (left' b1 s1, left'' b2 s2)
+   pair (p1,p2) (s11,s21) (s12,s22) = (pair' p1 s11 s12, pair'' p2 s21 s22)
+   basepair a = (basepair' a,  basepair'' a)
+   base a = (base' a, base'' a)
+   i1 (s1,s2) = (i1' s1, i1'' s2)
+   i2 (t1,t2) = (i2' t1, i2'' t2)
+   tstart (p1,p2) (i1,i2) (t1,t2) (s1,s2) = (tstart' p1 i1 t1 s1, tstart'' p2 i2 t2 s2)
+   knotH (s1,s2) (i11,i12) (i21,i22) (i31,i32) (i41,i42) (a1,a2) (b1,b2) =
+     (knotH' s1 i11 i21 i31 i41 a1 b1, knotH'' s2 i12 i22 i32 i42 a2 b2)
+   knotK (s1,s2) (i11,i12) (i21,i22) (i31,i32) (i41,i42) (i51,i52) (i61,i62) (a1,a2) (b1,b2) (c1,c2) =
+     (knotK' s1 i11 i21 i31 i41 i51 i61 a1 b1 c1, knotK'' s2 i12 i22 i32 i42 i52 i62 a2 b2 c2)
+   knotL (s1,s2) (i11,i12) (i21,i22) (i31,i32) (i41,i42) (i51,i52) (i61,i62) (a1,a2) (b1,b2) (c1,c2) =
+     (knotL' s1 i11 i21 i31 i41 i51 i61 a1 b1 c1, knotL'' s2 i12 i22 i32 i42 i52 i62 a2 b2 c2)
+   knotM (s1,s2) (i11,i12) (i21,i22) (i31,i32) (i41,i42) (i51,i52) (i61,i62) (i71,i72) (i81,i82) (a1,a2) (b1,b2) (c1,c2) (d1,d2) = 
+     (knotM' s1 i11 i21 i31 i41 i51 i61 i71 i81 a1 b1 c1 d1, knotM'' s2 i12 i22 i32 i42 i52 i62 i72 i82 a2 b2 c2 d2)
+   aknot1 = xknot1 aknot1' aknot1''
+   bknot1 = xknot1 bknot1' bknot1''
+   cknot1 = xknot1 cknot1' cknot1''
+   dknot1 = xknot1 dknot1' dknot1''
+   aknot2 = xknot2 aknot2' aknot2''
+   bknot2 = xknot2 bknot2' bknot2''
+   cknot2 = xknot2 cknot2' cknot2''
+   dknot2 = xknot2 dknot2' dknot2''
+   xknot1 xknot1' xknot1'' (p1,p2) (i11,i12) (i21,i22) (x1,x2) = 
+     (xknot1' p1 i11 i21 x1, xknot1'' p2 i12 i22 x2)
+   xknot2 xknot2' xknot2'' (p1,p2) = (xknot2' p1, xknot2'' p2)
+
+   h xs = [ (x1,x2) |
+            x1 <- h'  [ y1 | (y1,_)  <- xs]
+          , x2 <- h'' [ y2 | (y1,y2) <- xs, y1 == x1]
+          ]
+
 data T = Nil
        | Left' T T
        | Pair T T T
@@ -119,6 +161,36 @@ prettyprint2 = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
    
    h = id
 
+-- | base pair maximization
+bpmax :: OneStructure_Algebra Char Int
+bpmax = (nil,left,pair,basepair,base,i1,i2,tstart,knotH,knotK,knotL,knotM
+              ,aknot1,aknot2,bknot1,bknot2,cknot1,cknot2,dknot1,dknot2,h) where
+   nil _ = 0
+   left b s = b + s
+   pair p s1 s2 = p + s1 + s2
+   basepair _ = 1
+   base _ = 0
+   i1 s = s
+   i2 t = t
+   tstart p i t s = p + i + t + s
+   knotH s i1 i2 i3 i4 a b = s + i1 + i2 + i3 + i4 + a + b
+   knotK s i1 i2 i3 i4 i5 i6 a b c = s + i1 + i2 + i3 + i4 + i5 + i6 + a + b + c
+   knotL s i1 i2 i3 i4 i5 i6 a b c = s + i1 + i2 + i3 + i4 + i5 + i6 + a + b + c
+   knotM s i1 i2 i3 i4 i5 i6 i7 i8 a b c d = s + i1 + i2 + i3 + i4 + i5 + i6 + i7 + i8 + a + b + c + d
+   aknot1 = xknot1
+   aknot2 p = p
+   bknot1 = xknot1
+   bknot2 p = p
+   cknot1 = xknot1
+   cknot2 p = p
+   dknot1 = xknot1
+   dknot2 p = p
+   
+   xknot1 p i1 i2 x = p + i1 + i2 + x
+      
+   h [] = [] 
+   h xs = [maximum xs]
+
 {- To make the grammar reusable, its definition has been split up into the
    actual grammar which exposes the start symbol as a parser (oneStructureGrammar)
    and a convenience function which actually runs the grammar on a given input (oneStructure).
@@ -139,6 +211,7 @@ oneStructureGrammar algebra z =
   i = tabulated1 $
       i1 <<< s >>> id1 |||
       i2 <<< t >>> id1
+      ... h
   
   rewritePair, rewriteTStart, rewriteKnotH, rewriteKnotK, rewriteKnotL, rewriteKnotM :: Dim1
   
@@ -149,6 +222,7 @@ oneStructureGrammar algebra z =
       nil  <<< EPS 0 >>> id1 |||
       left <<< b ~~~ s >>> id1 |||
       pair <<< p ~~~ s ~~~ s >>> rewritePair
+      ... h
       
   rewriteTStart [p1,p2,i,t,s] = [i,p1,t,p2,s]
   rewriteKnotH [s,i1,i2,i3,i4,x11,x12,x21,x22] =
@@ -166,6 +240,7 @@ oneStructureGrammar algebra z =
       knotK  <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb ~~~ xc >>> rewriteKnotK |||
       knotL  <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb ~~~ xc >>> rewriteKnotL |||
       knotM  <<< s ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ i ~~~ xa ~~~ xb ~~~ xc ~~~ xd >>> rewriteKnotM
+      ... h
       
   rewriteXKnot1 :: Dim2      
   rewriteXKnot1 [p1,p2,i1,i2,x1,x2] = ([p1,i1,x1],[x2,i2,p2])
@@ -174,19 +249,25 @@ oneStructureGrammar algebra z =
       yieldSize2 (1, Nothing) (1, Nothing) $
       aknot1 <<< p ~~~ i ~~~ i ~~~ xa >>> rewriteXKnot1 |||
       aknot2 <<< p >>> id2
+      ... h
       
   xb = tabulated2 $
       yieldSize2 (1, Nothing) (1, Nothing) $
       bknot1 <<< p ~~~ i ~~~ i ~~~ xb >>> rewriteXKnot1 |||
       bknot2 <<< p >>> id2
+      ... h
       
   xc = tabulated2 $
-      cknot1 <<< p ~~~ i ~~~ i ~~~ xb >>> rewriteXKnot1 |||
+      yieldSize2 (1, Nothing) (1, Nothing) $
+      cknot1 <<< p ~~~ i ~~~ i ~~~ xc >>> rewriteXKnot1 |||
       cknot2 <<< p >>> id2
+      ... h
       
   xd = tabulated2 $
-      dknot1 <<< p ~~~ i ~~~ i ~~~ xb >>> rewriteXKnot1 |||
+      yieldSize2 (1, Nothing) (1, Nothing) $
+      dknot1 <<< p ~~~ i ~~~ i ~~~ xd >>> rewriteXKnot1 |||
       dknot2 <<< p >>> id2
+      ... h
   
   b = tabulated1 $
       base <<< 'a' >>> id1 |||

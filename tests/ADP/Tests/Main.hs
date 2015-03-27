@@ -25,9 +25,9 @@ main = do
         --forM_ result4 print
         --forM_ result53 print
         --forM_ result6 putStrLn
-        --forM_ result6t3 print
+        --forM_ result6t print
         --forM_ result7 print
-        --forM_ result8 print
+        forM_ result8 print
         --forM_ result9 print
         --forM_ result10 print
         --forM_ resultTerm putStrLn
@@ -36,10 +36,10 @@ main = do
         --forM_ resultEnumABAB print
         --forM_ resultTexABAB putStrLn
         --forM_ resultTexNewABAB putStrLn
-        forM_ resultDotbracketPaper print
-        forM_ resultTeXPaper putStrLn
-        forM_ resultEnumPaper print
-        forM_ resultBPMAXPaper print
+        --forM_ resultDotbracketPaper print
+        --forM_ resultTeXPaper putStrLn
+        --forM_ resultEnumPaper print
+        --forM_ resultBPMAXPaper print
         
         where
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
@@ -50,7 +50,8 @@ main = do
             -- struc = "..((((..[[[[)))).....]]]]..."
             -- inp = map toLower "ACCGUCGUUCCCGACGUAAAAGGGAUGU"
             
-            inp = "agcgu"
+            --inp = "agcgu"
+            inp = "agcguu"
 
             --inp = map toLower "ACGAUUCAACGU"
             
@@ -78,7 +79,7 @@ main = do
             result7 = copy (C.countABs) "abaaabaa"
             
             oneStructure = One.oneStructure
-            result8 = oneStructure (One.prettyprint) inp
+            result8 = oneStructure (One.bpmax One.*** One.prettyprint) inp
             
             zeroStructureTT = ZeroTT.zeroStructureTwoBackbones
             result9 = zeroStructureTT (ZeroTT.enum) (inp,inp)
