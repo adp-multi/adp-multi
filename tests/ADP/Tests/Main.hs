@@ -79,7 +79,7 @@ main = do
             result7 = copy (C.countABs) "abaaabaa"
             
             oneStructure = One.oneStructure
-            result8 = oneStructure (One.bpmax One.*** One.prettyprint) inp
+            result8 = oneStructure (One.bpmax One.*** One.texforestnew) inp
             
             zeroStructureTT = ZeroTT.zeroStructureTwoBackbones
             result9 = zeroStructureTT (ZeroTT.enum) (inp,inp)

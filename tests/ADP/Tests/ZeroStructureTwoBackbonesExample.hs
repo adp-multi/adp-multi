@@ -13,6 +13,7 @@ import Data.Array
 import ADP.Multi.All
 import ADP.Multi.Rewriting.All
 import qualified ADP.Tests.OneStructureExample as One
+import ADP.Tests.OneStructureExample (MyChar, MyString, myString, toString)
 
 {- There are two ans types so that the enum
    algebra can be written (because ADTs aren't extensible).
@@ -39,8 +40,8 @@ type ZeroStructureTwoBackbones_Algebra alphabet ansOne ans = (
   ans -> ans,                            -- g2
   ans -> ans -> ans,                     -- ub1
   [alphabet] -> ans,                            -- ub2
-  alphabet -> ans,                       -- base
-  (alphabet, alphabet) -> ans,           -- basepair
+  [alphabet] -> ans,                       -- base
+  ([alphabet], [alphabet]) -> ans,           -- basepair
   [ans] -> [ans]                         -- h
   )
 
@@ -63,11 +64,11 @@ data T = OneStructure One.T
        | G2 T 
        | Ub1 T T
        | Ub2
-       | Base Char
-       | BasePair (Char, Char)
+       | Base MyString
+       | BasePair (MyString, MyString)
        deriving (Eq, Show)
 
-enum :: ZeroStructureTwoBackbones_Algebra Char One.T T
+enum :: ZeroStructureTwoBackbones_Algebra MyChar One.T T
 enum = (One.enum,I1,I2,PT1,PT2,T1,T2,T3,T4,T5,T6,T7
        ,Hs2,H1,H2,G1,G2,Ub1,\_->Ub2,Base,BasePair,id)
 
@@ -77,15 +78,15 @@ enum = (One.enum,I1,I2,PT1,PT2,T1,T2,T3,T4,T5,T6,T7
    convenience function which actually runs the grammar on
    a given input (zeroStructureTwoBackbones).
 -}
-zeroStructureTwoBackbones :: ZeroStructureTwoBackbones_Algebra Char ansOne ans 
+zeroStructureTwoBackbones :: ZeroStructureTwoBackbones_Algebra MyChar ansOne ans 
                           -> (String,String) -> [ans]
 zeroStructureTwoBackbones algebra (inp1,inp2) =
-    let z = mkTwoTrack inp1 inp2
+    let z = mkTwoTrack (myString inp1) (myString inp2)
         grammar = zeroStructureTwoBackbonesGrammar algebra z
-    in axiomTwoTrack z inp1 inp2 grammar
+    in axiomTwoTrack z (myString inp1) (myString inp2) grammar
 
-zeroStructureTwoBackbonesGrammar :: ZeroStructureTwoBackbones_Algebra Char ansOne ans 
-                                 -> Array Int Char -> RichParser Char ans
+zeroStructureTwoBackbonesGrammar :: ZeroStructureTwoBackbones_Algebra MyChar ansOne ans 
+                                 -> Array Int MyChar -> RichParser MyChar ans
 zeroStructureTwoBackbonesGrammar algebra z =
   let  
   (oneStructureAlgebra,i1,i2,pt1,pt2,t1,t2,t3,t4,t5,
@@ -153,21 +154,21 @@ zeroStructureTwoBackbonesGrammar algebra z =
   ub = tabulated1 $
       yieldSize1 (0,Nothing) $
       ub1 <<< b ~~~ ub >>> id1 |||
-      ub2 <<< "" >>> id1
+      ub2 <<< myString "" >>> id1
   
-  b = tabulated1 $
-      base <<< 'a' >>> id1 |||
-      base <<< 'u' >>> id1 |||
-      base <<< 'c' >>> id1 |||
-      base <<< 'g' >>> id1
-      
   p = tabulated2 $
-      basepair <<< ('a', 'u') >>> id2 |||
-      basepair <<< ('u', 'a') >>> id2 |||
-      basepair <<< ('c', 'g') >>> id2 |||
-      basepair <<< ('g', 'c') >>> id2 |||
-      basepair <<< ('g', 'u') >>> id2 |||
-      basepair <<< ('u', 'g') >>> id2
+      basepair <<< (myString "a", myString "u") >>> id2 |||
+      basepair <<< (myString "u", myString "a") >>> id2 |||
+      basepair <<< (myString "c", myString "g") >>> id2 |||
+      basepair <<< (myString "g", myString "c") >>> id2 |||
+      basepair <<< (myString "g", myString "u") >>> id2 |||
+      basepair <<< (myString "u", myString "g") >>> id2
+
+  b = tabulated1 $
+      base <<< myString "a" >>> id1 |||
+      base <<< myString "u" >>> id1 |||
+      base <<< myString "c" >>> id1 |||
+      base <<< myString "g" >>> id1
     
   tabulated1 = table1 z
   tabulated2 = table2 z
