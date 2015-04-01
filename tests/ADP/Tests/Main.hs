@@ -57,7 +57,9 @@ main = do
             result7 = copy (C.countABs) "abaaabaa"
             
             oneStructure = One.oneStructure
-            result8 = oneStructure (One.bpmax One.*** One.texforestnew) inp
+            result8 = oneStructure One.bpmax inp
+            result8tex = [t | (bp,t) <- res] where 
+                         res = oneStructure (One.bpmax One.*** One.texforestnew) inp
             
             zeroStructureTT = ZeroTT.zeroStructureTwoBackbones
             result9 = zeroStructureTT (ZeroTT.enum) (inp,inp)
@@ -100,6 +102,7 @@ main = do
         --forM_ result6t print
         --forM_ result7 print
         forM_ result8 print
+        forM_ result8tex putStrLn
         --forM_ result9 print
         --forM_ result10 print
         --forM_ resultTerm putStrLn
