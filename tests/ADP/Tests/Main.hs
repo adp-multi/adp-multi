@@ -1,4 +1,5 @@
 import System.IO (hSetBuffering, stdout, BufferMode (LineBuffering))
+import System.Environment (getArgs)
 import Data.Char (toLower)
 import Control.Monad (forM_)
 import qualified ADP.Tests.RGExample as RG
@@ -18,30 +19,8 @@ import qualified ADP.Tests.PaperExample as Paper
 main::IO()
 main = do
         hSetBuffering stdout LineBuffering
-        
-        --forM_ result print
-        --forM_ result21 print
-        --forM_ result3 print
-        --forM_ result4 print
-        --forM_ result53 print
-        --forM_ result6 putStrLn
-        --forM_ result6t print
-        --forM_ result7 print
-        forM_ result8 print
-        --forM_ result9 print
-        --forM_ result10 print
-        --forM_ resultTerm putStrLn
-        --forM_ resultTreeAlign print
-        --forM_ resultCountABAB print
-        --forM_ resultEnumABAB print
-        --forM_ resultTexABAB putStrLn
-        --forM_ resultTexNewABAB putStrLn
-        --forM_ resultDotbracketPaper print
-        --forM_ resultTeXPaper putStrLn
-        --forM_ resultEnumPaper print
-        --forM_ resultBPMAXPaper print
-        
-        where
+        args <- getArgs
+        let
             -- http://www.ekevanbatenburg.nl/PKBASE/PKB00279.HTML
             -- struc = ".(((((..[[[))))).]]]."
             --inp = map toLower "CAAUUUUCUGAAAAUUUUCAC"
@@ -50,11 +29,10 @@ main = do
             -- struc = "..((((..[[[[)))).....]]]]..."
             -- inp = map toLower "ACCGUCGUUCCCGACGUAAAAGGGAUGU"
             
-            --inp = "agcgu"
-            inp = "agcguu"
-
             --inp = map toLower "ACGAUUCAACGU"
             
+            inp = if length args == 0 then "agcgu" else args !! 0
+
             rg = RG.rgknot
             
             result = rg RG.enum inp
@@ -110,4 +88,28 @@ main = do
             resultTeXPaper = Paper.grammar Paper.texforestnew paperinp
             resultEnumPaper = Paper.grammar Paper.enum paperinp
             resultBPMAXPaper = Paper.grammar Paper.bpmax paperinp
-            
+
+        putStrLn inp
+
+        --forM_ result print
+        --forM_ result21 print
+        --forM_ result3 print
+        --forM_ result4 print
+        --forM_ result53 print
+        --forM_ result6 putStrLn
+        --forM_ result6t print
+        --forM_ result7 print
+        forM_ result8 print
+        --forM_ result9 print
+        --forM_ result10 print
+        --forM_ resultTerm putStrLn
+        --forM_ resultTreeAlign print
+        --forM_ resultCountABAB print
+        --forM_ resultEnumABAB print
+        --forM_ resultTexABAB putStrLn
+        --forM_ resultTexNewABAB putStrLn
+        --forM_ resultDotbracketPaper print
+        --forM_ resultTeXPaper putStrLn
+        --forM_ resultEnumPaper print
+        --forM_ resultBPMAXPaper print
+        
