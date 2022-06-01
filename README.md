@@ -2,12 +2,12 @@ adp-multi [![Build Status](https://travis-ci.org/adp-multi/adp-multi.svg?branch=
 ==========
 
 adp-multi is an adaptation of the [Algebraic Dynamic Programming](http://bibiserv.techfak.uni-bielefeld.de/adp/)
-method for [multiple context-free languages](http://adp-multi.ruhoh.com/mcfl).
+method for [multiple context-free languages](https://adp-multi.github.io/mcfl).
 
 It is a library based on the original [Haskell-ADP implementation](https://bitbucket.org/gsauthof/adpcombinators)
 and can be considered an unoptimized prototype.
 
-You can find out more about it at its [project page](http://adp-multi.ruhoh.com).
+You can find out more about it at its [project page](https://adp-multi.github.io).
 
 Quick start
 -----------
